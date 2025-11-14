@@ -19,12 +19,16 @@ The `creditXcredit/workstation` repository has been overwritten with incorrect s
 
 ### Evidence of Correct Workstation Code
 
-A published container package exists that contains the **correct** workstation code:
-- Package: `workstation/backend`
-- Package ID: 576679619
-- URL: https://github.com/creditXcredit/workstation/pkgs/container/workstation%2Fbackend/576679619
+Published container packages exist that contain the **correct** workstation code:
 
-This proves that the correct workstation project exists and has been containerized.
+**Tag:** `copilot-fix-failing-ci-checks-4b31220`
+
+**Available architectures:**
+- **linux/amd64**: `sha256:63e562307e19dcd7b6e976f1470ad7e14465b096fac1caeca0a85150a3cd04e0`
+- **linux/arm64**: `sha256:d6bfa9d27159e3aaa90a8eab83a20ba209d655b701c37155e69f98c0c8db81d1`
+- **multi-arch**: `sha256:7f762f3e4d3d05209516edd5885edd4f392a410fa6c46f556dbf92bb35ec790b`
+
+This proves that the correct workstation project exists and has been containerized from your local workspace.
 
 ## Root Cause
 
@@ -44,11 +48,21 @@ The workstation was created from scratch locally and pushed to the repository. I
 The correct code exists in the published container package. To recover:
 
 ```bash
-# Pull the container image (requires authentication)
-docker pull ghcr.io/creditxcredit/workstation/backend:576679619
+# For linux/amd64 (most common)
+./scripts/recover-from-container.sh amd64
 
-# Extract source code from container
-docker create --name temp-workstation ghcr.io/creditxcredit/workstation/backend:576679619
+# For linux/arm64 (M1/M2 Macs, ARM servers)
+./scripts/recover-from-container.sh arm64
+
+# Or manually:
+# linux/amd64
+docker pull ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:63e562307e19dcd7b6e976f1470ad7e14465b096fac1caeca0a85150a3cd04e0
+
+# linux/arm64
+docker pull ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:d6bfa9d27159e3aaa90a8eab83a20ba209d655b701c37155e69f98c0c8db81d1
+
+# Extract source code
+docker create --name temp-workstation ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:63e562307e19dcd7b6e976f1470ad7e14465b096fac1caeca0a85150a3cd04e0
 docker cp temp-workstation:/app ./recovered-workstation
 docker rm temp-workstation
 
@@ -80,10 +94,10 @@ git push origin HEAD:recovery/restore-original-workspace
 
 If the container contains exactly what you need:
 
-1. Clear current repository content (except `.github/`)
-2. Import code from container package 576679619
-3. Commit as new "correct" initial state
-4. Update all references and documentation
+1. Run the automated recovery script: `./scripts/recover-from-container.sh amd64`
+2. Or manually extract from container (see Option 1)
+3. Verify the recovered code matches your original workspace
+4. Commit as restored workstation repository
 
 ## Current Repository State
 

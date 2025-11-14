@@ -3,13 +3,36 @@
 # Repository Recovery Script
 # Extracts correct workstation code from published container package
 #
-# Usage: ./scripts/recover-from-container.sh
+# Usage: ./scripts/recover-from-container.sh [architecture]
+#   architecture: amd64 (default), arm64, or multi
 #
 
 set -e
 
-# Configuration
-CONTAINER_IMAGE="ghcr.io/creditxcredit/workstation/backend:576679619"
+# Detect architecture or use argument
+ARCH="${1:-amd64}"
+
+# Configuration - Multiple container image options
+case "$ARCH" in
+    amd64|linux/amd64)
+        CONTAINER_IMAGE="ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:63e562307e19dcd7b6e976f1470ad7e14465b096fac1caeca0a85150a3cd04e0"
+        ARCH_NAME="linux/amd64"
+        ;;
+    arm64|linux/arm64)
+        CONTAINER_IMAGE="ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:d6bfa9d27159e3aaa90a8eab83a20ba209d655b701c37155e69f98c0c8db81d1"
+        ARCH_NAME="linux/arm64"
+        ;;
+    multi|unknown)
+        CONTAINER_IMAGE="ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:7f762f3e4d3d05209516edd5885edd4f392a410fa6c46f556dbf92bb35ec790b"
+        ARCH_NAME="multi-arch"
+        ;;
+    *)
+        echo "❌ Error: Unknown architecture: $ARCH"
+        echo "Usage: $0 [amd64|arm64|multi]"
+        exit 1
+        ;;
+esac
+
 BACKUP_DIR="backup-$(date +%Y%m%d-%H%M%S)"
 RECOVERY_DIR="recovered-workstation"
 
@@ -23,7 +46,13 @@ echo "  3. Extract source code from container"
 echo "  4. Replace current content with correct code"
 echo "  5. Preserve .git and .github directories"
 echo ""
+echo "Architecture: ${ARCH_NAME}"
 echo "Container: ${CONTAINER_IMAGE}"
+echo ""
+echo "Available container images:"
+echo "  - linux/amd64: sha256:63e562307e19dcd7b6e976f1470ad7e14465b096fac1caeca0a85150a3cd04e0"
+echo "  - linux/arm64: sha256:d6bfa9d27159e3aaa90a8eab83a20ba209d655b701c37155e69f98c0c8db81d1"
+echo "  - multi-arch:  sha256:7f762f3e4d3d05209516edd5885edd4f392a410fa6c46f556dbf92bb35ec790b"
 echo ""
 
 # Verify Docker is available

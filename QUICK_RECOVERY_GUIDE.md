@@ -34,12 +34,15 @@ If you don't have local files anymore, extract from your published container:
 
 ```bash
 # Run the recovery script (requires Docker and GitHub authentication)
-./scripts/recover-from-container.sh
+# For AMD64 (most common)
+./scripts/recover-from-container.sh amd64
 
-# Or manually:
-docker login ghcr.io
-docker pull ghcr.io/creditxcredit/workstation/backend:576679619
-docker create --name temp-ws ghcr.io/creditxcredit/workstation/backend:576679619
+# For ARM64 (M1/M2 Macs)
+./scripts/recover-from-container.sh arm64
+
+# Or manually (AMD64 example):
+docker pull ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:63e562307e19dcd7b6e976f1470ad7e14465b096fac1caeca0a85150a3cd04e0
+docker create --name temp-ws ghcr.io/creditxcredit/workstation/backend:copilot-fix-failing-ci-checks-4b31220@sha256:63e562307e19dcd7b6e976f1470ad7e14465b096fac1caeca0a85150a3cd04e0
 docker cp temp-ws:/app ./recovered-code
 docker rm temp-ws
 
@@ -66,7 +69,8 @@ ls -la
 - Not your original workstation code!
 
 **Correct Code Location:**
-- Container: `ghcr.io/creditxcredit/workstation/backend:576679619`
+- Container tag: `copilot-fix-failing-ci-checks-4b31220`
+- Architecture: linux/amd64, linux/arm64, or multi-arch
 - Your local machine: `/path/to/your/local/workstation`
 
 ## Recovery Checklist
@@ -121,6 +125,9 @@ The container definitely has your correct code since you built and published it!
 
 Your original work exists in:
 1. 🖥️ **Your local machine** (if you haven't deleted it)
-2. 📦 **Container 576679619** (definitely has it)
+2. 📦 **Container images** with tag `copilot-fix-failing-ci-checks-4b31220` (definitely has it)
+   - linux/amd64: `sha256:63e562307...`
+   - linux/arm64: `sha256:d6bfa9d27...`
+   - multi-arch: `sha256:7f762f3e4...`
 
 Choose the easiest recovery path for you!
