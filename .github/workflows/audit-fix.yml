@@ -93,7 +93,7 @@ jobs:
       
       - name: Upload fix patch
         if: steps.eslint-fix.outputs.eslint_fixes == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: eslint-fixes
           path: eslint-fixes.patch
@@ -142,7 +142,7 @@ jobs:
       
       - name: Upload Prettier fixes
         if: steps.prettier-fix.outputs.prettier_fixes == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: prettier-fixes
           path: prettier-fixes.patch
@@ -191,7 +191,7 @@ jobs:
       
       - name: Upload security fixes
         if: steps.security-fix.outputs.security_fixes == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-fixes
           path: security-fixes.patch
@@ -237,7 +237,7 @@ jobs:
       
       - name: Upload dependency updates
         if: steps.dep-update.outputs.dep_updates == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: dependency-updates
           path: dependency-updates.patch
@@ -257,7 +257,7 @@ jobs:
           fetch-depth: 0
       
       - name: Download all fix patches
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           path: fixes
         continue-on-error: true
@@ -334,7 +334,7 @@ jobs:
           cat fix-summary.md
       
       - name: Upload fix summary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: audit-fix-summary
           path: fix-summary.md

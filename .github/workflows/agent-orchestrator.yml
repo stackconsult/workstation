@@ -110,7 +110,7 @@ jobs:
           cat artifacts/requirements.json
       
       - name: Upload requirements
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: agent-requirements
           path: artifacts/requirements.json
@@ -289,7 +289,7 @@ jobs:
           echo "✅ Documentation generated"
       
       - name: Upload documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: agent-documentation
           path: README.md
