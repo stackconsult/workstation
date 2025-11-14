@@ -109,7 +109,7 @@ jobs:
           cat verification-report.md
       
       - name: Upload verification report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: verification-report
           path: verification-report.md
@@ -128,13 +128,13 @@ jobs:
           fetch-depth: 0
       
       - name: Download verification report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: verification-report
           path: .
       
       - name: Create Pull Request (Free)
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ inputs.branch_name || format('audit/auto-fixes-{0}', github.run_number) }}
@@ -183,7 +183,7 @@ jobs:
     
     steps:
       - name: Download verification report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: verification-report
           path: .
@@ -211,7 +211,7 @@ jobs:
       
       - name: Comment on commit
         if: github.event_name == 'push'
-        uses: peter-evans/commit-comment@v3
+        uses: peter-evans/commit-comment@v4
         with:
           body: |
             ## \u2705 Audit System Complete
