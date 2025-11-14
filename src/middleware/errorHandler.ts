@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../utils/logger";
 
 /**
  * Global error handling middleware
@@ -8,9 +8,9 @@ export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
-  logger.error('Unhandled error:', {
+  logger.error("Unhandled error:", {
     error: err.message,
     stack: err.stack,
     path: req.path,
@@ -23,8 +23,8 @@ export function errorHandler(
   }
 
   res.status(500).json({
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    error: "Internal server error",
+    message: process.env.NODE_ENV === "development" ? err.message : undefined,
   });
 }
 
@@ -33,7 +33,7 @@ export function errorHandler(
  */
 export function notFoundHandler(req: Request, res: Response): void {
   res.status(404).json({
-    error: 'Not found',
+    error: "Not found",
     path: req.path,
   });
 }
