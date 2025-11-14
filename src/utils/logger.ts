@@ -1,40 +1,40 @@
-import winston from 'winston';
+import winston from "winston";
 
 /**
  * Configure Winston logger with appropriate formatting and transports
  */
 export const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env.LOG_LEVEL || "info",
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
-    winston.format.json()
+    winston.format.json(),
   ),
   defaultMeta: {
-    service: 'stackBrowserAgent',
+    service: "stackBrowserAgent",
   },
   transports: [
     // Console transport with colorized output for development
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
-        winston.format.simple()
+        winston.format.simple(),
       ),
     }),
   ],
 });
 
 // In production, also log to file
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   logger.add(
     new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    })
+      filename: "logs/error.log",
+      level: "error",
+    }),
   );
   logger.add(
     new winston.transports.File({
-      filename: 'logs/combined.log',
-    })
+      filename: "logs/combined.log",
+    }),
   );
 }

@@ -2,7 +2,7 @@
  * Enhanced health check with system metrics
  */
 export interface HealthStatus {
-  status: 'ok' | 'degraded' | 'error';
+  status: "ok" | "degraded" | "error";
   timestamp: string;
   uptime: number;
   memory: {
@@ -20,7 +20,7 @@ export function getHealthStatus(): HealthStatus {
   const memoryPercentage = (usedMemory / totalMemory) * 100;
 
   return {
-    status: memoryPercentage > 90 ? 'degraded' : 'ok',
+    status: memoryPercentage > 90 ? "degraded" : "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: {
@@ -28,6 +28,6 @@ export function getHealthStatus(): HealthStatus {
       total: Math.round(totalMemory / 1024 / 1024), // MB
       percentage: Math.round(memoryPercentage),
     },
-    version: process.env.npm_package_version || '1.0.0',
+    version: process.env.npm_package_version || "1.0.0",
   };
 }
