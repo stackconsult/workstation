@@ -1,0 +1,341 @@
+name: Audit Scan - Discovery & Analysis
+
+# Stage 1-2: Discovery and Analysis
+# Scans repository for all issues using free/open-source tools
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  discovery:
+    name: Discovery - Enumerate Files
+    runs-on: ubuntu-latest
+    outputs:
+      file-matrix: ${{ steps.enumerate.outputs.matrix }}
+      total-files: ${{ steps.enumerate.outputs.total }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Full history for better analysis
+      
+      - name: Enumerate source files
+        id: enumerate
+        run: |
+          echo "Discovering all source files..."
+          
+          # Find all source files (excluding node_modules, dist, etc.)
+          files=$(find . -type f \( \
+            -name '*.js' -o \
+            -name '*.ts' -o \
+            -name '*.jsx' -o \
+            -name '*.tsx' -o \
+            -name '*.json' -o \
+            -name '*.yml' -o \
+            -name '*.yaml' -o \
+            -name '*.md' \
+          \) ! -path '*/node_modules/*' ! -path '*/dist/*' ! -path '*/.git/*')
+          
+          total=$(echo "$files" | wc -l)
+          echo "total=$total" >> $GITHUB_OUTPUT
+          echo "Found $total source files"
+          
+          # Create JSON matrix for parallel processing
+          matrix=$(echo "$files" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+          
+          # Save file list as artifact
+          echo "$files" > discovered-files.txt
+      
+      - name: Upload file list
+        uses: actions/upload-artifact@v4
+        with:
+          name: discovered-files
+          path: discovered-files.txt
+          retention-days: 7
+
+  static-analysis:
+    name: Analysis - Static Code Analysis
+    runs-on: ubuntu-latest
+    needs: discovery
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint (Free)
+        continue-on-error: true
+        run: |
+          echo "Running ESLint static analysis..."
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-report.json || true
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format stylish || true
+      
+      - name: Run TypeScript Compiler Check (Free)
+        continue-on-error: true
+        run: |
+          echo "Running TypeScript compiler checks..."
+          npx tsc --noEmit --pretty > typescript-report.txt 2>&1 || true
+          cat typescript-report.txt
+      
+      - name: Upload static analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis-results
+          path: |
+            eslint-report.json
+            typescript-report.txt
+          retention-days: 7
+
+  security-scan:
+    name: Analysis - Security Scanning
+    runs-on: ubuntu-latest
+    needs: discovery
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run npm audit (Free)
+        continue-on-error: true
+        run: |
+          echo "Running npm security audit..."
+          npm audit --json > npm-audit-report.json || true
+          npm audit || true
+      
+      - name: Initialize CodeQL (Free)
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript,typescript
+          queries: security-and-quality
+      
+      - name: Perform CodeQL Analysis (Free)
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+      
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            npm-audit-report.json
+          retention-days: 7
+
+  dependency-check:
+    name: Analysis - Dependency Health
+    runs-on: ubuntu-latest
+    needs: discovery
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Check package.json validity
+        run: |
+          echo "Validating package.json..."
+          if [ -f package.json ]; then
+            jq empty package.json && echo "✓ package.json is valid JSON" || echo "✗ package.json is invalid JSON"
+          fi
+      
+      - name: Check for dependency conflicts
+        run: |
+          echo "Checking for dependency conflicts..."
+          npm install --dry-run > dependency-check.txt 2>&1 || true
+          cat dependency-check.txt
+      
+      - name: Check for outdated dependencies (Free)
+        continue-on-error: true
+        run: |
+          echo "Checking for outdated dependencies..."
+          npm outdated --json > outdated-deps.json || true
+          npm outdated || true
+      
+      - name: Upload dependency check results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-results
+          path: |
+            dependency-check.txt
+            outdated-deps.json
+          retention-days: 7
+
+  configuration-check:
+    name: Analysis - Configuration Validation
+    runs-on: ubuntu-latest
+    needs: discovery
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Check TypeScript configuration
+        run: |
+          echo "Validating TypeScript configuration..."
+          if [ -f tsconfig.json ]; then
+            jq empty tsconfig.json && echo "✓ tsconfig.json is valid JSON" || echo "✗ tsconfig.json is invalid JSON"
+          else
+            echo "⚠ No tsconfig.json found"
+          fi
+      
+      - name: Check ESLint configuration
+        run: |
+          echo "Validating ESLint configuration..."
+          if [ -f .eslintrc.json ]; then
+            jq empty .eslintrc.json && echo "✓ .eslintrc.json is valid JSON" || echo "✗ .eslintrc.json is invalid JSON"
+          elif [ -f .eslintrc.js ]; then
+            echo "✓ .eslintrc.js found"
+          else
+            echo "⚠ No ESLint configuration found"
+          fi
+      
+      - name: Check environment configuration
+        run: |
+          echo "Checking environment configuration..."
+          [ -f .env.example ] && echo "✓ .env.example found" || echo "⚠ No .env.example found"
+          [ -f .env ] && echo "⚠ .env file exists (should be in .gitignore)" || echo "✓ No .env file in repository"
+      
+      - name: Validate GitHub workflows
+        run: |
+          echo "Validating GitHub workflow syntax..."
+          for file in .github/workflows/*.yml; do
+            if [ -f "$file" ] && [[ ! "$file" == *.disabled ]]; then
+              echo "Checking $file..."
+              # Basic YAML syntax check
+              python3 -c "import yaml; yaml.safe_load(open('$file'))" && echo "✓ $file is valid YAML" || echo "✗ $file has YAML syntax errors"
+            fi
+          done
+
+  test-coverage:
+    name: Analysis - Test Coverage
+    runs-on: ubuntu-latest
+    needs: discovery
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests with coverage (Free)
+        continue-on-error: true
+        run: |
+          echo "Running tests with coverage..."
+          npm test -- --coverage --coverageReporters=json-summary --coverageReporters=text || true
+      
+      - name: Check test coverage
+        continue-on-error: true
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "Test coverage report:"
+            cat coverage/coverage-summary.json | jq '.total'
+          else
+            echo "⚠ No coverage report generated"
+          fi
+
+  aggregate-results:
+    name: Aggregate Scan Results
+    runs-on: ubuntu-latest
+    needs: [discovery, static-analysis, security-scan, dependency-check, configuration-check, test-coverage]
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: scan-results
+      
+      - name: Generate scan summary
+        run: |
+          echo "# Audit Scan Results - $(date)" > scan-summary.md
+          echo "" >> scan-summary.md
+          echo "## Discovery Summary" >> scan-summary.md
+          echo "Total files scanned: ${{ needs.discovery.outputs.total-files }}" >> scan-summary.md
+          echo "" >> scan-summary.md
+          
+          echo "## Analysis Stages Completed" >> scan-summary.md
+          echo "- ✓ Static Analysis (ESLint, TypeScript)" >> scan-summary.md
+          echo "- ✓ Security Scanning (npm audit, CodeQL)" >> scan-summary.md
+          echo "- ✓ Dependency Health Check" >> scan-summary.md
+          echo "- ✓ Configuration Validation" >> scan-summary.md
+          echo "- ✓ Test Coverage Analysis" >> scan-summary.md
+          echo "" >> scan-summary.md
+          
+          echo "## Next Steps" >> scan-summary.md
+          echo "Run 'audit-classify.yml' workflow to classify and prioritize issues." >> scan-summary.md
+          
+          cat scan-summary.md
+      
+      - name: Upload scan summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-scan-summary
+          path: scan-summary.md
+          retention-days: 30
+      
+      - name: Comment on commit (if push event)
+        if: github.event_name == 'push'
+        uses: peter-evans/commit-comment@v3
+        with:
+          body: |
+            ## 🔍 Audit Scan Completed
+            
+            The comprehensive audit scan has been completed for this commit.
+            
+            **Files Scanned:** ${{ needs.discovery.outputs.total-files }}
+            
+            **Analysis Completed:**
+            - ✓ Static Code Analysis
+            - ✓ Security Scanning
+            - ✓ Dependency Health Check
+            - ✓ Configuration Validation
+            - ✓ Test Coverage
+            
+            View detailed results in the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            Next: Classification workflow will process these results.

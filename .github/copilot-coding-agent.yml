@@ -1,0 +1,36 @@
+onboarding_file: .github/COPILOT_ONBOARDING.md
+build_command: npm run build
+dev_command: npm run dev
+test_command: npm test
+lint_command: npm run lint
+required_env:
+  - JWT_SECRET
+  - JWT_EXPIRATION
+
+commands:
+  - name: build
+    run: npm run build
+  - name: lint
+    run: npm run lint
+  - name: dev
+    run: npm run dev
+
+paths:
+  important:
+    - src/
+    - package.json
+    - tsconfig.json
+    - API.md
+  protected:
+    - src/auth/jwt.ts
+
+agent_contract:
+  summary: "Small, well-scoped tasks: bug fixes, tests, docs, small features. Verify with build and lint. Open PRs for non-trivial changes."
+  inputs:
+    - description: "A clear user story, failing test, or bug report. Include file paths and reproduction steps."
+  outputs:
+    - description: "Code changes (PR), tests added/updated, green build/lint locally, and a short verification checklist in the PR description."
+
+notes: |
+  This file is a machine-friendly helper for humans and Copilot coding agents. It documents canonical commands and important paths.
+  Keep it synced with `package.json` scripts and repo layout.

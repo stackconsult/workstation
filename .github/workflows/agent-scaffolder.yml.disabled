@@ -1,0 +1,382 @@
+name: AI Agent Builder - Project Scaffolder
+
+on:
+  workflow_call:
+    inputs:
+      repository_url:
+        description: 'Repository URL to clone/fork'
+        required: true
+        type: string
+      repository_name:
+        description: 'Repository name'
+        required: true
+        type: string
+      framework_type:
+        description: 'Framework type (langraph/crewai/autogen/etc)'
+        required: true
+        type: string
+      agent_type:
+        description: 'Type of agent being built'
+        required: true
+        type: string
+      project_name:
+        description: 'Name for the new agent project'
+        required: false
+        type: string
+        default: 'my-ai-agent'
+    outputs:
+      project_path:
+        description: 'Path to scaffolded project'
+        value: ${{ jobs.scaffold-project.outputs.path }}
+      structure_summary:
+        description: 'Project structure summary'
+        value: ${{ jobs.scaffold-project.outputs.summary }}
+
+jobs:
+  scaffold-project:
+    runs-on: ubuntu-latest
+    outputs:
+      path: ${{ steps.finalize.outputs.project_path }}
+      summary: ${{ steps.finalize.outputs.summary }}
+      
+    steps:
+      - name: Setup project workspace
+        run: |
+          echo "### 🏗️ Project Scaffolding" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Project Name:** ${{ inputs.project_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Framework:** ${{ inputs.framework_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Agent Type:** ${{ inputs.agent_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Repository:** ${{ inputs.repository_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create workspace directory
+          mkdir -p /tmp/agent-workspace
+          cd /tmp/agent-workspace
+          
+      - name: Clone framework repository
+        id: clone-repo
+        run: |
+          cd /tmp/agent-workspace
+          
+          echo "### 📥 Cloning Framework Repository" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Clone the selected repository
+          git clone ${{ inputs.repository_url }} framework-source
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Successfully cloned ${{ inputs.repository_name }}" >> $GITHUB_STEP_SUMMARY
+            
+            # Get latest commit info
+            cd framework-source
+            COMMIT_SHA=$(git rev-parse --short HEAD)
+            COMMIT_DATE=$(git log -1 --format=%cd --date=short)
+            
+            echo "- **Commit:** \`$COMMIT_SHA\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Date:** $COMMIT_DATE" >> $GITHUB_STEP_SUMMARY
+            cd ..
+          else
+            echo "❌ Failed to clone repository" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Create standard directory structure
+        id: create-structure
+        run: |
+          cd /tmp/agent-workspace
+          PROJECT_NAME="${{ inputs.project_name }}"
+          
+          echo "### 📁 Creating Project Structure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "$PROJECT_NAME/" >> $GITHUB_STEP_SUMMARY
+          
+          # Create project root
+          mkdir -p "$PROJECT_NAME"
+          cd "$PROJECT_NAME"
+          
+          # Standard directories for AI agent projects
+          mkdir -p agents
+          echo "├── agents/           # Agent definitions and logic" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p ui
+          echo "├── ui/               # User interface components" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p backend
+          echo "├── backend/          # Backend API and services" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p mcp
+          echo "├── mcp/              # Model Context Protocol servers" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p data
+          echo "├── data/             # Data storage and RAG content" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p docs
+          echo "├── docs/             # Documentation" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p tests
+          echo "├── tests/            # Test suites" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p .github/workflows
+          echo "├── .github/workflows/ # GitHub Actions workflows" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p config
+          echo "├── config/           # Configuration files" >> $GITHUB_STEP_SUMMARY
+          
+          mkdir -p scripts
+          echo "└── scripts/          # Utility scripts" >> $GITHUB_STEP_SUMMARY
+          
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Copy framework files
+        run: |
+          cd /tmp/agent-workspace
+          PROJECT_NAME="${{ inputs.project_name }}"
+          
+          echo "### 📋 Copying Framework Files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Copy relevant files from framework source to project
+          case "${{ inputs.framework_type }}" in
+            langraph|langgraph)
+              # Copy LangGraph specific files
+              if [ -d "framework-source/examples" ]; then
+                cp -r framework-source/examples "$PROJECT_NAME/agents/examples"
+                echo "- ✅ Copied LangGraph examples" >> $GITHUB_STEP_SUMMARY
+              fi
+              if [ -f "framework-source/pyproject.toml" ]; then
+                cp framework-source/pyproject.toml "$PROJECT_NAME/"
+                echo "- ✅ Copied pyproject.toml" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+            crewai)
+              # Copy CrewAI specific files
+              if [ -d "framework-source/examples" ]; then
+                cp -r framework-source/examples "$PROJECT_NAME/agents/examples"
+                echo "- ✅ Copied CrewAI examples" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+            autogen)
+              # Copy AutoGen specific files
+              if [ -d "framework-source/notebook" ]; then
+                cp -r framework-source/notebook "$PROJECT_NAME/docs/notebooks"
+                echo "- ✅ Copied AutoGen notebooks" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+            llamaindex)
+              # Copy LlamaIndex specific files
+              if [ -d "framework-source/docs/examples" ]; then
+                cp -r framework-source/docs/examples "$PROJECT_NAME/agents/examples"
+                echo "- ✅ Copied LlamaIndex examples" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+            mcp-sdk)
+              # Copy MCP SDK files
+              if [ -d "framework-source/src" ]; then
+                cp -r framework-source/src "$PROJECT_NAME/mcp/"
+                echo "- ✅ Copied MCP SDK source" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+          esac
+          
+          # Copy common files if they exist
+          for file in README.md LICENSE .gitignore; do
+            if [ -f "framework-source/$file" ]; then
+              cp "framework-source/$file" "$PROJECT_NAME/"
+              echo "- ✅ Copied $file" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Initialize Git repository
+        run: |
+          cd /tmp/agent-workspace/${{ inputs.project_name }}
+          
+          echo "### 🔧 Initializing Git Repository" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          git init
+          git config user.name "AI Agent Builder"
+          git config user.email "agent-builder@github.com"
+          
+          echo "✅ Git repository initialized" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Create essential configuration files
+        run: |
+          cd /tmp/agent-workspace/${{ inputs.project_name }}
+          
+          echo "### ⚙️ Creating Configuration Files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Create .gitignore if it doesn't exist
+          if [ ! -f .gitignore ]; then
+            cat > .gitignore << 'EOF'
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm/
+
+# Environment
+.env
+.env.local
+*.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data
+data/*.db
+data/*.sqlite
+data/cache/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+EOF
+            echo "- ✅ Created .gitignore" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Create .env.example
+          cat > .env.example << 'EOF'
+# AI Agent Configuration
+
+# Optional: Bring Your Own Key (BYOK) - API Keys
+# OPENAI_API_KEY=your_openai_key_here
+# ANTHROPIC_API_KEY=your_anthropic_key_here
+
+# Agent Settings
+AGENT_TYPE=${{ inputs.agent_type }}
+FRAMEWORK=${{ inputs.framework_type }}
+
+# MCP Configuration
+MCP_SERVER_URL=http://localhost:3000
+
+# Database (if needed)
+# DATABASE_URL=sqlite:///data/agent.db
+
+# UI Configuration (if needed)
+# UI_PORT=8080
+# BACKEND_PORT=8000
+EOF
+          echo "- ✅ Created .env.example" >> $GITHUB_STEP_SUMMARY
+          
+          # Create README.md if it doesn't exist
+          if [ ! -f README.md ]; then
+            cat > README.md << 'EOF'
+# ${{ inputs.project_name }}
+
+An AI agent built with the AI Agent Builder system.
+
+## Framework
+- **Type:** ${{ inputs.framework_type }}
+- **Source:** ${{ inputs.repository_name }}
+
+## Agent Type
+${{ inputs.agent_type }}
+
+## Getting Started
+
+### Installation
+```bash
+# Install dependencies (will be configured in next stage)
+npm install
+# or
+pip install -r requirements.txt
+```
+
+### Configuration
+1. Copy `.env.example` to `.env`
+2. Configure any required API keys (optional BYOK layer)
+3. Review `config/` directory for framework-specific settings
+
+### Running
+```bash
+# Start the agent
+npm start
+# or
+python main.py
+```
+
+## Project Structure
+See `docs/ARCHITECTURE.md` for detailed structure documentation.
+
+## Free & Open Source
+This project prioritizes free and open-source solutions:
+- Framework: Open source (${{ inputs.framework_type }})
+- All dependencies: Free tier available
+- BYOK layer: Optional, not required
+
+## Documentation
+- Architecture: `docs/ARCHITECTURE.md` (generated in next stage)
+- API Reference: `docs/API.md` (generated in next stage)
+- Contributing: `CONTRIBUTING.md` (generated in next stage)
+
+## License
+See LICENSE file from source framework.
+EOF
+            echo "- ✅ Created README.md" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Finalize scaffolding
+        id: finalize
+        run: |
+          cd /tmp/agent-workspace/${{ inputs.project_name }}
+          
+          # Commit initial structure
+          git add .
+          git commit -m "Initial project scaffolding from ${{ inputs.repository_name }}"
+          
+          # Get project path
+          PROJECT_PATH=$(pwd)
+          
+          echo "### ✅ Scaffolding Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Project Location:** \`$PROJECT_PATH\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Count files and directories
+          FILE_COUNT=$(find . -type f | wc -l)
+          DIR_COUNT=$(find . -type d | wc -l)
+          
+          echo "**Statistics:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Files: $FILE_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- Directories: $DIR_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Dependency installation" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ UI framework integration" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ MCP configuration" >> $GITHUB_STEP_SUMMARY
+          echo "4. ✅ Documentation generation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Free & Open Source:** ✅ All components use free/open-source frameworks" >> $GITHUB_STEP_SUMMARY
+          
+          # Set outputs
+          echo "project_path=$PROJECT_PATH" >> $GITHUB_OUTPUT
+          echo "summary=Scaffolded ${{ inputs.project_name }} with $FILE_COUNT files in $DIR_COUNT directories" >> $GITHUB_OUTPUT

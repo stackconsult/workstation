@@ -1,0 +1,355 @@
+name: Audit Classify - Issue Classification
+
+# Stage 3: Classification
+# Categorizes discovered issues by severity, type, impact, and effort
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Audit Scan - Discovery & Analysis"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  download-scan-results:
+    name: Download Scan Results
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Download scan artifacts from workflow run
+        if: github.event_name == 'workflow_run'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }},
+            });
+            
+            for (const artifact of artifacts.data.artifacts) {
+              console.log(`Found artifact: ${artifact.name}`);
+              const download = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+                archive_format: 'zip',
+              });
+              
+              const fs = require('fs');
+              fs.writeFileSync(`${artifact.name}.zip`, Buffer.from(download.data));
+            }
+      
+      - name: Extract artifacts
+        if: github.event_name == 'workflow_run'
+        run: |
+          mkdir -p scan-results
+          for zipfile in *.zip; do
+            if [ -f "$zipfile" ]; then
+              unzip -o "$zipfile" -d scan-results/
+            fi
+          done
+        continue-on-error: true
+      
+      - name: Upload consolidated results
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results-consolidated
+          path: scan-results/
+          retention-days: 7
+
+  classify-code-issues:
+    name: Classify Code Issues
+    runs-on: ubuntu-latest
+    needs: download-scan-results
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Download consolidated results
+        uses: actions/download-artifact@v4
+        with:
+          name: scan-results-consolidated
+          path: scan-results
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+      
+      - name: Classify ESLint issues
+        run: |
+          echo "Classifying ESLint issues by severity..."
+          
+          if [ -f scan-results/static-analysis-results/eslint-report.json ]; then
+            # Parse ESLint JSON report
+            echo "# Code Issues Classification" > code-issues.md
+            echo "" >> code-issues.md
+            
+            # Count by severity
+            errors=$(jq '[.[].messages[] | select(.severity == 2)] | length' scan-results/static-analysis-results/eslint-report.json)
+            warnings=$(jq '[.[].messages[] | select(.severity == 1)] | length' scan-results/static-analysis-results/eslint-report.json)
+            
+            echo "## Severity Summary" >> code-issues.md
+            echo "- Critical/Errors: $errors" >> code-issues.md
+            echo "- Warnings: $warnings" >> code-issues.md
+            echo "" >> code-issues.md
+            
+            # Group by rule type
+            echo "## Issue Types" >> code-issues.md
+            jq -r '[.[].messages[]] | group_by(.ruleId) | map({rule: .[0].ruleId, count: length}) | sort_by(.count) | reverse | .[] | "- \(.rule): \(.count) occurrences"' scan-results/static-analysis-results/eslint-report.json >> code-issues.md
+            
+            cat code-issues.md
+          else
+            echo "No ESLint report found"
+            echo "# Code Issues Classification" > code-issues.md
+            echo "" >> code-issues.md
+            echo "No ESLint issues found - code is clean!" >> code-issues.md
+          fi
+      
+      - name: Classify TypeScript issues
+        run: |
+          echo "Classifying TypeScript issues..."
+          
+          if [ -f scan-results/static-analysis-results/typescript-report.txt ]; then
+            echo "" >> code-issues.md
+            echo "## TypeScript Issues" >> code-issues.md
+            
+            # Count TypeScript errors
+            ts_errors=$(grep -c "error TS" scan-results/static-analysis-results/typescript-report.txt || echo "0")
+            echo "- Total TypeScript errors: $ts_errors" >> code-issues.md
+            
+            # Categorize by error code
+            echo "" >> code-issues.md
+            echo "### By Error Code" >> code-issues.md
+            grep "error TS" scan-results/static-analysis-results/typescript-report.txt | sed 's/.*error \(TS[0-9]*\).*/\1/' | sort | uniq -c | sort -rn | awk '{print "- " $2 ": " $1 " occurrences"}' >> code-issues.md || echo "No TypeScript errors" >> code-issues.md
+          else
+            echo "" >> code-issues.md
+            echo "## TypeScript Issues" >> code-issues.md
+            echo "No TypeScript issues found - types are clean!" >> code-issues.md
+          fi
+      
+      - name: Upload code issues classification
+        uses: actions/upload-artifact@v4
+        with:
+          name: classified-code-issues
+          path: code-issues.md
+          retention-days: 7
+
+  classify-security-issues:
+    name: Classify Security Issues
+    runs-on: ubuntu-latest
+    needs: download-scan-results
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Download consolidated results
+        uses: actions/download-artifact@v4
+        with:
+          name: scan-results-consolidated
+          path: scan-results
+      
+      - name: Classify npm audit findings
+        run: |
+          echo "Classifying security vulnerabilities..."
+          
+          if [ -f scan-results/security-scan-results/npm-audit-report.json ]; then
+            echo "# Security Issues Classification" > security-issues.md
+            echo "" >> security-issues.md
+            
+            # Parse npm audit report
+            critical=$(jq '.metadata.vulnerabilities.critical // 0' scan-results/security-scan-results/npm-audit-report.json)
+            high=$(jq '.metadata.vulnerabilities.high // 0' scan-results/security-scan-results/npm-audit-report.json)
+            moderate=$(jq '.metadata.vulnerabilities.moderate // 0' scan-results/security-scan-results/npm-audit-report.json)
+            low=$(jq '.metadata.vulnerabilities.low // 0' scan-results/security-scan-results/npm-audit-report.json)
+            
+            echo "## Vulnerability Severity" >> security-issues.md
+            echo "- 🔴 Critical: $critical" >> security-issues.md
+            echo "- 🔴 High: $high" >> security-issues.md
+            echo "- 🟡 Moderate: $moderate" >> security-issues.md
+            echo "- 🟢 Low: $low" >> security-issues.md
+            echo "" >> security-issues.md
+            
+            # Calculate priority score
+            priority_score=$((critical * 10 + high * 5 + moderate * 2 + low * 1))
+            echo "## Priority Score: $priority_score" >> security-issues.md
+            
+            if [ $priority_score -gt 50 ]; then
+              echo "**Priority: IMMEDIATE - Critical security issues require urgent attention**" >> security-issues.md
+            elif [ $priority_score -gt 20 ]; then
+              echo "**Priority: HIGH - Address security issues soon**" >> security-issues.md
+            elif [ $priority_score -gt 5 ]; then
+              echo "**Priority: MEDIUM - Schedule security fixes**" >> security-issues.md
+            else
+              echo "**Priority: LOW - Monitor and address in regular maintenance**" >> security-issues.md
+            fi
+            
+            cat security-issues.md
+          else
+            echo "No security audit report found"
+            echo "# Security Issues Classification" > security-issues.md
+            echo "" >> security-issues.md
+            echo "No security vulnerabilities found - repository is secure!" >> security-issues.md
+          fi
+      
+      - name: Upload security issues classification
+        uses: actions/upload-artifact@v4
+        with:
+          name: classified-security-issues
+          path: security-issues.md
+          retention-days: 7
+
+  classify-dependency-issues:
+    name: Classify Dependency Issues
+    runs-on: ubuntu-latest
+    needs: download-scan-results
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Download consolidated results
+        uses: actions/download-artifact@v4
+        with:
+          name: scan-results-consolidated
+          path: scan-results
+      
+      - name: Classify dependency health
+        run: |
+          echo "Classifying dependency issues..."
+          
+          echo "# Dependency Issues Classification" > dependency-issues.md
+          echo "" >> dependency-issues.md
+          
+          # Check for outdated dependencies
+          if [ -f scan-results/dependency-check-results/outdated-deps.json ]; then
+            outdated_count=$(jq 'keys | length' scan-results/dependency-check-results/outdated-deps.json)
+            echo "## Outdated Dependencies: $outdated_count" >> dependency-issues.md
+            echo "" >> dependency-issues.md
+            
+            # Categorize by update type (major, minor, patch)
+            echo "### Update Types" >> dependency-issues.md
+            jq -r 'to_entries[] | "- \(.key): \(.value.current) → \(.value.latest) (\(.value.type // "unknown"))"' scan-results/dependency-check-results/outdated-deps.json >> dependency-issues.md 2>/dev/null || echo "No specific version info available" >> dependency-issues.md
+          else
+            echo "## Outdated Dependencies: 0" >> dependency-issues.md
+            echo "All dependencies are up to date!" >> dependency-issues.md
+          fi
+          
+          # Check for dependency conflicts
+          if [ -f scan-results/dependency-check-results/dependency-check.txt ]; then
+            echo "" >> dependency-issues.md
+            echo "## Dependency Conflicts" >> dependency-issues.md
+            conflict_count=$(grep -c "conflict" scan-results/dependency-check-results/dependency-check.txt || echo "0")
+            echo "- Detected conflicts: $conflict_count" >> dependency-issues.md
+            
+            if [ $conflict_count -gt 0 ]; then
+              echo "" >> dependency-issues.md
+              echo "### Conflict Details" >> dependency-issues.md
+              grep "conflict" scan-results/dependency-check-results/dependency-check.txt | head -10 >> dependency-issues.md
+            fi
+          else
+            echo "" >> dependency-issues.md
+            echo "## Dependency Conflicts" >> dependency-issues.md
+            echo "No conflicts detected!" >> dependency-issues.md
+          fi
+          
+          cat dependency-issues.md
+      
+      - name: Upload dependency issues classification
+        uses: actions/upload-artifact@v4
+        with:
+          name: classified-dependency-issues
+          path: dependency-issues.md
+          retention-days: 7
+
+  generate-priority-matrix:
+    name: Generate Priority Matrix
+    runs-on: ubuntu-latest
+    needs: [classify-code-issues, classify-security-issues, classify-dependency-issues]
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Download all classifications
+        uses: actions/download-artifact@v4
+        with:
+          path: classifications
+      
+      - name: Generate priority matrix
+        run: |
+          echo "# 🎯 Audit Classification - Priority Matrix" > priority-matrix.md
+          echo "" >> priority-matrix.md
+          echo "Generated: $(date)" >> priority-matrix.md
+          echo "" >> priority-matrix.md
+          
+          echo "## Classification Summary" >> priority-matrix.md
+          echo "" >> priority-matrix.md
+          
+          # Include code issues
+          if [ -f classifications/classified-code-issues/code-issues.md ]; then
+            echo "### Code Quality Issues" >> priority-matrix.md
+            cat classifications/classified-code-issues/code-issues.md >> priority-matrix.md
+            echo "" >> priority-matrix.md
+          fi
+          
+          # Include security issues
+          if [ -f classifications/classified-security-issues/security-issues.md ]; then
+            echo "### Security Vulnerabilities" >> priority-matrix.md
+            cat classifications/classified-security-issues/security-issues.md >> priority-matrix.md
+            echo "" >> priority-matrix.md
+          fi
+          
+          # Include dependency issues
+          if [ -f classifications/classified-dependency-issues/dependency-issues.md ]; then
+            echo "### Dependency Health" >> priority-matrix.md
+            cat classifications/classified-dependency-issues/dependency-issues.md >> priority-matrix.md
+            echo "" >> priority-matrix.md
+          fi
+          
+          echo "## 📈 Recommended Action Priority" >> priority-matrix.md
+          echo "" >> priority-matrix.md
+          echo "1. **IMMEDIATE**: Critical security vulnerabilities" >> priority-matrix.md
+          echo "2. **HIGH**: ESLint errors, high-severity security issues, major dependency conflicts" >> priority-matrix.md
+          echo "3. **MEDIUM**: ESLint warnings, moderate security issues, outdated dependencies" >> priority-matrix.md
+          echo "4. **LOW**: Minor warnings, patch updates, style issues" >> priority-matrix.md
+          echo "" >> priority-matrix.md
+          
+          echo "## Next Steps" >> priority-matrix.md
+          echo "" >> priority-matrix.md
+          echo "Run 'audit-fix.yml' workflow to begin applying automated fixes." >> priority-matrix.md
+          
+          cat priority-matrix.md
+      
+      - name: Upload priority matrix
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-priority-matrix
+          path: priority-matrix.md
+          retention-days: 30
+      
+      - name: Create issue summary
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "🔍 Audit Classification Report - $(date +%Y-%m-%d)"
+          content-filepath: priority-matrix.md
+          labels: audit, automated
+        continue-on-error: true
+      
+      - name: Comment on workflow run
+        if: github.event_name == 'workflow_run'
+        run: |
+          echo "🔍 Audit classification completed. Priority matrix generated."
+          echo "View the priority matrix artifact for detailed classification results."

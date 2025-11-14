@@ -1,0 +1,218 @@
+name: AI Agent Builder - Framework Discovery
+
+on:
+  workflow_call:
+    inputs:
+      agent_type:
+        description: 'Type of agent (web/local/rag/sdk/automation/multi)'
+        required: true
+        type: string
+      framework_preference:
+        description: 'Preferred framework (langraph/crewai/autogen/llamaindex/adk)'
+        required: false
+        type: string
+        default: 'auto'
+      user_goal:
+        description: 'User goal description for context'
+        required: false
+        type: string
+    outputs:
+      repository_url:
+        description: 'Best matched repository URL'
+        value: ${{ jobs.discover-framework.outputs.repo_url }}
+      repository_name:
+        description: 'Repository name'
+        value: ${{ jobs.discover-framework.outputs.repo_name }}
+      framework_type:
+        description: 'Detected framework type'
+        value: ${{ jobs.discover-framework.outputs.framework }}
+      
+jobs:
+  discover-framework:
+    runs-on: ubuntu-latest
+    outputs:
+      repo_url: ${{ steps.select-repo.outputs.url }}
+      repo_name: ${{ steps.select-repo.outputs.name }}
+      framework: ${{ steps.select-repo.outputs.framework }}
+      
+    steps:
+      - name: Search GitHub for agent frameworks
+        id: search-repos
+        run: |
+          echo "### 🔍 Framework Discovery Process" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          AGENT_TYPE="${{ inputs.agent_type }}"
+          FRAMEWORK_PREF="${{ inputs.framework_preference }}"
+          
+          echo "**Agent Type:** $AGENT_TYPE" >> $GITHUB_STEP_SUMMARY
+          echo "**Framework Preference:** $FRAMEWORK_PREF" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Define search queries based on agent type and framework
+          case "$AGENT_TYPE" in
+            web)
+              if [ "$FRAMEWORK_PREF" == "auto" ]; then
+                SEARCH_QUERIES=(
+                  "langchain-ai/langchain"
+                  "langchain-ai/langgraph"
+                  "joaomdmoura/crewAI"
+                  "microsoft/autogen"
+                  "run-llama/llama_index"
+                  "google/generative-ai-docs"
+                )
+              else
+                case "$FRAMEWORK_PREF" in
+                  langraph) SEARCH_QUERIES=("langchain-ai/langgraph" "langchain-ai/langchain") ;;
+                  crewai) SEARCH_QUERIES=("joaomdmoura/crewAI") ;;
+                  autogen) SEARCH_QUERIES=("microsoft/autogen") ;;
+                  llamaindex) SEARCH_QUERIES=("run-llama/llama_index") ;;
+                  adk) SEARCH_QUERIES=("google/generative-ai-docs") ;;
+                esac
+              fi
+              ;;
+            local)
+              SEARCH_QUERIES=(
+                "langchain-ai/langgraph"
+                "run-llama/llama_index"
+                "joaomdmoura/crewAI"
+              )
+              ;;
+            rag)
+              SEARCH_QUERIES=(
+                "run-llama/llama_index"
+                "langchain-ai/langchain"
+                "infiniflow/ragflow"
+              )
+              ;;
+            sdk)
+              SEARCH_QUERIES=(
+                "modelcontextprotocol/typescript-sdk"
+                "modelcontextprotocol/python-sdk"
+                "anthropics/anthropic-sdk-python"
+                "openai/openai-python"
+              )
+              ;;
+            automation)
+              SEARCH_QUERIES=(
+                "joaomdmoura/crewAI"
+                "microsoft/autogen"
+                "langchain-ai/langgraph"
+              )
+              ;;
+            multi)
+              SEARCH_QUERIES=(
+                "microsoft/autogen"
+                "joaomdmoura/crewAI"
+                "langchain-ai/langgraph"
+              )
+              ;;
+            *)
+              SEARCH_QUERIES=(
+                "langchain-ai/langgraph"
+                "joaomdmoura/crewAI"
+                "microsoft/autogen"
+              )
+              ;;
+          esac
+          
+          echo "**Search Candidates:**" >> $GITHUB_STEP_SUMMARY
+          for query in "${SEARCH_QUERIES[@]}"; do
+            echo "- \`$query\`" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Save queries for next step
+          printf '%s\n' "${SEARCH_QUERIES[@]}" > /tmp/search_queries.txt
+          
+      - name: Fetch repository metadata
+        id: fetch-metadata
+        run: |
+          echo "### 📊 Repository Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Repository | Stars | Updated | Language | Activity |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|-------|---------|----------|----------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Read search queries
+          mapfile -t QUERIES < /tmp/search_queries.txt
+          
+          > /tmp/repo_scores.txt
+          
+          for repo_full in "${QUERIES[@]}"; do
+            # Fetch repo data using GitHub API (anonymous, rate-limited but sufficient)
+            REPO_DATA=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/$repo_full" || echo "{}")
+            
+            if [ "$(echo "$REPO_DATA" | jq -r '.message // empty')" == "Not Found" ]; then
+              echo "| $repo_full | N/A | N/A | N/A | 0 |" >> $GITHUB_STEP_SUMMARY
+              continue
+            fi
+            
+            STARS=$(echo "$REPO_DATA" | jq -r '.stargazers_count // 0')
+            UPDATED=$(echo "$REPO_DATA" | jq -r '.updated_at // "unknown"')
+            LANGUAGE=$(echo "$REPO_DATA" | jq -r '.language // "unknown"')
+            OPEN_ISSUES=$(echo "$REPO_DATA" | jq -r '.open_issues_count // 0')
+            FORKS=$(echo "$REPO_DATA" | jq -r '.forks_count // 0')
+            
+            # Calculate activity score (stars + forks - open_issues/10)
+            ACTIVITY_SCORE=$((STARS + FORKS - OPEN_ISSUES / 10))
+            
+            # Store for ranking
+            echo "$repo_full|$STARS|$ACTIVITY_SCORE|$LANGUAGE" >> /tmp/repo_scores.txt
+            
+            echo "| $repo_full | $STARS ⭐ | $UPDATED | $LANGUAGE | $ACTIVITY_SCORE |" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Select best repository
+        id: select-repo
+        run: |
+          # Sort by activity score and select top repository
+          BEST_REPO=$(sort -t'|' -k3 -rn /tmp/repo_scores.txt | head -n1)
+          
+          if [ -z "$BEST_REPO" ]; then
+            echo "❌ No suitable repositories found" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          REPO_FULL=$(echo "$BEST_REPO" | cut -d'|' -f1)
+          REPO_STARS=$(echo "$BEST_REPO" | cut -d'|' -f2)
+          REPO_LANGUAGE=$(echo "$BEST_REPO" | cut -d'|' -f4)
+          REPO_URL="https://github.com/$REPO_FULL"
+          
+          # Detect framework type from repo name
+          FRAMEWORK="unknown"
+          case "$REPO_FULL" in
+            *langgraph*) FRAMEWORK="langgraph" ;;
+            *langchain*) FRAMEWORK="langchain" ;;
+            *crewai*|*crewAI*) FRAMEWORK="crewai" ;;
+            *autogen*) FRAMEWORK="autogen" ;;
+            *llama*) FRAMEWORK="llamaindex" ;;
+            *generative-ai*) FRAMEWORK="google-adk" ;;
+            *mcp*|*modelcontextprotocol*) FRAMEWORK="mcp-sdk" ;;
+          esac
+          
+          echo "### ✅ Selected Repository" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** [$REPO_FULL]($REPO_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "**Stars:** $REPO_STARS ⭐" >> $GITHUB_STEP_SUMMARY
+          echo "**Language:** $REPO_LANGUAGE" >> $GITHUB_STEP_SUMMARY
+          echo "**Framework:** $FRAMEWORK" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Set outputs
+          echo "url=$REPO_URL" >> $GITHUB_OUTPUT
+          echo "name=$REPO_FULL" >> $GITHUB_OUTPUT
+          echo "framework=$FRAMEWORK" >> $GITHUB_OUTPUT
+          
+      - name: Generate discovery summary
+        run: |
+          echo "### 🎯 Discovery Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The selected repository will be used for:" >> $GITHUB_STEP_SUMMARY
+          echo "- Project scaffolding" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency installation" >> $GITHUB_STEP_SUMMARY
+          echo "- Integration configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Free & Open Source:** ✅ All discovered frameworks are free and open-source" >> $GITHUB_STEP_SUMMARY
+          echo "**BYOK Layer:** 🔑 Optional API keys can be configured during integration" >> $GITHUB_STEP_SUMMARY

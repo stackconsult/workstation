@@ -1,0 +1,272 @@
+name: AI Agent Builder - Documentation Generator
+
+on:
+  workflow_call:
+    inputs:
+      project_path:
+        description: 'Path to project directory'
+        required: true
+        type: string
+      project_name:
+        description: 'Name of the project'
+        required: true
+        type: string
+      agent_type:
+        description: 'Type of agent'
+        required: true
+        type: string
+      framework_type:
+        description: 'Framework used'
+        required: true
+        type: string
+      ui_framework:
+        description: 'UI framework selected'
+        required: false
+        type: string
+        default: 'none'
+    outputs:
+      docs_generated:
+        description: 'Number of documentation files generated'
+        value: ${{ jobs.generate-docs.outputs.file_count }}
+      docs_path:
+        description: 'Path to documentation directory'
+        value: ${{ jobs.generate-docs.outputs.docs_dir }}
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    outputs:
+      file_count: ${{ steps.count-files.outputs.count }}
+      docs_dir: ${{ steps.setup.outputs.path }}
+      
+    steps:
+      - name: Setup documentation directory
+        id: setup
+        run: |
+          echo "### 📚 Documentation Generation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Project:** ${{ inputs.project_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Agent Type:** ${{ inputs.agent_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Framework:** ${{ inputs.framework_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**UI:** ${{ inputs.ui_framework }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          PROJECT_PATH="${{ inputs.project_path }}"
+          cd "$PROJECT_PATH"
+          
+          # Ensure docs directory exists
+          mkdir -p docs
+          
+          echo "path=$PROJECT_PATH/docs" >> $GITHUB_OUTPUT
+          
+      - name: Generate README.md
+        run: |
+          PROJECT_PATH="${{ inputs.project_path }}"
+          cd "$PROJECT_PATH"
+          
+          echo "### 📝 Creating Core Documentation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Enhanced README.md (if not exists or overwrite)
+          cat > README.md << 'EOF'
+# ${{ inputs.project_name }}
+
+An AI agent built with the AI Agent Builder system
+
+## Overview
+
+This project implements an AI agent using the ${{ inputs.framework_type }} framework for ${{ inputs.agent_type }} use cases.
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+ (for UI and MCP)
+- Python 3.10+ (for agent framework)
+- Git
+
+### Installation
+
+1. Clone and enter directory
+   ```bash
+   cd ${{ inputs.project_name }}
+   ```
+
+2. Install backend dependencies
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   cd ..
+   ```
+
+3. Install UI dependencies (if applicable)
+   ```bash
+   cd ui
+   npm install
+   cd ..
+   ```
+
+4. Install MCP dependencies
+   ```bash
+   cd mcp
+   npm install
+   cd ..
+   ```
+
+### Configuration
+
+1. Copy environment template
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Configure settings (optional BYOK layer)
+   - Edit .env file
+   - Add API keys if using external services (optional)
+   - Configure MCP server settings
+
+3. Review framework-specific config
+   - Check config/ directory for additional settings
+
+### Running the Agent
+
+**Option 1: Development Mode**
+```bash
+# Terminal 1: Start backend
+cd backend
+python main.py
+
+# Terminal 2: Start UI (if applicable)
+cd ui
+npm run dev
+
+# Terminal 3: Start MCP server
+cd mcp
+npm start
+```
+
+**Option 2: Production Mode**
+```bash
+# Build and run with Docker (if Dockerfile provided)
+docker-compose up --build
+```
+
+## Project Structure
+
+```
+${{ inputs.project_name }}/
+├── agents/          # Agent definitions and logic
+├── backend/         # Backend API and services
+├── ui/              # User interface (${{ inputs.ui_framework }})
+├── mcp/             # Model Context Protocol servers
+├── data/            # Data storage and RAG content
+├── docs/            # Documentation (this directory)
+├── tests/           # Test suites
+├── config/          # Configuration files
+├── scripts/         # Utility scripts
+├── .github/         # GitHub Actions workflows
+├── .env.example     # Environment template
+├── .gitignore       # Git ignore rules
+└── README.md        # This file
+```
+
+## Documentation
+
+- Architecture - System design and component overview
+- API Reference - Backend API endpoints
+- Agents Guide - Agent configuration and customization
+- Installation - Detailed setup instructions
+- Contributing - Contribution guidelines
+- Changelog - Version history
+
+## Features
+
+### Core Capabilities
+- ${{ inputs.framework_type }} agent framework
+- Model Context Protocol (MCP) integration
+- ${{ inputs.ui_framework }} user interface
+- RESTful API backend
+- Real-time updates
+- Extensible architecture
+
+### Free & Open Source First
+This project prioritizes free and open-source solutions:
+- Framework: ${{ inputs.framework_type }} (open source)
+- UI: ${{ inputs.ui_framework }} (open source)
+- MCP: Official MCP SDK (open source)
+- Infrastructure: GitHub, npm, pip (free tiers)
+- BYOK Layer: Optional API keys (bring your own, not required)
+
+## API Endpoints
+
+The backend exposes REST API endpoints:
+- GET /api/v1/health - Health check
+- GET /api/v1/agents - List agents
+- POST /api/v1/agents/{id}/run - Execute agent
+- GET /api/v1/tasks - List tasks
+- Full API documentation at http://localhost:8000/docs
+
+## Development
+
+### Running Tests
+```bash
+# Backend tests
+cd backend
+pytest
+
+# UI tests
+cd ui
+npm test
+```
+
+### Code Quality
+```bash
+# Linting
+npm run lint          # UI
+flake8 backend/       # Backend
+
+# Formatting
+npm run format        # UI
+black backend/        # Backend
+```
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. Backend fails to start
+   - Check Python version (3.10+)
+   - Verify dependencies: pip install -r requirements.txt
+   - Check logs in logs/ directory
+
+2. UI connection errors
+   - Ensure backend is running on port 8000
+   - Check CORS configuration in backend/config/cors.json
+   - Verify proxy settings in UI config
+
+3. MCP server issues
+   - Confirm Node.js version (18+)
+   - Check MCP server logs
+   - Verify MCP_SERVER_URL in .env
+
+## Contributing
+
+We welcome contributions! See CONTRIBUTING.md for guidelines.
+
+## License
+
+See LICENSE file from source framework.
+
+## Acknowledgments
+
+Built with the AI Agent Builder system, designed to make AI agent development accessible to everyone.
+
+- Framework: ${{ inputs.framework_type }}
+- UI: ${{ inputs.ui_framework }}
+- MCP: Model Context Protocol
+
+---
+
+Need Help? Check the docs/ directory or open an issue on GitHub.
+EOF
+          
+          echo "- ✅ Generated README.md" >> $GITHUB_STEP_SUMMARY

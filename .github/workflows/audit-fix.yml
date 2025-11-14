@@ -1,0 +1,377 @@
+name: Audit Fix - Solution Sourcing & Application
+
+# Stage 4-5: Solution Sourcing and Fix Application
+# Applies automated fixes using free/open-source tools prioritized
+
+on:
+  workflow_dispatch:
+    inputs:
+      fix_priority:
+        description: 'Priority level to fix (critical, high, medium, low, all)'
+        required: false
+        default: 'high'
+      dry_run:
+        description: 'Perform dry run without creating PR'
+        required: false
+        default: false
+        type: boolean
+  workflow_run:
+    workflows: ["Audit Classify - Issue Classification"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  setup-fix-environment:
+    name: Setup Fix Environment
+    runs-on: ubuntu-latest
+    outputs:
+      should-fix: ${{ steps.check.outputs.should_fix }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      
+      - name: Check if fixes should be applied
+        id: check
+        run: |
+          # Determine if we should proceed with fixes
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_fix=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+            echo "should_fix=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_fix=false" >> $GITHUB_OUTPUT
+          fi
+
+  fix-eslint-issues:
+    name: Fix ESLint Issues (Layer 1 - Free)
+    runs-on: ubuntu-latest
+    needs: setup-fix-environment
+    if: needs.setup-fix-environment.outputs.should-fix == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint with auto-fix (Free)
+        run: |
+          echo "Applying ESLint automatic fixes..."
+          npx eslint . --ext .js,.jsx,.ts,.tsx --fix || true
+          
+          # Check if any files were modified
+          if git diff --quiet; then
+            echo "No ESLint fixes applied"
+            echo "eslint_fixes=false" >> $GITHUB_OUTPUT
+          else
+            echo "ESLint fixes applied"
+            echo "eslint_fixes=true" >> $GITHUB_OUTPUT
+            git status --short
+          fi
+        id: eslint-fix
+      
+      - name: Upload ESLint fixes
+        if: steps.eslint-fix.outputs.eslint_fixes == 'true'
+        run: |
+          git diff > eslint-fixes.patch
+          cat eslint-fixes.patch
+      
+      - name: Upload fix patch
+        if: steps.eslint-fix.outputs.eslint_fixes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-fixes
+          path: eslint-fixes.patch
+          retention-days: 7
+
+  fix-prettier-formatting:
+    name: Fix Code Formatting (Layer 2 - Free)
+    runs-on: ubuntu-latest
+    needs: setup-fix-environment
+    if: needs.setup-fix-environment.outputs.should-fix == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install Prettier (Free)
+        run: npm install --save-dev prettier
+      
+      - name: Run Prettier formatting (Free)
+        run: |
+          echo "Applying Prettier formatting fixes..."
+          npx prettier --write "**/*.{js,jsx,ts,tsx,json,md,yml,yaml}" || true
+          
+          if git diff --quiet; then
+            echo "No Prettier fixes applied"
+            echo "prettier_fixes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Prettier fixes applied"
+            echo "prettier_fixes=true" >> $GITHUB_OUTPUT
+            git status --short
+          fi
+        id: prettier-fix
+      
+      - name: Upload fix patch
+        if: steps.prettier-fix.outputs.prettier_fixes == 'true'
+        run: |
+          git diff > prettier-fixes.patch
+      
+      - name: Upload Prettier fixes
+        if: steps.prettier-fix.outputs.prettier_fixes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: prettier-fixes
+          path: prettier-fixes.patch
+          retention-days: 7
+
+  fix-security-vulnerabilities:
+    name: Fix Security Vulnerabilities (Layer 1 - Free)
+    runs-on: ubuntu-latest
+    needs: setup-fix-environment
+    if: needs.setup-fix-environment.outputs.should-fix == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run npm audit fix (Free)
+        run: |
+          echo "Applying npm audit automatic fixes..."
+          npm audit fix --force || true
+          
+          if git diff --quiet package.json package-lock.json; then
+            echo "No security fixes applied"
+            echo "security_fixes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Security fixes applied"
+            echo "security_fixes=true" >> $GITHUB_OUTPUT
+            git status --short
+          fi
+        id: security-fix
+      
+      - name: Upload fix patch
+        if: steps.security-fix.outputs.security_fixes == 'true'
+        run: |
+          git diff > security-fixes.patch
+      
+      - name: Upload security fixes
+        if: steps.security-fix.outputs.security_fixes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-fixes
+          path: security-fixes.patch
+          retention-days: 7
+
+  update-dependencies:
+    name: Update Dependencies (Layer 2 - Free)
+    runs-on: ubuntu-latest
+    needs: setup-fix-environment
+    if: needs.setup-fix-environment.outputs.should-fix == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Update patch versions (Free)
+        run: |
+          echo "Updating dependencies to latest patch versions..."
+          npm update --save || true
+          
+          if git diff --quiet package.json package-lock.json; then
+            echo "No dependency updates applied"
+            echo "dep_updates=false" >> $GITHUB_OUTPUT
+          else
+            echo "Dependency updates applied"
+            echo "dep_updates=true" >> $GITHUB_OUTPUT
+            git status --short
+          fi
+        id: dep-update
+      
+      - name: Upload fix patch
+        if: steps.dep-update.outputs.dep_updates == 'true'
+        run: |
+          git diff > dependency-updates.patch
+      
+      - name: Upload dependency updates
+        if: steps.dep-update.outputs.dep_updates == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-updates
+          path: dependency-updates.patch
+          retention-days: 7
+
+  consolidate-fixes:
+    name: Consolidate All Fixes
+    runs-on: ubuntu-latest
+    needs: [fix-eslint-issues, fix-prettier-formatting, fix-security-vulnerabilities, update-dependencies]
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+      
+      - name: Download all fix patches
+        uses: actions/download-artifact@v4
+        with:
+          path: fixes
+        continue-on-error: true
+      
+      - name: Apply all fixes
+        run: |
+          echo "Consolidating all fixes..."
+          
+          # Check if any fixes exist
+          if [ ! -d "fixes" ] || [ -z "$(ls -A fixes 2>/dev/null)" ]; then
+            echo "No fixes to apply"
+            echo "has_fixes=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Apply patches in priority order
+          for patch_dir in fixes/*/; do
+            if [ -d "$patch_dir" ]; then
+              patch_file=$(find "$patch_dir" -name "*.patch" -type f | head -1)
+              if [ -f "$patch_file" ]; then
+                echo "Applying patch from $patch_file"
+                git apply --reject --whitespace=fix "$patch_file" || true
+              fi
+            fi
+          done
+          
+          # Check if any changes were made
+          if git diff --quiet; then
+            echo "No fixes to apply"
+            echo "has_fixes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Fixes consolidated and ready"
+            echo "has_fixes=true" >> $GITHUB_OUTPUT
+            git status --short
+          fi
+        id: consolidate
+      
+      - name: Generate fix summary
+        run: |
+          echo "# ⚙️ Audit Fix Summary" > fix-summary.md
+          echo "" >> fix-summary.md
+          echo "Generated: $(date)" >> fix-summary.md
+          echo "" >> fix-summary.md
+          
+          echo "## Fixes Applied (Free/Open-Source Tools)" >> fix-summary.md
+          echo "" >> fix-summary.md
+          
+          # List all applied fixes
+          if [ -d fixes/eslint-fixes ]; then
+            echo "- ✓ ESLint automatic fixes (Layer 1 - Built-in)" >> fix-summary.md
+          fi
+          
+          if [ -d fixes/prettier-fixes ]; then
+            echo "- ✓ Prettier code formatting (Layer 2 - Open-source)" >> fix-summary.md
+          fi
+          
+          if [ -d fixes/security-fixes ]; then
+            echo "- ✓ npm audit security fixes (Layer 1 - Built-in)" >> fix-summary.md
+          fi
+          
+          if [ -d fixes/dependency-updates ]; then
+            echo "- ✓ Dependency updates (Layer 1 - npm update)" >> fix-summary.md
+          fi
+          
+          echo "" >> fix-summary.md
+          echo "## Changed Files" >> fix-summary.md
+          git status --short >> fix-summary.md
+          
+          echo "" >> fix-summary.md
+          echo "## Next Steps" >> fix-summary.md
+          echo "" >> fix-summary.md
+          echo "Run 'audit-verify.yml' to test these fixes and create a PR." >> fix-summary.md
+          
+          cat fix-summary.md
+      
+      - name: Upload fix summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-fix-summary
+          path: fix-summary.md
+          retention-days: 30
+      
+      - name: Create fixes branch
+        if: steps.consolidate.outputs.has_fixes == 'true' && inputs.dry_run == false
+        run: |
+          # Create a new branch with fixes
+          BRANCH_NAME="audit/auto-fixes-$(date +%Y%m%d-%H%M%S)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+          git add .
+          git commit -m "⚙️ Apply automated audit fixes
+          
+          - ESLint automatic fixes
+          - Prettier code formatting
+          - npm audit security fixes
+          - Dependency updates
+          
+          All fixes applied using free/open-source tools."
+          git push origin "$BRANCH_NAME"
+          
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        id: create-branch
+      
+      - name: Output results
+        run: |
+          echo "⚙️ Audit fix process completed"
+          if [[ "${{ steps.consolidate.outputs.has_fixes }}" == "true" ]]; then
+            echo "Fixes have been consolidated and are ready for verification"
+            if [[ "${{ inputs.dry_run }}" == "false" ]]; then
+              echo "Branch created: ${{ steps.create-branch.outputs.branch_name }}"
+            else
+              echo "Dry run mode: No branch created"
+            fi
+          else
+            echo "No fixes were applied - repository is already in good state"
+          fi

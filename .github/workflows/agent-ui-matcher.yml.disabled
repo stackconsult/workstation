@@ -1,0 +1,365 @@
+name: AI Agent Builder - UI Framework Matcher
+
+on:
+  workflow_call:
+    inputs:
+      agent_type:
+        description: 'Type of agent'
+        required: true
+        type: string
+      ui_needed:
+        description: 'UI preference (chat/dashboard/api-only/custom)'
+        required: true
+        type: string
+      framework_type:
+        description: 'Agent framework type'
+        required: true
+        type: string
+      project_path:
+        description: 'Path to project directory'
+        required: true
+        type: string
+    outputs:
+      ui_framework:
+        description: 'Selected UI framework'
+        value: ${{ jobs.match-ui.outputs.framework }}
+      ui_repository:
+        description: 'UI framework repository'
+        value: ${{ jobs.match-ui.outputs.repository }}
+      integration_status:
+        description: 'Integration completion status'
+        value: ${{ jobs.match-ui.outputs.status }}
+
+jobs:
+  match-ui:
+    runs-on: ubuntu-latest
+    outputs:
+      framework: ${{ steps.select-ui.outputs.framework_name }}
+      repository: ${{ steps.select-ui.outputs.repo_url }}
+      status: ${{ steps.integrate.outputs.result }}
+      
+    steps:
+      - name: Analyze UI requirements
+        id: analyze-requirements
+        run: |
+          echo "### 🎨 UI Framework Matching" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Agent Type:** ${{ inputs.agent_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**UI Preference:** ${{ inputs.ui_needed }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend Framework:** ${{ inputs.framework_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Select best UI framework
+        id: select-ui
+        run: |
+          echo "### 🔍 Framework Selection Process" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          UI_PREF="${{ inputs.ui_needed }}"
+          AGENT_TYPE="${{ inputs.agent_type }}"
+          
+          # Initialize variables
+          FRAMEWORK_NAME=""
+          REPO_URL=""
+          
+          # Determine best UI framework based on preferences
+          case "$UI_PREF" in
+            chat)
+              # Chat-focused UIs (all free & open source)
+              echo "**Evaluating Chat UI Frameworks:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Open WebUI (open-webui/open-webui) - 🌟 Recommended" >> $GITHUB_STEP_SUMMARY
+              echo "- LibreChat (danny-avila/LibreChat)" >> $GITHUB_STEP_SUMMARY
+              echo "- Lobe Chat (lobehub/lobe-chat)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              FRAMEWORK_NAME="open-webui"
+              REPO_URL="https://github.com/open-webui/open-webui"
+              ;;
+            dashboard)
+              # Dashboard/analytics UIs
+              echo "**Evaluating Dashboard UI Frameworks:**" >> $GITHUB_STEP_SUMMARY
+              echo "- React Admin (marmelab/react-admin) - 🌟 Recommended" >> $GITHUB_STEP_SUMMARY
+              echo "- Refine (refinedev/refine)" >> $GITHUB_STEP_SUMMARY
+              echo "- Ant Design Pro (ant-design/ant-design-pro)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              FRAMEWORK_NAME="react-admin"
+              REPO_URL="https://github.com/marmelab/react-admin"
+              ;;
+            api-only)
+              # No UI needed, just API
+              echo "**API-Only Mode Selected:**" >> $GITHUB_STEP_SUMMARY
+              echo "- No UI framework required" >> $GITHUB_STEP_SUMMARY
+              echo "- FastAPI/Express will provide REST endpoints" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              FRAMEWORK_NAME="api-only"
+              REPO_URL="none"
+              ;;
+            custom)
+              # Custom/minimal UI
+              echo "**Custom UI Selected:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Basic HTML/CSS/JS template will be provided" >> $GITHUB_STEP_SUMMARY
+              echo "- Vite + React starter" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              FRAMEWORK_NAME="vite-react"
+              REPO_URL="https://github.com/vitejs/vite"
+              ;;
+            *)
+              # Default to chat for AI agents
+              echo "**Default Chat UI:**" >> $GITHUB_STEP_SUMMARY
+              echo "- Open WebUI selected as default" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              FRAMEWORK_NAME="open-webui"
+              REPO_URL="https://github.com/open-webui/open-webui"
+              ;;
+          esac
+          
+          echo "### ✅ Selected: $FRAMEWORK_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Set outputs
+          echo "framework_name=$FRAMEWORK_NAME" >> $GITHUB_OUTPUT
+          echo "repo_url=$REPO_URL" >> $GITHUB_OUTPUT
+          
+      - name: Clone UI framework
+        if: steps.select-ui.outputs.framework_name != 'api-only'
+        run: |
+          cd /tmp
+          
+          echo "### 📥 Cloning UI Framework" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          REPO_URL="${{ steps.select-ui.outputs.repo_url }}"
+          
+          if [ "$REPO_URL" != "none" ]; then
+            git clone "$REPO_URL" ui-framework
+            
+            if [ $? -eq 0 ]; then
+              echo "✅ Successfully cloned UI framework" >> $GITHUB_STEP_SUMMARY
+              cd ui-framework
+              COMMIT_SHA=$(git rev-parse --short HEAD)
+              echo "- **Commit:** \`$COMMIT_SHA\`" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ Failed to clone UI framework" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Integrate UI with backend
+        id: integrate
+        run: |
+          echo "### 🔧 Integrating UI with Backend" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          PROJECT_PATH="${{ inputs.project_path }}"
+          FRAMEWORK_NAME="${{ steps.select-ui.outputs.framework_name }}"
+          
+          cd "$PROJECT_PATH"
+          
+          case "$FRAMEWORK_NAME" in
+            open-webui|librechat|lobe-chat)
+              # Copy UI files to ui directory
+              if [ -d "/tmp/ui-framework" ]; then
+                cp -r /tmp/ui-framework/* ui/
+                echo "✅ Copied UI framework files to ui/ directory" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              # Create backend connection config
+              mkdir -p ui
+              cat > ui/backend-config.json <<'ENDCONFIG'
+{
+  "backend_url": "http://localhost:8000",
+  "api_base": "/api/v1",
+  "websocket_url": "ws://localhost:8000/ws",
+  "auth_enabled": false
+}
+ENDCONFIG
+              echo "✅ Created backend connection configuration" >> $GITHUB_STEP_SUMMARY
+              
+              # Update package.json if it exists
+              if [ -f "ui/package.json" ]; then
+                echo "✅ UI package.json found" >> $GITHUB_STEP_SUMMARY
+              fi
+              ;;
+              
+            react-admin|refine)
+              # Dashboard UI integration
+              if [ -d "/tmp/ui-framework" ]; then
+                cp -r /tmp/ui-framework/* ui/
+                echo "✅ Copied dashboard framework to ui/ directory" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              # Create data provider config
+              mkdir -p ui
+              cat > ui/data-provider.config.js <<'ENDPROVIDER'
+export const dataProvider = {
+  baseUrl: 'http://localhost:8000/api/v1',
+  endpoints: {
+    agents: '/agents',
+    tasks: '/tasks',
+    logs: '/logs',
+    metrics: '/metrics'
+  }
+};
+ENDPROVIDER
+              echo "✅ Created data provider configuration" >> $GITHUB_STEP_SUMMARY
+              ;;
+              
+            api-only)
+              echo "✅ API-only mode - no UI integration needed" >> $GITHUB_STEP_SUMMARY
+              echo "- Backend will expose REST API endpoints" >> $GITHUB_STEP_SUMMARY
+              echo "- OpenAPI/Swagger docs will be auto-generated" >> $GITHUB_STEP_SUMMARY
+              ;;
+              
+            vite-react)
+              # Create minimal Vite + React setup
+              mkdir -p ui/src
+              
+              cat > ui/package.json <<'ENDPACKAGE'
+{
+  "name": "agent-ui",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0"
+  }
+}
+ENDPACKAGE
+              
+              cat > ui/vite.config.js <<'ENDVITE'
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
+  }
+})
+ENDVITE
+              
+              cat > ui/src/App.jsx <<'ENDAPP'
+import { useState, useEffect } from 'react'
+
+function App() {
+  const [status, setStatus] = useState('Connecting...')
+  
+  useEffect(() => {
+    fetch('/api/v1/health')
+      .then(res => res.json())
+      .then(data => setStatus(data.status))
+      .catch(() => setStatus('Backend offline'))
+  }, [])
+  
+  return (
+    <div>
+      <h1>AI Agent Interface</h1>
+      <p>Backend Status: {status}</p>
+    </div>
+  )
+}
+
+export default App
+ENDAPP
+              
+              echo "✅ Created minimal Vite + React UI setup" >> $GITHUB_STEP_SUMMARY
+              echo "✅ Configured proxy to backend at :8000" >> $GITHUB_STEP_SUMMARY
+              ;;
+          esac
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "integration_result=success" >> $GITHUB_OUTPUT
+          
+      - name: Configure CORS and API endpoints
+        run: |
+          echo "### 🌐 Configuring Backend API" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          PROJECT_PATH="${{ inputs.project_path }}"
+          cd "$PROJECT_PATH"
+          
+          # Create backend API configuration
+          mkdir -p backend/config
+          
+          cat > backend/config/cors.json <<'ENDCORS'
+{
+  "allowed_origins": [
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "http://127.0.0.1:3000"
+  ],
+  "allowed_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  "allowed_headers": ["Content-Type", "Authorization"],
+  "expose_headers": ["X-Total-Count"],
+  "allow_credentials": true
+}
+ENDCORS
+          echo "✅ Created CORS configuration" >> $GITHUB_STEP_SUMMARY
+          
+          # Create API routes structure
+          mkdir -p backend/routes
+          
+          cat > backend/routes/health.py <<'ENDHEALTH'
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "ai-agent-backend"}
+
+@router.get("/ready")
+async def readiness_check():
+    return {"ready": True}
+ENDHEALTH
+          echo "✅ Created health check endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+      - name: Generate integration documentation
+        run: |
+          echo "### 📝 Integration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          FRAMEWORK_NAME="${{ steps.select-ui.outputs.framework_name }}"
+          
+          echo "**Framework:** $FRAMEWORK_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "**URLs:**" >> $GITHUB_STEP_SUMMARY
+          if [ "$FRAMEWORK_NAME" != "api-only" ]; then
+            echo "- UI: http://localhost:3000" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- Backend API: http://localhost:8000" >> $GITHUB_STEP_SUMMARY
+          echo "- API Docs: http://localhost:8000/docs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Install UI dependencies: \`cd ui && npm install\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. Install backend dependencies: \`cd backend && pip install -r requirements.txt\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Start backend: \`cd backend && uvicorn main:app --reload\`" >> $GITHUB_STEP_SUMMARY
+          if [ "$FRAMEWORK_NAME" != "api-only" ]; then
+            echo "4. Start UI: \`cd ui && npm run dev\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Free & Open Source:** ✅ All UI frameworks are free and open-source" >> $GITHUB_STEP_SUMMARY
+          echo "**BYOK Layer:** 🔑 Optional API keys configured in backend .env" >> $GITHUB_STEP_SUMMARY
