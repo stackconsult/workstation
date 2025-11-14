@@ -1,7 +1,9 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import { createHash } from 'crypto';
 import { generateToken, generateDemoToken, authenticateToken, AuthenticatedRequest } from './auth/jwt';
 import { validateRequest, schemas } from './middleware/validation';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -38,21 +40,70 @@ const authLimiter = rateLimit({
 });
 
 // Middleware
-app.use(cors());
+// Security headers with Helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
+// CORS configuration with environment-based origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : process.env.NODE_ENV === 'production' 
+    ? [] // No origins allowed by default in production - must be explicitly set
+    : ['http://localhost:3000', 'http://localhost:3001']; // Development defaults
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.length === 0 && process.env.NODE_ENV === 'production') {
+      logger.warn('CORS request blocked - no allowed origins configured', { origin });
+      return callback(new Error('CORS not allowed'), false);
+    }
+    
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    } else {
+      logger.warn('CORS request blocked', { origin, allowedOrigins });
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json());
 app.use(limiter); // Apply rate limiting to all routes
 
-// Request logging middleware
+// Request logging middleware - anonymize IPs for privacy
 app.use((req: Request, res: Response, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
+    // Hash IP for privacy while maintaining uniqueness for rate limiting
+    const ipHash = req.ip ? createHash('sha256').update(req.ip).digest('hex').substring(0, 16) : 'unknown';
     logger.info('Request completed', {
       method: req.method,
       path: req.path,
       status: res.statusCode,
       duration: `${duration}ms`,
-      ip: req.ip,
+      ipHash, // Log hashed IP instead of actual IP
     });
   });
   next();

@@ -1,9 +1,18 @@
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger';
 
-// JWT configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-in-production';
+// JWT configuration - enforce secret in production
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET environment variable is required in production');
+}
+
+// Use a more secure default for development/test only
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-min-32-chars-long-for-testing-only-' + Math.random().toString(36);
+
+// Allowed JWT algorithms (prevent 'none' algorithm attack)
+const ALLOWED_ALGORITHMS: jwt.Algorithm[] = ['HS256', 'HS384', 'HS512'];
 
 export interface JWTPayload {
   userId: string;
@@ -17,27 +26,41 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
- * Generate a JWT token
+ * Generate a JWT token with secure settings
  * @param payload - Data to encode in the token
  * @returns Signed JWT token
  */
 export function generateToken(payload: JWTPayload): string {
+  // Sanitize userId to prevent injection attacks
+  if (payload.userId && typeof payload.userId === 'string') {
+    payload.userId = payload.userId.trim().replace(/[<>]/g, '');
+  }
+
   const expiresIn: StringValue = (process.env.JWT_EXPIRATION || '24h') as StringValue;
   const options: SignOptions = {
     expiresIn,
+    algorithm: 'HS256', // Explicitly set algorithm
   };
+  
+  logger.debug('Generating JWT token', { userId: payload.userId, algorithm: 'HS256' });
   return jwt.sign(payload, JWT_SECRET, options);
 }
 
 /**
- * Verify and decode a JWT token
+ * Verify and decode a JWT token with algorithm validation
  * @param token - JWT token to verify
  * @returns Decoded payload or null if invalid
  */
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch {
+    const options: VerifyOptions = {
+      algorithms: ALLOWED_ALGORITHMS, // Prevent 'none' algorithm attack
+    };
+    return jwt.verify(token, JWT_SECRET, options) as JWTPayload;
+  } catch (error) {
+    logger.debug('Token verification failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     return null;
   }
 }

@@ -1,4 +1,16 @@
 import winston from 'winston';
+import { existsSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
+
+/**
+ * Ensure log directory exists before creating file transports
+ */
+function ensureLogDirectory(filepath: string): void {
+  const dir = dirname(filepath);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+}
 
 /**
  * Configure Winston logger with appropriate formatting and transports
@@ -24,17 +36,23 @@ export const logger = winston.createLogger({
   ],
 });
 
-// In production, also log to file
+// In production, also log to file with proper directory setup
 if (process.env.NODE_ENV === 'production') {
+  const errorLogPath = 'logs/error.log';
+  const combinedLogPath = 'logs/combined.log';
+  
+  // Ensure log directory exists
+  ensureLogDirectory(errorLogPath);
+  
   logger.add(
     new winston.transports.File({
-      filename: 'logs/error.log',
+      filename: errorLogPath,
       level: 'error',
     })
   );
   logger.add(
     new winston.transports.File({
-      filename: 'logs/combined.log',
+      filename: combinedLogPath,
     })
   );
 }

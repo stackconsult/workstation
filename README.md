@@ -18,6 +18,11 @@ Browser Agent with JWT Authentication and Railway Deployment
 - 🏥 Enhanced health checks with system metrics
 - 🚨 Global error handling
 - 🤖 CI/CD with GitHub Actions
+- 🔒 **Security Headers** with Helmet (CSP, HSTS, XSS protection)
+- 🌐 **CORS Protection** with configurable origin whitelist
+- 🛡️ **JWT Algorithm Validation** prevents 'none' algorithm attacks
+- 🔐 **Input Sanitization** prevents XSS in user data
+- 🕵️ **Privacy-First Logging** with IP anonymization
 
 ## Quick Start
 
@@ -39,11 +44,26 @@ npm install
 cp .env.example .env
 ```
 
-4. Update `.env` with your JWT secret:
+4. Update `.env` with your configuration:
 ```env
-JWT_SECRET=your-secure-secret-key
+# JWT Configuration (REQUIRED in production)
+JWT_SECRET=your-secure-32-character-minimum-secret-key
 JWT_EXPIRATION=24h
+
+# Server Configuration
 PORT=3000
+NODE_ENV=development
+
+# CORS Configuration (comma-separated origins)
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+
+# Logging
+LOG_LEVEL=info
+```
+
+**Security Note**: Generate a secure JWT secret:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 5. Run in development mode:
@@ -202,7 +222,61 @@ docker run -p 3000:3000 \
 
 ⚠️ **Important**: Always set a strong `JWT_SECRET` in production. Never use the default value.
 
-Generate a secure secret:
+### Security Features (v1.1.0+)
+
+This application implements comprehensive security measures:
+
+#### 🔐 JWT Security
+- **Algorithm Validation**: Only HS256, HS384, and HS512 algorithms accepted
+- **Production Enforcement**: JWT_SECRET is required in production (minimum 32 characters)
+- **Input Sanitization**: User IDs sanitized to prevent XSS attacks
+- **Short Expiration**: 24-hour default token lifetime
+
+#### 🛡️ HTTP Security Headers
+Implemented via Helmet middleware:
+- **Content-Security-Policy**: Prevents XSS attacks
+- **Strict-Transport-Security**: Enforces HTTPS (31536000 seconds)
+- **X-Content-Type-Options**: Prevents MIME sniffing
+- **X-Frame-Options**: Prevents clickjacking
+- **X-XSS-Protection**: Additional XSS protection
+
+#### 🌐 CORS Protection
+- **Configurable Origins**: Use `ALLOWED_ORIGINS` environment variable
+- **Production Restriction**: No origins allowed by default in production
+- **Development Defaults**: localhost:3000, localhost:3001
+- **Credential Support**: Enabled for authenticated requests
+
+Example CORS configuration:
+```env
+# Production
+ALLOWED_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
+
+# Development
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+
+# Allow all (NOT recommended)
+ALLOWED_ORIGINS=*
+```
+
+#### 🕵️ Privacy & Compliance
+- **IP Anonymization**: IPs are hashed (SHA-256) before logging
+- **GDPR Compliant**: Follows data minimization principles
+- **Secure Error Handling**: No stack traces leaked to clients in production
+
+#### 📋 Security Checklist
+
+Before deploying to production:
+
+- [ ] Set strong JWT_SECRET (minimum 32 characters)
+- [ ] Configure ALLOWED_ORIGINS for your domains
+- [ ] Enable HTTPS/TLS
+- [ ] Review rate limiting settings
+- [ ] Set NODE_ENV=production
+- [ ] Enable log file rotation
+- [ ] Set up monitoring and alerts
+- [ ] Review SECURITY.md for complete guidelines
+
+Generate a secure JWT secret:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -220,6 +294,24 @@ Rate limits help prevent:
 - API abuse
 
 If you need to adjust rate limits, modify the `limiter` and `authLimiter` configurations in `src/index.ts`.
+
+### Security Documentation
+
+- **[Security Policy](SECURITY.md)** - Complete security guidelines and vulnerability reporting
+- **[Security Fixes](SECURITY_FIXES.md)** - Detailed documentation of all security improvements
+- **[Rollback Guide](ROLLBACK_GUIDE.md)** - Emergency rollback procedures for security fixes
+
+### Known Limitations
+
+1. **In-Memory Rate Limiting**: Not suitable for multi-instance deployments
+   - **Future**: Implement Redis-backed rate limiting
+
+2. **Token Revocation**: JWTs cannot be revoked before expiration
+   - **Mitigation**: Use short expiration times (24h default)
+   - **Future**: Implement token blacklist with Redis
+
+3. **Session Management**: No built-in refresh token mechanism
+   - **Future**: Implement refresh token flow
 
 ## Documentation
 

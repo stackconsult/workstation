@@ -3,6 +3,7 @@ import { logger } from '../utils/logger';
 
 /**
  * Global error handling middleware
+ * Prevents sensitive information leakage in production
  */
 export function errorHandler(
   err: Error,
@@ -10,9 +11,10 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ): void {
+  // Log full error details internally (never send to client)
   logger.error('Unhandled error:', {
     error: err.message,
-    stack: err.stack,
+    stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
     path: req.path,
     method: req.method,
   });
@@ -22,9 +24,14 @@ export function errorHandler(
     return next(err);
   }
 
+  // In production, send generic error message
+  // In development, include error message for debugging
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    message: isDevelopment ? err.message : 'An unexpected error occurred',
+    // Never send stack traces to clients
   });
 }
 
