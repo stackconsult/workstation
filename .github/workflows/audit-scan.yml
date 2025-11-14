@@ -320,7 +320,7 @@ jobs:
       
       - name: Comment on commit (if push event)
         if: github.event_name == 'push'
-        uses: peter-evans/commit-comment@v3
+        uses: peter-evans/commit-comment@v4
         with:
           body: |
             ## 🔍 Audit Scan Completed
