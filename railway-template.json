@@ -1,0 +1,114 @@
+{
+  "name": "stackBrowserAgent",
+  "description": "Enterprise hybrid browser agent with Chrome extension + Python FastAPI backend with RAG, database, workflow DAG, monitoring, and authentication",
+  "repository": "https://github.com/stackconsult/stackBrowserAgent",
+  "logo": "https://raw.githubusercontent.com/stackconsult/stackBrowserAgent/main/public/icon-128.png",
+  "services": {
+    "backend": {
+      "source": {
+        "repo": "stackconsult/stackBrowserAgent"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "backend/Dockerfile",
+        "buildCommand": "cd backend && pip install -r requirements.txt"
+      },
+      "deploy": {
+        "startCommand": "cd backend && uvicorn src.main:app --host 0.0.0.0 --port $PORT",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 300,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      },
+      "env": {
+        "JWT_SECRET_KEY": {
+          "description": "Secret key for JWT token signing",
+          "generator": "secret"
+        },
+        "JWT_ALGORITHM": {
+          "description": "JWT signing algorithm",
+          "value": "HS256"
+        },
+        "ACCESS_TOKEN_EXPIRE_MINUTES": {
+          "description": "JWT access token expiration in minutes",
+          "value": "30"
+        },
+        "REFRESH_TOKEN_EXPIRE_DAYS": {
+          "description": "JWT refresh token expiration in days",
+          "value": "7"
+        },
+        "DATABASE_URL": {
+          "description": "PostgreSQL database connection URL",
+          "reference": "postgres.DATABASE_URL"
+        },
+        "OPENAI_API_KEY": {
+          "description": "OpenAI API key for embeddings (optional)",
+          "optional": true
+        },
+        "PINECONE_API_KEY": {
+          "description": "Pinecone API key for vector database (optional)",
+          "optional": true
+        },
+        "PINECONE_ENVIRONMENT": {
+          "description": "Pinecone environment",
+          "value": "us-east-1-aws",
+          "optional": true
+        },
+        "PINECONE_INDEX": {
+          "description": "Pinecone index name",
+          "value": "stackbrowser-rag",
+          "optional": true
+        },
+        "REDIS_URL": {
+          "description": "Redis connection URL for caching (optional)",
+          "optional": true
+        },
+        "LOG_LEVEL": {
+          "description": "Application log level",
+          "value": "INFO"
+        },
+        "LOG_FORMAT": {
+          "description": "Log format",
+          "value": "json"
+        },
+        "CORS_ORIGINS": {
+          "description": "Allowed CORS origins",
+          "value": "*"
+        },
+        "WORKERS": {
+          "description": "Number of concurrent worker threads",
+          "value": "20"
+        },
+        "PLAYWRIGHT_BROWSER_TYPE": {
+          "description": "Playwright browser type",
+          "value": "chromium"
+        },
+        "PLAYWRIGHT_HEADLESS": {
+          "description": "Run Playwright in headless mode",
+          "value": "true"
+        },
+        "PROMETHEUS_ENABLED": {
+          "description": "Enable Prometheus metrics",
+          "value": "true"
+        },
+        "RATE_LIMIT_ENABLED": {
+          "description": "Enable API rate limiting",
+          "value": "false"
+        },
+        "CACHE_TTL_SECONDS": {
+          "description": "Cache TTL in seconds",
+          "value": "3600"
+        },
+        "PORT": {
+          "description": "Application port",
+          "value": "8000"
+        }
+      }
+    }
+  },
+  "plugins": {
+    "postgres": {
+      "plan": "starter"
+    }
+  }
+}

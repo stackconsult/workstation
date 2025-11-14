@@ -1,0 +1,58 @@
+# Railway build optimization - exclude unnecessary files
+
+# Node modules (extension build artifacts)
+node_modules/
+dist/
+.vite/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation (not needed for runtime)
+docs/
+*.md
+!README.md
+
+# Development files
+.env.example
+.env.local
+.env.development
+
+# CI/CD (handled by Railway)
+.github/
+
+# Extension source (not needed for backend)
+src/
+public/
+vite.config.ts
+tsconfig.json
+package.json
+package-lock.json
+
+# Keep only backend code
+!backend/

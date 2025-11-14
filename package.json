@@ -1,0 +1,42 @@
+{
+  "name": "unified-browser-agent",
+  "version": "1.0.0",
+  "description": "A comprehensive browser agent extension combining features from BrowserOperator, BrowserOS, Nanobrowser, and BrowserAgent",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "node scripts/generate-icons.cjs && tsc && vite build && node scripts/post-build.cjs",
+    "test": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
+  },
+  "keywords": [
+    "browser-agent",
+    "automation",
+    "ai",
+    "chrome-extension",
+    "multi-agent"
+  ],
+  "author": "Stack Consult",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.3.26",
+    "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^7.7.0",
+    "@typescript-eslint/parser": "^7.7.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "sharp": "^0.34.5",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10",
+    "vitest": "^1.5.0"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.2"
+  }
+}
