@@ -52,6 +52,29 @@ We classify vulnerabilities using the following levels:
 
 ## Security Best Practices
 
+### Secret Scanning
+
+This repository is protected by multiple layers of secret scanning:
+
+1. **TruffleHog** (Active)
+   - Open-source secret scanner (no license required)
+   - Automatically scans all commits and pull requests
+   - Detects 700+ types of credentials
+   - See `.github/workflows/secret-scan.yml`
+
+2. **GitHub Native Secret Scanning** (Recommended)
+   - Free for public repositories
+   - Enable in Settings → Security → Code security and analysis
+   - Provides push protection to prevent secrets from being committed
+   - Automatically notifies you of exposed secrets
+
+3. **Gitleaks** (Optional - BYOK)
+   - Commercial tool requiring license
+   - Only enable if your organization requires it
+   - Requires `GITLEAKS_LICENSE` secret and `ENABLE_GITLEAKS` variable
+
+For detailed setup instructions, see [SECRET_SCANNING_SETUP.md](./SECRET_SCANNING_SETUP.md)
+
 ### For Users
 
 1. **JWT Secret**

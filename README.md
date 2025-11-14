@@ -263,6 +263,12 @@ ALLOWED_ORIGINS=*
 - **GDPR Compliant**: Follows data minimization principles
 - **Secure Error Handling**: No stack traces leaked to clients in production
 
+#### 🔍 Secret Scanning
+- **TruffleHog**: Open-source secret scanner (active, no license required)
+- **GitHub Native**: Built-in GitHub secret scanning (free to enable)
+- **Gitleaks**: Optional commercial scanner (BYOK)
+- See [SECRET_SCANNING_SETUP.md](SECRET_SCANNING_SETUP.md) for details
+
 #### 📋 Security Checklist
 
 Before deploying to production:
@@ -298,6 +304,7 @@ If you need to adjust rate limits, modify the `limiter` and `authLimiter` config
 ### Security Documentation
 
 - **[Security Policy](SECURITY.md)** - Complete security guidelines and vulnerability reporting
+- **[Secret Scanning Setup](SECRET_SCANNING_SETUP.md)** - Multi-layer secret detection configuration
 - **[Security Fixes](SECURITY_FIXES.md)** - Detailed documentation of all security improvements
 - **[Rollback Guide](ROLLBACK_GUIDE.md)** - Emergency rollback procedures for security fixes
 
