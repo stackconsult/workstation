@@ -47,6 +47,42 @@ services:
       - "agent.name=Error Assessment & Documentation Auditor"
       - "agent.schedule=Weekly Saturday 2:00 AM MST"
 
+  # ============================================
+  # AUTONOMOUS CYCLE SCHEDULER
+  # ============================================
+  agent-scheduler:
+    image: alpine:latest
+    container_name: agent-scheduler
+    restart: unless-stopped
+    
+    environment:
+      - TZ=America/Denver  # MST
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      
+    volumes:
+      - ./.automation:/automation:ro
+      - ./agents:/agents:ro
+      - scheduler-logs:/automation/logs:rw
+      - /var/run/docker.sock:/var/run/docker.sock  # Access to Docker
+      
+    command: >
+      sh -c "
+        apk add --no-cache bash docker-cli jq curl nodejs npm &&
+        echo '0 2 * * 6 cd / && bash /automation/master-orchestrator.sh' > /etc/crontabs/root &&
+        crond -f -l 2
+      "
+    
+    networks:
+      - automation-network
+    
+    depends_on:
+      - workstation
+      - agent8-auditor
+    
+    labels:
+      - "component=scheduler"
+      - "purpose=autonomous-weekly-cycle"
+
 networks:
   automation-network:
     driver: bridge
@@ -56,3 +92,7 @@ volumes:
   agent8-memory:
     driver: local
     name: agent8-assessment-memory
+  
+  scheduler-logs:
+    driver: local
+    name: agent-scheduler-logs

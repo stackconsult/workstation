@@ -16,6 +16,25 @@ fix-summary.md
 fixes/
 *.rej
 
+# Agent 1-6 artifacts (Build Setup Agents)
+agents/agent1/reports/*/
+!agents/agent1/reports/.gitkeep
+agents/agent2/reports/*/
+!agents/agent2/reports/.gitkeep
+agents/agent3/reports/*/
+!agents/agent3/reports/.gitkeep
+agents/agent4/reports/*/
+!agents/agent4/reports/.gitkeep
+agents/agent5/reports/*/
+!agents/agent5/reports/.gitkeep
+agents/agent6/reports/*/
+!agents/agent6/reports/.gitkeep
+.agent*-setup-complete.json
+
+# Agent 7 artifacts
+agents/agent7/reports/*/
+!agents/agent7/reports/.gitkeep
+
 # Agent 8 artifacts
 agents/agent8/dist/
 agents/agent8/node_modules/
@@ -23,3 +42,47 @@ agents/agent8/reports/*/
 !agents/agent8/reports/.gitkeep
 agents/agent8/memory/assessment-history.json
 .agent8-handoff.json
+
+# Agent 9 artifacts
+agents/agent9/dist/
+agents/agent9/node_modules/
+agents/agent9/reports/*/
+!agents/agent9/reports/.gitkeep
+agents/agent9/memory/optimizations.json
+.agent9-handoff.json
+
+# Agent 10 artifacts
+agents/agent10/dist/
+agents/agent10/node_modules/
+agents/agent10/reports/*/
+!agents/agent10/reports/.gitkeep
+agents/agent10/memory/guard-rails-history.json
+.agent10-handoff.json
+
+# Agent 11 artifacts
+agents/agent11/dist/
+agents/agent11/node_modules/
+agents/agent11/reports/*/
+!agents/agent11/reports/.gitkeep
+agents/agent11/memory/analytics-history.json
+.agent11-handoff.json
+
+# Agent 12 artifacts
+agents/agent12/dist/
+agents/agent12/node_modules/
+agents/agent12/reports/*/
+!agents/agent12/reports/.gitkeep
+agents/agent12/memory/qa-history.json
+agents/agent12/intelligence/week-*-intelligence.json
+.agent12-complete.json
+
+# Agent handoff artifacts
+.agent*-handoff.json
+.agent*-complete.json
+
+# Automation logs
+.automation/logs/*.log
+.cycle-complete-week-*.json
+
+# Docker snapshots
+.docker/snapshots/*.json

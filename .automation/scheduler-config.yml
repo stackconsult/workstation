@@ -1,0 +1,88 @@
+# .automation/scheduler-config.yml
+# Master configuration for autonomous weekly cycle
+# Ensures agents run in correct sequence every Saturday
+
+system_name: "Autonomous Continuous Improvement System"
+version: "1.0.0"
+timezone: "America/Denver"  # MST
+
+schedule:
+  frequency: "weekly"
+  day: "saturday"
+  start_time: "02:00"  # 2:00 AM MST
+  
+  agents_sequence:
+    - agent_id: 7
+      name: "Security & Penetration Testing"
+      start_time: "02:00"
+      estimated_duration_minutes: 90
+      critical: true
+      
+    - agent_id: 8
+      name: "Error Assessment & Documentation"
+      start_time: "03:30"
+      estimated_duration_minutes: 45
+      depends_on: [7]
+      critical: true
+      
+    - agent_id: 9
+      name: "Optimization Magician"
+      start_time: "04:15"
+      estimated_duration_minutes: 75
+      depends_on: [7, 8]
+      critical: true
+      
+    - agent_id: 10
+      name: "Guard Rails & Error Prevention"
+      start_time: "05:30"
+      estimated_duration_minutes: 45
+      depends_on: [9]
+      critical: true
+      
+    - agent_id: 11
+      name: "Data Analytics & Comparison"
+      start_time: "06:15"
+      estimated_duration_minutes: 30
+      depends_on: [7, 8, 9, 10]
+      critical: true
+      
+    - agent_id: 12
+      name: "Quality Assurance & Intelligence"
+      start_time: "06:45"
+      estimated_duration_minutes: 45
+      critical: true
+      depends_on: [7, 8, 9, 10, 11]
+
+  cycle_completion_time: "07:30"
+  
+  failure_handling:
+    retry_failed_agents: true
+    max_retries: 2
+    retry_delay_minutes: 10
+    notify_on_failure: true
+    notification_channels:
+      - slack: "#agent-health"
+      - email: "devops@company.com"
+    
+  health_checks:
+    pre_cycle:
+      - "Node.js available"
+      - "Project structure valid"
+      - "Agent directories exist"
+      - "Agent scripts executable"
+    
+    post_cycle:
+      - "All agents completed"
+      - "Handoff artifacts created"
+      - "Reports generated"
+      - "Intelligence report generated"
+
+monitoring:
+  real_time_tracking: true
+  log_aggregation: true
+  metrics_collection: true
+  
+  alerts:
+    agent_timeout: "Send alert if agent exceeds 2x estimated duration"
+    agent_failure: "Immediate notification on critical agent failure"
+    cycle_delay: "Alert if cycle not completed by 08:00"

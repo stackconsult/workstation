@@ -1,0 +1,98 @@
+# Agent 15: Workflow Marketplace & Template System
+# Production-ready specification with free, open-source libraries only
+
+agent_identity:
+  name: "Workflow Marketplace & Template System"
+  id: 15
+  role: "Community platform architect - Enables workflow discovery, sharing, and reuse"
+  motto: "Great automation starts with great templates"
+
+mission:
+  primary: "Build a community-driven marketplace where users discover, share, and remix automation workflows"
+  secondary: "Lower the barrier to entry with 20+ pre-built workflow templates"
+  tertiary: "Enable quality control and version tracking for community submissions"
+
+technology_stack:
+  frontend: "React 18 + TypeScript (strict mode)"
+  search: "Fuse.js 7.x (MIT license) - fuzzy search with zero dependencies"
+  validation: "ajv 8.x (MIT license) - JSON Schema validator"
+  markdown: "react-markdown 9.x (MIT license) - render workflow instructions"
+  storage: "localStorage API - browser native, no external service"
+  icons: "Heroicons (MIT license) - already in system"
+  styling: "Tailwind CSS 3.x (MIT license) - already in system"
+
+free_open_source_philosophy:
+  no_external_apis: true
+  no_paid_services: false
+  all_libraries_mit_bsd: true
+  works_offline: true
+  complete_code_ownership: true
+
+marketplace_features:
+  template_library:
+    count: "20+ pre-built workflow templates"
+    categories: ["Web Scraping", "Data Processing", "API Integration", "Testing", "Monitoring"]
+    includes: "name, description, category, tags, instructions, workflow JSON"
+    examples: ["LinkedIn Profile Scraper", "CSV to JSON Converter", "API Health Monitor"]
+  
+  search_discovery:
+    fuzzy_search: "Fuse.js (searches name, description, tags)"
+    category_filter: "Single or multiple categories"
+    sort_options: ["popularity", "rating", "newest", "most installed"]
+    tag_navigation: "Tag-based browsing"
+  
+  publishing_system:
+    submissions: "User workflow submissions"
+    auto_approve: "Authors with rating > 4.0"
+    review_queue: "Manual review for new authors"
+    validation: "Workflow validation before approval"
+    versioning: "Semantic versioning (1.0.0)"
+  
+  rating_reviews:
+    rating_system: "5-star ratings"
+    text_reviews: "With character limits"
+    helpful_votes: "Track helpful reviews"
+    author_response: "Authors can respond"
+  
+  version_control:
+    tracking: "Track workflow iterations"
+    semver: "Semantic versioning"
+    changelog: "Per version"
+    version_install: "Install specific versions"
+  
+  one_click_install:
+    deployment: "Instant workflow deployment"
+    customization: "Customize before installing"
+    tracking: "Track install count"
+
+performance_requirements:
+  search_response: "< 100ms for 100+ templates"
+  fuzzy_search_threshold: "0.4 (balance precision/recall)"
+  localStorage_limit: "5MB (handles 1000+ templates)"
+  render_time: "< 300ms for template grid"
+  modal_load: "< 100ms"
+
+validation_checklist:
+  - "Fuse.js installed and configured"
+  - "JSON Schema validation working"
+  - "localStorage persistence functional"
+  - "Search filters working (query, category, rating, sort)"
+  - "Template install increments counter"
+  - "Review system functional"
+  - "Markdown rendering working"
+  - "Auto-approval logic correct (rating > 4.0)"
+  - "Semantic versioning enforced"
+  - "20+ seed templates loaded"
+
+success_criteria:
+  - "Users can search and discover workflows in < 5 seconds"
+  - "Template installation is one-click"
+  - "Community can submit workflows"
+  - "Quality control prevents malicious submissions"
+  - "System works completely offline after initial load"
+  - "All libraries are free and open-source (MIT/BSD)"
+
+handoff_to_agent_16:
+  provides: "Workflow templates for Agent 16 to schedule and execute"
+  data_format: "WorkflowTemplate JSON with execution instructions"
+  integration_point: "Agent 16 reads from localStorage STORAGE_KEY"
