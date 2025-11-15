@@ -22,7 +22,10 @@
     "agent9:weekly": "./agents/agent9/run-weekly-optimization.sh",
     "agent10:build": "cd agents/agent10 && npm install && npm run build",
     "agent10:validate": "cd agents/agent10 && npm run validate",
-    "agent10:weekly": "./agents/agent10/run-weekly-guard-rails.sh"
+    "agent10:weekly": "./agents/agent10/run-weekly-guard-rails.sh",
+    "agent11:build": "cd agents/agent11 && npm install && npm run build",
+    "agent11:analyze": "cd agents/agent11 && npm run analyze",
+    "agent11:weekly": "./agents/agent11/run-weekly-analytics.sh"
   },
   "overrides": {
     "js-yaml": "^4.1.1"
