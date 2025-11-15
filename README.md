@@ -24,6 +24,21 @@ Browser Agent with JWT Authentication and Railway Deployment
 - 🔐 **Input Sanitization** prevents XSS in user data
 - 🕵️ **Privacy-First Logging** with IP anonymization
 
+## 🖼️ User Interface Options
+
+**New!** This project now includes multiple UI solutions. Choose the one that fits your needs:
+
+| Solution | Setup Time | Best For |
+|----------|-----------|----------|
+| [GitHub Actions Panel](.github/workflows/admin-control-panel.yml) | 5 min | Admin tasks, immediate solution |
+| [Web Dashboard](docs/) | 15 min | Public interface, professional look |
+| Swagger UI | 30 min | API documentation |
+
+**→ See [INTERFACE_QUICKSTART.md](INTERFACE_QUICKSTART.md) for step-by-step setup**  
+**→ See [INTERFACE_SOLUTIONS.md](INTERFACE_SOLUTIONS.md) for full research and options**
+
+The web dashboard is already included in the `docs/` folder and can be deployed to GitHub Pages in minutes!
+
 ## Quick Start
 
 ### Local Development
@@ -356,6 +371,7 @@ If you need to adjust rate limits, modify the `limiter` and `authLimiter` config
 - **[Security Policy](SECURITY.md)** - Security best practices and vulnerability reporting
 - **[Monitoring Guide](MONITORING.md)** - Observability, logging, and alerting setup
 - **[Interface Solutions](INTERFACE_SOLUTIONS.md)** - UI/Interface planning and implementation options
+- **[Interface Quick Start](INTERFACE_QUICKSTART.md)** - 5-minute guide to adding a UI
 - **[Contributing](CONTRIBUTING.md)** - Contribution guidelines
 - **[Changelog](CHANGELOG.md)** - Version history and release notes
 
