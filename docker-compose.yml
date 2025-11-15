@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Main workstation service
+  workstation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: workstation
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-24h}
+      - PORT=3000
+    volumes:
+      - ./src:/app/src:ro
+      - ./dist:/app/dist:ro
+    networks:
+      - automation-network
+    labels:
+      - "service.name=workstation"
+      - "service.type=main"
+
+  # Agent 8: Error Assessment & Documentation Auditor
+  agent8-auditor:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile.agent8
+    container_name: agent8-auditor
+    restart: unless-stopped
+    environment:
+      - TZ=America/Denver  # MST
+      - ASSESSMENT_SCHEDULE=0 2 * * 6
+    volumes:
+      - agent8-memory:/var/lib/agent8-memory:rw
+      - ./agents/agent8/reports:/agent8/reports:rw
+      - ./:/workstation:ro
+    networks:
+      - automation-network
+    depends_on:
+      - workstation
+    labels:
+      - "agent.id=8"
+      - "agent.name=Error Assessment & Documentation Auditor"
+      - "agent.schedule=Weekly Saturday 2:00 AM MST"
+
+networks:
+  automation-network:
+    driver: bridge
+    name: automation-network
+
+volumes:
+  agent8-memory:
+    driver: local
+    name: agent8-assessment-memory

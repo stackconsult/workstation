@@ -13,7 +13,10 @@
     "test:watch": "jest --watch",
     "test:integration": "jest --testPathPattern=integration",
     "audit-ci": "audit-ci --moderate",
-    "prepublishOnly": "npm run lint && npm run build"
+    "prepublishOnly": "npm run lint && npm run build",
+    "agent8:build": "cd agents/agent8 && npm install && npm run build",
+    "agent8:assess": "cd agents/agent8 && npm run assess",
+    "agent8:weekly": "./agents/agent8/run-weekly-assessment.sh"
   },
   "overrides": {
     "js-yaml": "^4.1.1"

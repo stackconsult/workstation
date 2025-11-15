@@ -15,3 +15,11 @@ logs/
 fix-summary.md
 fixes/
 *.rej
+
+# Agent 8 artifacts
+agents/agent8/dist/
+agents/agent8/node_modules/
+agents/agent8/reports/*/
+!agents/agent8/reports/.gitkeep
+agents/agent8/memory/assessment-history.json
+.agent8-handoff.json

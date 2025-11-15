@@ -1,0 +1,39 @@
+# .docker/Dockerfile.agent8
+# Agent 8: Error Assessment & Documentation Auditor Container
+# Persistent memory for assessment history and patterns
+
+FROM node:20-alpine
+
+WORKDIR /agent8
+
+# Install assessment tools
+RUN apk add --no-cache \
+    git \
+    jq \
+    bash \
+    curl \
+    go
+
+# Copy agent 8 code
+COPY agents/agent8/ ./
+
+# Install Node dependencies
+RUN npm install
+
+# Build TypeScript
+RUN npm run build
+
+# Create memory persistence directory
+RUN mkdir -p /var/lib/agent8-memory
+
+# Set up weekly cron job (Saturday 2:00 AM)
+RUN echo "0 2 * * 6 cd /workstation && /agent8/run-weekly-assessment.sh" > /etc/crontabs/root
+
+# Health check
+HEALTHCHECK --interval=1h --timeout=10s --retries=3 \
+  CMD test -f /var/lib/agent8-memory/assessment-history.json || exit 1
+
+# MCP Memory volume
+VOLUME /var/lib/agent8-memory
+
+CMD ["crond", "-f", "-l", "2"]
