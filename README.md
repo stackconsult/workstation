@@ -365,6 +365,7 @@ If you need to adjust rate limits, modify the `limiter` and `authLimiter` config
 
 ## Documentation
 
+- **[Product Roadmap](ROADMAP.md)** - Complete product evolution plan and feature roadmap
 - **[API Reference](API.md)** - Complete API documentation with examples
 - **[Architecture](ARCHITECTURE.md)** - System architecture and design decisions
 - **[Deployment Guide](DEPLOYMENT.md)** - Production deployment instructions for multiple platforms
@@ -456,32 +457,45 @@ A: Not in the current version. Planned for future releases.
 
 ## Roadmap
 
-### Version 1.x (Current)
-- [x] JWT Authentication
-- [x] Express API Server
-- [x] Rate Limiting
-- [x] Railway Deployment
-- [x] Docker Support
-- [x] TypeScript
-- [x] API Documentation
+📍 **See [ROADMAP.md](ROADMAP.md) for the complete product roadmap and evolution plan**
 
-### Version 2.0 (Planned)
-- [ ] Database Integration (PostgreSQL)
-- [ ] User Registration & Login
-- [ ] Refresh Token Support
-- [ ] Token Revocation/Blacklisting
-- [ ] OAuth Providers (Google, GitHub)
-- [ ] WebSocket Support
-- [ ] Advanced Logging (Winston)
+The roadmap outlines our vision to transform stackBrowserAgent from a JWT authentication service into a comprehensive AI automation platform with browser orchestration, multi-agent workflows, and natural language control.
 
-### Version 3.0 (Future)
-- [ ] Browser Automation (Puppeteer/Playwright)
-- [ ] UI Dashboard (React + Vite)
-- [ ] Task Queue (Bull/BullMQ)
-- [ ] Metrics & Monitoring (Prometheus)
-- [ ] Multi-tenancy Support
-- [ ] API Rate Plans
-- [ ] CI/CD Pipelines
+### Quick Overview
+
+**Phase 0 (Current)** - JWT Authentication Service ✅
+- Express.js API with TypeScript
+- JWT authentication and rate limiting
+- Docker deployment with CI/CD
+
+**Phase 1 (Weeks 1-2)** - Core Browser Automation Layer
+- Browser automation with Playwright
+- Workflow orchestration engine
+- Database persistence (SQLite → PostgreSQL)
+
+**Phase 2 (Weeks 3-4)** - Agent Ecosystem
+- 20+ specialized agents (Browser, CSV, Email, HTTP, etc.)
+- Multi-agent workflows with dependencies
+- Parallel task execution
+
+**Phase 3 (Week 5)** - Slack Orchestration
+- Conversational interface via Slack
+- Natural language workflow control
+- Real-time progress updates
+
+**Phase 4 (Week 6)** - Enterprise Features
+- Multi-tenant workspaces
+- Secrets management
+- Prometheus metrics
+- Webhook triggers
+
+**Phase 5 (Weeks 7-12)** - Scale & Polish
+- React web UI with workflow builder
+- Plugin system for custom agents
+- Horizontal scaling with Redis/BullMQ
+- Kubernetes deployment
+
+**Target**: 10,000+ active users, 1M+ workflow executions/month by Q4 2024
 
 **Note**: For UI/Interface planning and available solutions, see [INTERFACE_SOLUTIONS.md](INTERFACE_SOLUTIONS.md) which provides research and recommendations for implementing user interfaces including GitHub-native solutions, admin dashboards, and low-code options.
 
