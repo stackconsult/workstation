@@ -206,6 +206,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:3000/api/protected
 
 ## Docker
 
+### Quick Start
+
 Build and run with Docker:
 
 ```bash
@@ -217,6 +219,32 @@ docker run -p 3000:3000 \
   -e JWT_SECRET=your-secret \
   stackbrowseragent
 ```
+
+### Production Images
+
+Pre-built images are automatically published to GitHub Container Registry (GHCR) for every main branch commit:
+
+```bash
+# Pull latest version
+docker pull ghcr.io/creditxcredit/workstation:latest
+
+# Pull specific commit (recommended for production)
+docker pull ghcr.io/creditxcredit/workstation:main-<commit-sha>
+
+# Pull semantic version (for releases)
+docker pull ghcr.io/creditxcredit/workstation:1.0.0
+```
+
+**Benefits:**
+- ✅ Complete version history maintained in GHCR
+- ✅ Easy rollback to any previous commit
+- ✅ Multi-platform support (amd64, arm64)
+- ✅ Automatic security scanning
+
+For detailed information on:
+- **Image tagging strategy**: See [DOCKER_IMAGE_TAGGING.md](./DOCKER_IMAGE_TAGGING.md)
+- **Rollback procedures**: See [DOCKER_ROLLBACK_GUIDE.md](./DOCKER_ROLLBACK_GUIDE.md)
+- **Deployment options**: See [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ## Security Notes
 
