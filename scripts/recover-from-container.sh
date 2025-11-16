@@ -119,7 +119,7 @@ echo ""
 # Check if package.json exists
 if [ -f "${RECOVERY_DIR}/app/package.json" ]; then
     echo "📄 Found package.json:"
-    cat "${RECOVERY_DIR}/app/package.json" | grep -E '"name"|"description"|"version"' | head -5
+    grep -E '"name"|"description"|"version"' "${RECOVERY_DIR}/app/package.json" | head -5
     echo ""
 fi
 
@@ -131,7 +131,7 @@ echo "  - Delete all files in repository root (except .git and .github)"
 echo "  - Copy extracted source code to repository root"
 echo "  - Preserve .github/agents and .github/workflows"
 echo ""
-read -p "Continue with recovery? (yes/no): " CONFIRM
+read -r -p "Continue with recovery? (yes/no): " CONFIRM
 
 if [ "${CONFIRM}" != "yes" ]; then
     echo "❌ Recovery cancelled"
@@ -181,7 +181,7 @@ echo ""
 
 if [ -f "package.json" ]; then
     echo "📦 package.json:"
-    cat package.json | grep -E '"name"|"description"|"version"'
+    grep -E '"name"|"description"|"version"' package.json
     echo ""
 fi
 

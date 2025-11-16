@@ -81,9 +81,9 @@ echo "Step 4: Checking for Python references..."
 echo "------------------------------------------"
 
 # Check for Python version references
-PYTHON_REFS=$(grep -rn "python-version:\|python\|3\.9\|3\.10\|3\.11" .github/workflows/*.yml 2>/dev/null | grep -v ".disabled" | wc -l)
+PYTHON_REFS=$(grep -rn "python-version:\|python\|3\.9\|3\.10\|3\.11" .github/workflows/*.yml 2>/dev/null | grep -cv ".disabled")
 
-if [ $PYTHON_REFS -eq 0 ]; then
+if [ "$PYTHON_REFS" -eq 0 ]; then
     echo -e "${GREEN}✓ No Python references found in active workflows${NC}"
 else
     echo -e "${YELLOW}⚠ Found $PYTHON_REFS Python references:${NC}"

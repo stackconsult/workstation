@@ -3,7 +3,6 @@
 # Check status of current or last cycle
 
 WEEK=$(date +%U)
-YEAR=$(date +%Y)
 ROOT_DIR="$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")"
 
 echo "🔍 Autonomous Cycle Health Check"
@@ -11,11 +10,11 @@ echo "================================="
 echo ""
 
 # Check if cycle running
-if ps aux | grep -q "[m]aster-orchestrator.sh"; then
+if pgrep -f "master-orchestrator.sh" > /dev/null; then
     echo "🟢 Status: CYCLE IN PROGRESS"
     echo ""
     echo "Running processes:"
-    ps aux | grep -E "[m]aster-orchestrator|agent[7-9]|agent1[0-2]" | grep -v grep
+    pgrep -f "master-orchestrator|agent[7-9]|agent1[0-2]" -a
 else
     echo "⚪ Status: IDLE (next cycle Saturday 2:00 AM MST)"
 fi
