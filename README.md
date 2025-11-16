@@ -370,6 +370,8 @@ If you need to adjust rate limits, modify the `limiter` and `authLimiter` config
 
 ## Documentation
 
+- **[Project Identity](PROJECT_IDENTITY.md)** - Understanding the stackBrowserAgent → workstation evolution
+- **[Future Features](FUTURE_FEATURES.md)** - Roadmap services and why they exist but aren't used yet
 - **[Product Roadmap](ROADMAP.md)** - Complete product evolution plan and feature roadmap
 - **[API Reference](API.md)** - Complete API documentation with examples
 - **[Architecture](ARCHITECTURE.md)** - System architecture and design decisions
