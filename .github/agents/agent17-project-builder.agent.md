@@ -323,6 +323,128 @@ jobs:
 - natural (NLP/sentiment)
 - Node.js (processing)
 
+### Template 4: Real Estate Property Monitor
+**Purpose:** Track property listings from Zillow and Redfin with automated alerts
+
+**Features:**
+- Multi-site property scraping (Zillow, Redfin)
+- New listing detection
+- Price change tracking
+- Automated SMS/email alerts for matches
+- GitHub Actions scheduling (every 2 hours)
+- SQLite database (file-based, committed to repo)
+- Search criteria configuration
+
+**FREE Stack:**
+- Playwright (property scraping)
+- SQLite (data persistence)
+- GitHub Actions (scheduling every 2 hours)
+- Nodemailer with Gmail SMTP (email alerts)
+
+**Optional BYOK:**
+- Twilio (SMS alerts - $15 free trial, then user provides own key)
+- SendGrid (email service)
+- Slack (team notifications)
+
+**Project Structure:**
+```
+projects/real-estate-monitor/
+├── package.json
+├── tsconfig.json
+├── .env.example
+├── README.md
+├── src/
+│   ├── index.ts
+│   ├── types/index.ts
+│   ├── scrapers/
+│   │   ├── base-scraper.ts
+│   │   ├── zillow.ts
+│   │   └── redfin.ts
+│   ├── services/
+│   │   ├── database.ts         # SQLite integration
+│   │   ├── notifier.ts         # SMS + Email
+│   │   └── price-tracker.ts    # Price change detection
+│   └── utils/
+│       ├── logger.ts
+│       └── retry.ts
+├── data/
+│   ├── search-config.json      # User search criteria
+│   └── properties.db           # SQLite database
+├── tests/
+│   └── scrapers.test.ts
+└── .github/
+    └── workflows/
+        └── monitor-properties.yml
+```
+
+**Search Configuration Example:**
+```json
+{
+  "searches": [
+    {
+      "name": "Downtown Condos",
+      "location": "Seattle, WA",
+      "minPrice": 400000,
+      "maxPrice": 600000,
+      "propertyType": "condo",
+      "minBeds": 2,
+      "maxDistance": 5
+    }
+  ],
+  "notifications": {
+    "email": "user@example.com",
+    "sms": "+1234567890",
+    "alertOn": ["new_listing", "price_drop"]
+  }
+}
+```
+
+**GitHub Actions Workflow:**
+```yaml
+name: Monitor Properties
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # Every 2 hours
+  workflow_dispatch:        # Manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npx playwright install chromium
+      
+      - name: Run property monitor
+        env:
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+        run: npm start
+      
+      - name: Commit updated database
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add data/properties.db
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update property data $(date +'%Y-%m-%d %H:%M')"
+          git push
+```
+
+**Key Features:**
+- **Autonomous Operation**: Runs automatically via GitHub Actions every 2 hours
+- **Free by Default**: Uses Gmail SMTP for email alerts (no cost)
+- **BYOK SMS**: Twilio integration optional (free $15 trial, then BYOK)
+- **Persistent Storage**: SQLite database committed to repository
+- **Price Tracking**: Detects and alerts on price changes
+- **Configurable**: JSON-based search criteria
+- **Production Ready**: 80%+ test coverage, error handling, retry logic
+
 ## Usage Instructions
 
 ### For Developers
