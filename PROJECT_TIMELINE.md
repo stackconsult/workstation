@@ -539,7 +539,7 @@ docs/
 - ⚠️ Breaking: CORS now restrictive
 - ⚠️ Breaking: JWT_SECRET required in production
 
-### v1.0.0 (November 11, 2025)
+### v1.0.0 (November 11, 2024)
 **Theme**: Initial Release
 
 - ✅ JWT authentication
