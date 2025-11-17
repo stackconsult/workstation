@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../utils/logger";
 
 /**
  * Global error handling middleware
@@ -9,12 +9,12 @@ export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   // Log full error details internally (never send to client)
-  logger.error('Unhandled error:', {
+  logger.error("Unhandled error:", {
     error: err.message,
-    stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+    stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
     path: req.path,
     method: req.method,
   });
@@ -26,11 +26,11 @@ export function errorHandler(
 
   // In production, send generic error message
   // In development, include error message for debugging
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
+  const isDevelopment = process.env.NODE_ENV === "development";
+
   res.status(500).json({
-    error: 'Internal server error',
-    message: isDevelopment ? err.message : 'An unexpected error occurred',
+    error: "Internal server error",
+    message: isDevelopment ? err.message : "An unexpected error occurred",
     // Never send stack traces to clients
   });
 }
@@ -40,7 +40,7 @@ export function errorHandler(
  */
 export function notFoundHandler(req: Request, res: Response): void {
   res.status(404).json({
-    error: 'Not found',
+    error: "Not found",
     path: req.path,
   });
 }
