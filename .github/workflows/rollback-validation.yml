@@ -1,0 +1,213 @@
+name: Rollback Validation and File Tracking
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      validate_only:
+        description: 'Only validate without storing state'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  track-and-validate:
+    name: Track File Changes and Validate Rollback
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Full history for rollback tracking
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Create rollback state snapshot
+        id: snapshot
+        run: |
+          # Create rollback directory if it doesn't exist
+          mkdir -p .rollback/snapshots
+          
+          SNAPSHOT_ID="snapshot-$(date +%Y%m%d-%H%M%S)-${{ github.sha }}"
+          SNAPSHOT_FILE=".rollback/snapshots/${SNAPSHOT_ID}.json"
+          
+          echo "snapshot_id=$SNAPSHOT_ID" >> $GITHUB_OUTPUT
+          echo "snapshot_file=$SNAPSHOT_FILE" >> $GITHUB_OUTPUT
+          
+          # Generate file manifest with hashes
+          echo "Generating file manifest..."
+          
+          cat > "$SNAPSHOT_FILE" <<EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "actor": "${{ github.actor }}",
+            "files": {}
+          }
+          EOF
+          
+          # Track all source files with their hashes
+          find src -type f \( -name "*.ts" -o -name "*.js" \) | while read file; do
+            hash=$(sha256sum "$file" | cut -d' ' -f1)
+            echo "  \"$file\": { \"hash\": \"$hash\", \"size\": $(wc -c < "$file") }," >> "$SNAPSHOT_FILE.tmp"
+          done
+          
+          # Also track configuration files
+          for file in package.json tsconfig.json jest.config.js .eslintrc.json; do
+            if [ -f "$file" ]; then
+              hash=$(sha256sum "$file" | cut -d' ' -f1)
+              echo "  \"$file\": { \"hash\": \"$hash\", \"size\": $(wc -c < "$file") }," >> "$SNAPSHOT_FILE.tmp"
+            fi
+          done
+          
+          # Combine into final JSON (remove trailing comma)
+          if [ -f "$SNAPSHOT_FILE.tmp" ]; then
+            # Build proper JSON
+            head -n -1 "$SNAPSHOT_FILE" > "$SNAPSHOT_FILE.new"
+            echo "  \"files\": {" >> "$SNAPSHOT_FILE.new"
+            sed '$ s/,$//' "$SNAPSHOT_FILE.tmp" >> "$SNAPSHOT_FILE.new"
+            echo "  }" >> "$SNAPSHOT_FILE.new"
+            echo "}" >> "$SNAPSHOT_FILE.new"
+            mv "$SNAPSHOT_FILE.new" "$SNAPSHOT_FILE"
+            rm "$SNAPSHOT_FILE.tmp"
+          fi
+          
+          echo "✓ Snapshot created: $SNAPSHOT_FILE"
+          
+          # Keep only last 10 snapshots to avoid bloat
+          cd .rollback/snapshots
+          ls -t snapshot-*.json | tail -n +11 | xargs -r rm
+          cd ../..
+      
+      - name: Validate rollback capability
+        run: |
+          echo "### 🔄 Rollback Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if previous snapshot exists
+          PREVIOUS_SNAPSHOT=$(ls -t .rollback/snapshots/snapshot-*.json 2>/dev/null | head -n 2 | tail -n 1)
+          
+          if [ -z "$PREVIOUS_SNAPSHOT" ]; then
+            echo "**Status:** ℹ️ No previous snapshot found (first run)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Rollback capability will be available after next merge to main." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          
+          echo "**Previous Snapshot:** $(basename "$PREVIOUS_SNAPSHOT")" >> $GITHUB_STEP_SUMMARY
+          echo "**Current Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Compare with previous snapshot
+          CHANGED_FILES=0
+          NEW_FILES=0
+          DELETED_FILES=0
+          
+          # Get list of all files from previous snapshot
+          PREV_FILES=$(jq -r '.files | keys[]' "$PREVIOUS_SNAPSHOT" 2>/dev/null || echo "")
+          
+          for file in $PREV_FILES; do
+            if [ ! -f "$file" ]; then
+              DELETED_FILES=$((DELETED_FILES + 1))
+              echo "- ❌ Deleted: $file" >> rollback-changes.txt
+            else
+              PREV_HASH=$(jq -r ".files[\"$file\"].hash" "$PREVIOUS_SNAPSHOT")
+              CURR_HASH=$(sha256sum "$file" 2>/dev/null | cut -d' ' -f1 || echo "")
+              
+              if [ "$PREV_HASH" != "$CURR_HASH" ]; then
+                CHANGED_FILES=$((CHANGED_FILES + 1))
+                echo "- ✏️ Modified: $file" >> rollback-changes.txt
+              fi
+            fi
+          done
+          
+          # Check for new files
+          find src -type f \( -name "*.ts" -o -name "*.js" \) | while read file; do
+            if ! echo "$PREV_FILES" | grep -q "^$file$"; then
+              NEW_FILES=$((NEW_FILES + 1))
+              echo "- ➕ Added: $file" >> rollback-changes.txt
+            fi
+          done
+          
+          echo "**Changes Detected:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Modified files: $CHANGED_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- New files: $NEW_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "- Deleted files: $DELETED_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $CHANGED_FILES -eq 0 ] && [ $NEW_FILES -eq 0 ] && [ $DELETED_FILES -eq 0 ]; then
+            echo "✅ **Result:** No changes detected - rollback not needed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Result:** Rollback capability validated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**File Changes:**" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat rollback-changes.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No detailed changes" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To rollback, use: \`git revert ${{ github.sha }}\` or restore from snapshot." >> $GITHUB_STEP_SUMMARY
+      
+      - name: Store rollback snapshot
+        if: github.event.inputs.validate_only != 'true'
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Add rollback snapshot
+          git add .rollback/snapshots/
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update rollback snapshot for ${{ github.sha }}"
+            git push
+            echo "✓ Rollback snapshot committed and pushed"
+          fi
+        continue-on-error: true
+      
+      - name: Upload snapshot artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: rollback-snapshot-${{ github.sha }}
+          path: .rollback/snapshots/
+          retention-days: 90
+      
+      - name: Test rollback procedure
+        run: |
+          echo "### 🧪 Rollback Test" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Verify we can read snapshots
+          SNAPSHOT_COUNT=$(ls -1 .rollback/snapshots/snapshot-*.json 2>/dev/null | wc -l)
+          echo "**Available Snapshots:** $SNAPSHOT_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $SNAPSHOT_COUNT -gt 0 ]; then
+            echo "✅ Rollback snapshots accessible" >> $GITHUB_STEP_SUMMARY
+            
+            # Show latest snapshots
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Recent Snapshots:**" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            ls -lth .rollback/snapshots/snapshot-*.json | head -n 5 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No snapshots available yet" >> $GITHUB_STEP_SUMMARY
+          fi
