@@ -1,0 +1,362 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/server.json",
+  "name": "workstation-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Workstation browser automation platform - provides AI agents with secure browser control, workflow orchestration, and enterprise authentication",
+  "author": {
+    "name": "creditXcredit",
+    "url": "https://github.com/creditXcredit/workstation"
+  },
+  "license": "ISC",
+  "homepage": "https://github.com/creditXcredit/workstation",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creditXcredit/workstation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/creditXcredit/workstation/issues"
+  },
+  "categories": [
+    "browser-automation",
+    "workflow-orchestration",
+    "ai-agents",
+    "web-scraping",
+    "testing"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "browser-automation",
+    "playwright",
+    "jwt-auth",
+    "workflow-engine",
+    "ai-agents",
+    "copilot",
+    "web-scraping",
+    "e2e-testing"
+  ],
+  "capabilities": {
+    "tools": [
+      {
+        "name": "browser_navigate",
+        "description": "Navigate browser to a URL",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "URL to navigate to"
+            },
+            "waitUntil": {
+              "type": "string",
+              "enum": ["load", "domcontentloaded", "networkidle"],
+              "description": "When to consider navigation successful"
+            }
+          },
+          "required": ["url"]
+        }
+      },
+      {
+        "name": "browser_click",
+        "description": "Click an element on the page",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string",
+              "description": "CSS selector of element to click"
+            },
+            "waitForSelector": {
+              "type": "boolean",
+              "description": "Wait for selector to be visible before clicking"
+            }
+          },
+          "required": ["selector"]
+        }
+      },
+      {
+        "name": "browser_type",
+        "description": "Type text into an input field",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string",
+              "description": "CSS selector of input element"
+            },
+            "text": {
+              "type": "string",
+              "description": "Text to type"
+            },
+            "delay": {
+              "type": "number",
+              "description": "Delay between keystrokes in milliseconds"
+            }
+          },
+          "required": ["selector", "text"]
+        }
+      },
+      {
+        "name": "browser_screenshot",
+        "description": "Take a screenshot of the page",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "fullPage": {
+              "type": "boolean",
+              "description": "Capture full page or just viewport"
+            },
+            "selector": {
+              "type": "string",
+              "description": "Optional selector to screenshot specific element"
+            }
+          }
+        }
+      },
+      {
+        "name": "browser_get_text",
+        "description": "Extract text content from an element",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string",
+              "description": "CSS selector of element"
+            }
+          },
+          "required": ["selector"]
+        }
+      },
+      {
+        "name": "browser_get_content",
+        "description": "Get full HTML content of the page",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "name": "browser_evaluate",
+        "description": "Execute JavaScript in the browser context",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "script": {
+              "type": "string",
+              "description": "JavaScript code to execute"
+            }
+          },
+          "required": ["script"]
+        }
+      },
+      {
+        "name": "workflow_create",
+        "description": "Create a multi-step browser automation workflow",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Workflow name"
+            },
+            "description": {
+              "type": "string",
+              "description": "Workflow description"
+            },
+            "tasks": {
+              "type": "array",
+              "description": "Array of tasks to execute",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "agent_type": {
+                    "type": "string",
+                    "enum": ["browser"]
+                  },
+                  "action": {
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "required": ["name", "tasks"]
+        }
+      },
+      {
+        "name": "workflow_execute",
+        "description": "Execute a workflow by ID",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "workflowId": {
+              "type": "string",
+              "description": "Workflow ID to execute"
+            },
+            "parameters": {
+              "type": "object",
+              "description": "Runtime parameters for workflow"
+            }
+          },
+          "required": ["workflowId"]
+        }
+      },
+      {
+        "name": "auth_get_token",
+        "description": "Get JWT authentication token",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "userId": {
+              "type": "string",
+              "description": "User identifier"
+            },
+            "role": {
+              "type": "string",
+              "description": "User role for authorization"
+            }
+          },
+          "required": ["userId"]
+        }
+      }
+    ],
+    "resources": [
+      {
+        "name": "workflows",
+        "description": "Access to saved workflows",
+        "mimeType": "application/json"
+      },
+      {
+        "name": "screenshots",
+        "description": "Access to captured screenshots",
+        "mimeType": "image/png"
+      },
+      {
+        "name": "page_content",
+        "description": "Access to extracted page content",
+        "mimeType": "text/html"
+      }
+    ],
+    "prompts": [
+      {
+        "name": "scrape_website",
+        "description": "Navigate to a website and extract structured data",
+        "arguments": [
+          {
+            "name": "url",
+            "description": "Website URL to scrape",
+            "required": true
+          },
+          {
+            "name": "selectors",
+            "description": "CSS selectors for data extraction",
+            "required": true
+          }
+        ]
+      },
+      {
+        "name": "fill_form",
+        "description": "Automate form filling and submission",
+        "arguments": [
+          {
+            "name": "url",
+            "description": "Form URL",
+            "required": true
+          },
+          {
+            "name": "fields",
+            "description": "Form fields and values",
+            "required": true
+          }
+        ]
+      },
+      {
+        "name": "monitor_page",
+        "description": "Monitor a page for changes",
+        "arguments": [
+          {
+            "name": "url",
+            "description": "Page URL to monitor",
+            "required": true
+          },
+          {
+            "name": "selector",
+            "description": "Element selector to watch",
+            "required": true
+          },
+          {
+            "name": "interval",
+            "description": "Check interval in seconds",
+            "required": false
+          }
+        ]
+      }
+    ]
+  },
+  "config": {
+    "transport": {
+      "type": "http",
+      "baseUrl": "http://localhost:3000",
+      "endpoints": {
+        "tools": "/api/v2/mcp/tools",
+        "resources": "/api/v2/mcp/resources",
+        "prompts": "/api/v2/mcp/prompts"
+      }
+    },
+    "authentication": {
+      "type": "bearer",
+      "tokenEndpoint": "/auth/demo-token"
+    },
+    "rateLimit": {
+      "maxRequests": 100,
+      "windowMs": 900000
+    }
+  },
+  "runtime": {
+    "language": "typescript",
+    "node": ">=18.0.0",
+    "dependencies": {
+      "express": "^4.18.2",
+      "playwright": "^1.56.1",
+      "jsonwebtoken": "^9.0.2"
+    }
+  },
+  "deployment": {
+    "docker": {
+      "image": "ghcr.io/creditxcredit/workstation",
+      "ports": [3000, 8082]
+    },
+    "railway": {
+      "template": "https://railway.app/template/stackbrowseragent"
+    }
+  },
+  "documentation": {
+    "quickstart": "https://github.com/creditXcredit/workstation/blob/main/START_HERE.md",
+    "api": "https://github.com/creditXcredit/workstation/blob/main/docs/api/API.md",
+    "architecture": "https://github.com/creditXcredit/workstation/blob/main/docs/architecture/ARCHITECTURE.md",
+    "examples": "https://github.com/creditXcredit/workstation/tree/main/examples"
+  },
+  "support": {
+    "issues": "https://github.com/creditXcredit/workstation/issues",
+    "discussions": "https://github.com/creditXcredit/workstation/discussions",
+    "documentation": "https://github.com/creditXcredit/workstation/blob/main/docs/DOCUMENTATION_INDEX.md"
+  },
+  "tags": [
+    "browser-automation",
+    "ai-agent",
+    "workflow-engine",
+    "playwright",
+    "typescript",
+    "jwt-authentication",
+    "rate-limiting",
+    "enterprise-ready",
+    "docker",
+    "railway"
+  ]
+}
