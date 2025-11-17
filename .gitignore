@@ -4,12 +4,16 @@ dist/
 *.log
 .DS_Store
 coverage/
+.coverage-baseline.json
 .vscode/
 .idea/
 logs/
 .npm
 .eslintcache
 *.tsbuildinfo
+
+# Rollback snapshots
+.rollback/
 
 # Audit workflow artifacts
 fix-summary.md
