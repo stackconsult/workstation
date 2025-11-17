@@ -1,0 +1,53 @@
+{
+  "name": "Website Content Scraper",
+  "description": "Extract text content from a website and capture evidence",
+  "definition": {
+    "tasks": [
+      {
+        "name": "navigate_to_site",
+        "agent_type": "browser",
+        "action": "navigate",
+        "parameters": {
+          "url": "${target_url}",
+          "waitUntil": "networkidle"
+        }
+      },
+      {
+        "name": "get_page_title",
+        "agent_type": "browser",
+        "action": "evaluate",
+        "parameters": {
+          "function": "() => document.title"
+        }
+      },
+      {
+        "name": "get_main_heading",
+        "agent_type": "browser",
+        "action": "getText",
+        "parameters": {
+          "selector": "h1"
+        }
+      },
+      {
+        "name": "get_full_content",
+        "agent_type": "browser",
+        "action": "getContent",
+        "parameters": {}
+      },
+      {
+        "name": "capture_screenshot",
+        "agent_type": "browser",
+        "action": "screenshot",
+        "parameters": {
+          "fullPage": false
+        }
+      }
+    ],
+    "variables": {
+      "target_url": "https://example.com"
+    },
+    "on_error": "continue"
+  },
+  "timeout_seconds": 90,
+  "max_retries": 3
+}

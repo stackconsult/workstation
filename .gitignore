@@ -86,3 +86,8 @@ agents/agent12/intelligence/week-*-intelligence.json
 
 # Docker snapshots
 .docker/snapshots/*.json
+
+# Agent dependencies
+agents/*/node_modules/
+agents/*/dist/
+*.db

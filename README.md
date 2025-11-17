@@ -1,6 +1,11 @@
-# stackBrowserAgent
+# stackBrowserAgent → workstation
 
-Browser Agent with JWT Authentication and Railway Deployment
+**Current Phase**: ✅ **Phase 1 Complete** - Browser Automation Layer  
+**Previous**: Phase 0 (JWT Auth) | **Next**: Phase 2 (Agent Ecosystem)
+
+> 📍 **Project Evolution**: This repository is evolving from `stackBrowserAgent` (JWT auth service) to `workstation` (comprehensive browser automation platform). **Phase 1 is now complete and operational!** See [PROJECT_IDENTITY.md](./PROJECT_IDENTITY.md) for the evolution roadmap.
+
+Browser Automation Platform with JWT Authentication and Workflow Orchestration
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/stackbrowseragent)
 
@@ -23,6 +28,20 @@ Browser Agent with JWT Authentication and Railway Deployment
 - 🛡️ **JWT Algorithm Validation** prevents 'none' algorithm attacks
 - 🔐 **Input Sanitization** prevents XSS in user data
 - 🕵️ **Privacy-First Logging** with IP anonymization
+
+### ✨ Phase 1 Features (NEW!)
+
+- 🌐 **Browser Automation** with Playwright integration
+- 🔄 **Workflow Orchestration** engine for multi-step tasks
+- 💾 **Database Persistence** (SQLite) for workflows and executions
+- 🎯 **RESTful API v2** for workflow management
+- 🤖 **Agent Registry** extensible architecture
+- 📋 **7 Browser Actions**: navigate, click, type, getText, screenshot, getContent, evaluate
+- 🔁 **Automatic Retries** with exponential backoff
+- 📊 **Execution Tracking** in real-time
+- 🎨 **Workflow Templates** included in `examples/`
+
+**→ See [PHASE1_COMPLETE.md](./PHASE1_COMPLETE.md) for complete Phase 1 documentation**
 
 ## 🖼️ User Interface Options
 
@@ -365,6 +384,8 @@ If you need to adjust rate limits, modify the `limiter` and `authLimiter` config
 
 ## Documentation
 
+- **[Project Identity](PROJECT_IDENTITY.md)** - Understanding the stackBrowserAgent → workstation evolution
+- **[Future Features](FUTURE_FEATURES.md)** - Roadmap services and why they exist but aren't used yet
 - **[Product Roadmap](ROADMAP.md)** - Complete product evolution plan and feature roadmap
 - **[API Reference](API.md)** - Complete API documentation with examples
 - **[Architecture](ARCHITECTURE.md)** - System architecture and design decisions

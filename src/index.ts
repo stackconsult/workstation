@@ -10,6 +10,9 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
 import { getHealthStatus } from './utils/health';
 import { validateEnvironment, printEnvironmentSummary } from './utils/env';
+// Phase 1: Import automation routes and database
+import automationRoutes from './routes/automation';
+import { initializeDatabase } from './automation/db/database';
 
 // Load environment variables
 dotenv.config();
@@ -17,6 +20,13 @@ dotenv.config();
 // Validate environment configuration
 const envConfig = validateEnvironment();
 printEnvironmentSummary(envConfig);
+
+// Initialize Phase 1 database
+initializeDatabase().then(() => {
+  logger.info('Phase 1: Database initialized successfully');
+}).catch(error => {
+  logger.error('Phase 1: Database initialization failed', { error });
+});
 
 const app = express();
 const PORT = envConfig.port;
@@ -154,6 +164,9 @@ app.get('/api/agent/status', authenticateToken, (req: Request, res: Response) =>
     timestamp: new Date().toISOString()
   });
 });
+
+// Phase 1: Mount automation routes
+app.use('/api/v2', automationRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);

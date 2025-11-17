@@ -1,0 +1,40 @@
+{
+  "name": "Google Search Screenshot",
+  "description": "Navigate to Google, perform a search, and capture screenshot",
+  "definition": {
+    "tasks": [
+      {
+        "name": "navigate_to_google",
+        "agent_type": "browser",
+        "action": "navigate",
+        "parameters": {
+          "url": "https://www.google.com",
+          "waitUntil": "load"
+        }
+      },
+      {
+        "name": "search_query",
+        "agent_type": "browser",
+        "action": "type",
+        "parameters": {
+          "selector": "textarea[name=q]",
+          "text": "${search_term}"
+        }
+      },
+      {
+        "name": "capture_results",
+        "agent_type": "browser",
+        "action": "screenshot",
+        "parameters": {
+          "fullPage": true
+        }
+      }
+    ],
+    "variables": {
+      "search_term": "Playwright automation"
+    },
+    "on_error": "stop"
+  },
+  "timeout_seconds": 60,
+  "max_retries": 2
+}

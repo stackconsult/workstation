@@ -92,6 +92,8 @@
     "natural": "^8.1.0",
     "node-cron": "^4.2.1",
     "playwright": "^1.56.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
     "winston": "^3.11.0"
   },
   "devDependencies": {
