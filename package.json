@@ -47,7 +47,10 @@
     "agent-builder:build-all": "ts-node scripts/agent-builder/agent-builder.ts --all",
     "orchestrator:deploy": "ts-node scripts/agent-builder/orchestrator.ts --agent",
     "orchestrator:deploy-all": "ts-node scripts/agent-builder/orchestrator.ts --all",
-    "orchestrator:rollback": "ts-node scripts/agent-builder/orchestrator.ts --rollback"
+    "orchestrator:rollback": "ts-node scripts/agent-builder/orchestrator.ts --rollback",
+    "agent17:build": "cd agents/agent17 && npm install && npm run build",
+    "agent17:test": "cd agents/agent17 && npm test",
+    "agent17:generate": "cd agents/agent17 && npm run generate"
   },
   "overrides": {
     "js-yaml": "^4.1.1"

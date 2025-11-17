@@ -1,0 +1,98 @@
+name: Agent 17 - Test Suite
+
+on:
+  push:
+    paths:
+      - 'agents/agent17/**'
+      - '.github/workflows/agent17-test.yml'
+  pull_request:
+    paths:
+      - 'agents/agent17/**'
+      - '.github/workflows/agent17-test.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Agent 17
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: agents/agent17/package-lock.json
+
+      - name: Install dependencies
+        working-directory: agents/agent17
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: agents/agent17
+        run: npx playwright install chromium --with-deps
+
+      - name: Run linter
+        working-directory: agents/agent17
+        run: npm run lint
+
+      - name: Build TypeScript
+        working-directory: agents/agent17
+        run: npm run build
+
+      - name: Run tests
+        working-directory: agents/agent17
+        run: npm test -- --coverage
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          files: agents/agent17/coverage/lcov.info
+          flags: agent17
+          name: agent17-coverage
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent17-test-results
+          path: |
+            agents/agent17/coverage/
+            agents/agent17/dist/
+          retention-days: 30
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: agents/agent17
+        run: npm ci
+
+      - name: Run security audit
+        working-directory: agents/agent17
+        run: npm audit --production
+        continue-on-error: true
+
+      - name: Check for critical vulnerabilities
+        working-directory: agents/agent17
+        run: |
+          if npm audit --production --audit-level=critical | grep -q "found.*critical"; then
+            echo "Critical vulnerabilities found!"
+            exit 1
+          fi
+        continue-on-error: true
