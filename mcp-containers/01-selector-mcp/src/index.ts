@@ -249,9 +249,9 @@ class SelectorBuilderMCP {
           // Add nth-of-type if necessary
           if (current.parentNode) {
             const siblings = Array.from(current.parentNode.children);
-            const sameType = siblings.filter(s => s.nodeName === current!.nodeName);
+            const sameType = siblings.filter((s): s is Element => s.nodeName === current!.nodeName);
             if (sameType.length > 1) {
-              const index = sameType.indexOf(current as Element) + 1;
+              const index = sameType.indexOf(current) + 1;
               selector += `:nth-of-type(${index})`;
             }
           }
@@ -362,7 +362,7 @@ class SelectorBuilderMCP {
 
         // Fallback to nodeName with nth-of-type
         const siblings = el.parentNode ? Array.from(el.parentNode.children) : [];
-        const sameType = siblings.filter(s => s.nodeName === el.nodeName);
+        const sameType = siblings.filter((s): s is Element => s.nodeName === el.nodeName);
         const index = sameType.indexOf(el) + 1;
         return `${el.nodeName.toLowerCase()}:nth-of-type(${index})`;
       });
