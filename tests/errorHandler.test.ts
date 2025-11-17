@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import { errorHandler, notFoundHandler } from '../src/middleware/errorHandler';
-import { logger } from '../src/utils/logger';
+import { Request, Response, NextFunction } from "express";
+import { errorHandler, notFoundHandler } from "../src/middleware/errorHandler";
+import { logger } from "../src/utils/logger";
 
 // Mock the logger
-jest.mock('../src/utils/logger', () => ({
+jest.mock("../src/utils/logger", () => ({
   logger: {
     error: jest.fn(),
     info: jest.fn(),
@@ -11,7 +11,7 @@ jest.mock('../src/utils/logger', () => ({
   },
 }));
 
-describe('Error Handler Middleware', () => {
+describe("Error Handler Middleware", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: NextFunction;
@@ -21,8 +21,8 @@ describe('Error Handler Middleware', () => {
     jest.clearAllMocks();
 
     mockRequest = {
-      path: '/test-path',
-      method: 'GET',
+      path: "/test-path",
+      method: "GET",
     };
 
     mockResponse = {
@@ -34,65 +34,65 @@ describe('Error Handler Middleware', () => {
     mockNext = jest.fn();
   });
 
-  describe('errorHandler', () => {
-    it('should log error details and return 500 status', () => {
-      const error = new Error('Test error');
+  describe("errorHandler", () => {
+    it("should log error details and return 500 status", () => {
+      const error = new Error("Test error");
 
       errorHandler(
         error,
         mockRequest as Request,
         mockResponse as Response,
-        mockNext
+        mockNext,
       );
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Unhandled error:',
+        "Unhandled error:",
         expect.objectContaining({
-          error: 'Test error',
-          path: '/test-path',
-          method: 'GET',
-        })
+          error: "Test error",
+          path: "/test-path",
+          method: "GET",
+        }),
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Internal server error',
-        message: 'An unexpected error occurred',
+        error: "Internal server error",
+        message: "An unexpected error occurred",
       });
     });
 
-    it('should include error message in development mode', () => {
+    it("should include error message in development mode", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      process.env.NODE_ENV = "development";
 
-      const error = new Error('Detailed error message');
+      const error = new Error("Detailed error message");
 
       errorHandler(
         error,
         mockRequest as Request,
         mockResponse as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Internal server error',
-        message: 'Detailed error message',
+        error: "Internal server error",
+        message: "Detailed error message",
       });
 
       process.env.NODE_ENV = originalEnv;
     });
 
-    it('should include stack trace in development mode', () => {
+    it("should include stack trace in development mode", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      process.env.NODE_ENV = "development";
 
-      const error = new Error('Test error with stack');
+      const error = new Error("Test error with stack");
 
       errorHandler(
         error,
         mockRequest as Request,
         mockResponse as Response,
-        mockNext
+        mockNext,
       );
 
       const logCall = (logger.error as jest.Mock).mock.calls[0][1];
@@ -101,15 +101,15 @@ describe('Error Handler Middleware', () => {
       process.env.NODE_ENV = originalEnv;
     });
 
-    it('should call next() if headers already sent', () => {
+    it("should call next() if headers already sent", () => {
       mockResponse.headersSent = true;
-      const error = new Error('Test error');
+      const error = new Error("Test error");
 
       errorHandler(
         error,
         mockRequest as Request,
         mockResponse as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockNext).toHaveBeenCalledWith(error);
@@ -117,38 +117,38 @@ describe('Error Handler Middleware', () => {
       expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should not expose stack traces in production', () => {
+    it("should not expose stack traces in production", () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
 
-      const error = new Error('Production error');
+      const error = new Error("Production error");
 
       errorHandler(
         error,
         mockRequest as Request,
         mockResponse as Response,
-        mockNext
+        mockNext,
       );
 
       const logCall = (logger.error as jest.Mock).mock.calls[0][1];
       expect(logCall.stack).toBeUndefined();
 
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Internal server error',
-        message: 'An unexpected error occurred',
+        error: "Internal server error",
+        message: "An unexpected error occurred",
       });
 
       process.env.NODE_ENV = originalEnv;
     });
 
-    it('should handle errors without stack traces', () => {
-      const error = { message: 'Plain error object' } as Error;
+    it("should handle errors without stack traces", () => {
+      const error = { message: "Plain error object" } as Error;
 
       errorHandler(
         error,
         mockRequest as Request,
         mockResponse as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
@@ -156,18 +156,18 @@ describe('Error Handler Middleware', () => {
     });
   });
 
-  describe('notFoundHandler', () => {
-    it('should return 404 status with path', () => {
+  describe("notFoundHandler", () => {
+    it("should return 404 status with path", () => {
       notFoundHandler(mockRequest as Request, mockResponse as Response);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Not found',
-        path: '/test-path',
+        error: "Not found",
+        path: "/test-path",
       });
     });
 
-    it('should handle missing path', () => {
+    it("should handle missing path", () => {
       mockRequest = {
         ...mockRequest,
         path: undefined as any,
@@ -177,22 +177,22 @@ describe('Error Handler Middleware', () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Not found',
+        error: "Not found",
         path: undefined,
       });
     });
 
-    it('should work with different paths', () => {
+    it("should work with different paths", () => {
       mockRequest = {
         ...mockRequest,
-        path: '/api/non-existent',
+        path: "/api/non-existent",
       };
 
       notFoundHandler(mockRequest as Request, mockResponse as Response);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Not found',
-        path: '/api/non-existent',
+        error: "Not found",
+        path: "/api/non-existent",
       });
     });
   });

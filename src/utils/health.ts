@@ -2,7 +2,7 @@
  * Enhanced health check with system metrics
  */
 export interface HealthStatus {
-  status: 'ok' | 'degraded' | 'error';
+  status: "ok" | "degraded" | "error";
   timestamp: string;
   uptime: number;
   memory: {
@@ -21,11 +21,11 @@ export function getHealthStatus(): HealthStatus {
 
   // Consider the service healthy unless memory is critically high (>95%)
   // This is more appropriate for health checks as 90% is still operational
-  let status: 'ok' | 'degraded' | 'error' = 'ok';
+  let status: "ok" | "degraded" | "error" = "ok";
   if (memoryPercentage > 98) {
-    status = 'error';
+    status = "error";
   } else if (memoryPercentage > 95) {
-    status = 'degraded';
+    status = "degraded";
   }
 
   return {
@@ -37,6 +37,6 @@ export function getHealthStatus(): HealthStatus {
       total: Math.round(totalMemory / 1024 / 1024), // MB
       percentage: Math.round(memoryPercentage),
     },
-    version: process.env.npm_package_version || '1.0.0',
+    version: process.env.npm_package_version || "1.0.0",
   };
 }
