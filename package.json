@@ -12,6 +12,8 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:integration": "jest --testPathPattern=integration",
+    "precommit": "./scripts/pre-commit-check.sh",
+    "validate": "npm run lint && npm run build && npm test",
     "test:coverage-check": "npm test && node scripts/coverage-scaling.js check",
     "coverage:report": "node scripts/coverage-scaling.js report",
     "coverage:update-baseline": "node scripts/coverage-scaling.js update-baseline",
