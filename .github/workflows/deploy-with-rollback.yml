@@ -1,0 +1,182 @@
+name: Deploy with Rollback Support
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: 'Agent to deploy (01-20) or "all"'
+        required: true
+        default: 'all'
+      action:
+        description: 'Action: deploy or rollback'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - rollback
+      version:
+        description: 'Version for rollback (commit SHA or "previous")'
+        required: false
+        default: 'previous'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+
+jobs:
+  deploy:
+    if: github.event.inputs.action == 'deploy'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      deployments: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create deployment
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        with:
+          token: ${{ github.token }}
+          environment: production
+      
+      - name: Deploy agent(s)
+        run: |
+          if [ "${{ github.event.inputs.agent }}" == "all" ]; then
+            echo "Deploying all 20 agents..."
+            docker-compose -f docker-compose.mcp.yml up -d
+          else
+            AGENT_NUM=${{ github.event.inputs.agent }}
+            echo "Deploying agent $AGENT_NUM..."
+            docker-compose -f docker-compose.mcp.yml up -d mcp-${AGENT_NUM}-*
+          fi
+      
+      - name: Health check
+        run: |
+          echo "Waiting 30s for containers to start..."
+          sleep 30
+          
+          if [ "${{ github.event.inputs.agent }}" == "all" ]; then
+            # Check all 20 agents
+            FAILED=0
+            for i in {1..20}; do
+              PORT=$((3000 + i))
+              if ! curl -sf http://localhost:$PORT/health > /dev/null; then
+                echo "❌ Agent $i health check failed"
+                ((FAILED++))
+              else
+                echo "✅ Agent $i healthy"
+              fi
+            done
+            
+            if [ $FAILED -gt 0 ]; then
+              echo "❌ $FAILED agents failed health check"
+              exit 1
+            fi
+          else
+            AGENT_NUM=${{ github.event.inputs.agent }}
+            PORT=$((3000 + 10#$AGENT_NUM))
+            if ! curl -sf http://localhost:$PORT/health > /dev/null; then
+              echo "❌ Agent $AGENT_NUM health check failed"
+              exit 1
+            fi
+            echo "✅ Agent $AGENT_NUM healthy"
+          fi
+      
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: success
+      
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: failure
+
+  rollback:
+    if: github.event.inputs.action == 'rollback'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Rollback single agent
+        if: github.event.inputs.agent != 'all'
+        run: |
+          AGENT_NUM=${{ github.event.inputs.agent }}
+          VERSION=${{ github.event.inputs.version }}
+          
+          echo "Rolling back agent $AGENT_NUM to $VERSION..."
+          chmod +x scripts/rollback-agent.sh
+          ./scripts/rollback-agent.sh "modules/${AGENT_NUM}-*" "$VERSION"
+      
+      - name: Emergency rollback all
+        if: github.event.inputs.agent == 'all'
+        run: |
+          VERSION=${{ github.event.inputs.version }}
+          
+          echo "🚨 EMERGENCY ROLLBACK ALL AGENTS to $VERSION..."
+          chmod +x scripts/emergency-rollback-all.sh
+          ./scripts/emergency-rollback-all.sh "$VERSION"
+      
+      - name: Verify rollback
+        run: |
+          echo "Waiting 30s for containers to stabilize..."
+          sleep 30
+          
+          if [ "${{ github.event.inputs.agent }}" == "all" ]; then
+            # Check all 20 agents
+            FAILED=0
+            for i in {1..20}; do
+              PORT=$((3000 + i))
+              if ! curl -sf http://localhost:$PORT/health > /dev/null; then
+                echo "❌ Agent $i health check failed after rollback"
+                ((FAILED++))
+              else
+                echo "✅ Agent $i healthy after rollback"
+              fi
+            done
+            
+            if [ $FAILED -gt 0 ]; then
+              echo "⚠️  $FAILED agents failed health check after rollback"
+              echo "Manual intervention may be required"
+              exit 1
+            fi
+          else
+            AGENT_NUM=${{ github.event.inputs.agent }}
+            PORT=$((3000 + 10#$AGENT_NUM))
+            if ! curl -sf http://localhost:$PORT/health > /dev/null; then
+              echo "❌ Agent $AGENT_NUM health check failed after rollback"
+              exit 1
+            fi
+            echo "✅ Agent $AGENT_NUM healthy after rollback"
+          fi
+      
+      - name: Create issue on rollback failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Rollback Failed - Agent ${{ github.event.inputs.agent }}',
+              body: `Rollback to version ${{ github.event.inputs.version }} failed.\n\n` +
+                    `**Agent:** ${{ github.event.inputs.agent }}\n` +
+                    `**Target Version:** ${{ github.event.inputs.version }}\n` +
+                    `**Workflow Run:** ${context.payload.workflow_run.html_url}\n\n` +
+                    `Manual intervention required.`,
+              labels: ['critical', 'rollback-failed', 'manual-intervention']
+            });
