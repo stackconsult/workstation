@@ -1,6 +1,6 @@
 /**
  * Agent Orchestration System
- * 
+ *
  * Provides systematic automation for agent-to-agent handoffs with:
  * - Accuracy parameters and validation
  * - Guardrails and safety checks
@@ -8,14 +8,14 @@
  * - Error recovery and rollback
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 // Types
 export interface Agent {
   id: number;
   name: string;
   tier: 1 | 2 | 3;
-  status: 'idle' | 'active' | 'error' | 'building';
+  status: "idle" | "active" | "error" | "building";
   accuracy: number;
   requiredAccuracy: number;
   capabilities: string[];
@@ -36,7 +36,7 @@ export interface WorkflowExecution {
   id: string;
   agents: number[];
   currentAgent: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
   startTime: Date;
   endTime?: Date;
   handoffs: HandoffData[];
@@ -45,7 +45,7 @@ export interface WorkflowExecution {
 export interface GuardrailCheck {
   name: string;
   check: (data: any, context: any) => boolean | Promise<boolean>;
-  severity: 'critical' | 'warning' | 'info';
+  severity: "critical" | "warning" | "info";
   message: string;
 }
 
@@ -57,8 +57,13 @@ export class AgentOrchestrator extends EventEmitter {
   private agents: Map<number, Agent>;
   private guardrails: GuardrailCheck[];
   private workflows: Map<string, WorkflowExecution>;
-  private config: { minAccuracy: number; maxRetries: number; timeoutMs: number; enableAutoRecovery: boolean };
-  
+  private config: {
+    minAccuracy: number;
+    maxRetries: number;
+    timeoutMs: number;
+    enableAutoRecovery: boolean;
+  };
+
   constructor(config: any) {
     super();
     this.agents = new Map();
@@ -69,33 +74,34 @@ export class AgentOrchestrator extends EventEmitter {
       maxRetries: 3,
       timeoutMs: 300000,
       enableAutoRecovery: true,
-      ...config
+      ...config,
     };
-    
+
     this.initializeGuardrails();
   }
-  
+
   registerAgent(agent: Agent): void {
     if (agent.accuracy < agent.requiredAccuracy) {
       throw new Error(`Agent ${agent.id} accuracy below required`);
     }
     this.agents.set(agent.id, agent);
-    this.emit('agent:registered', { agentId: agent.id });
+    this.emit("agent:registered", { agentId: agent.id });
   }
-  
+
   private initializeGuardrails(): void {
     this.guardrails.push({
-      name: 'accuracy-threshold',
-      check: (data: any) => !data.accuracy || data.accuracy >= this.config.minAccuracy,
-      severity: 'critical',
-      message: `Accuracy must be at least ${this.config.minAccuracy}%`
+      name: "accuracy-threshold",
+      check: (data: any) =>
+        !data.accuracy || data.accuracy >= this.config.minAccuracy,
+      severity: "critical",
+      message: `Accuracy must be at least ${this.config.minAccuracy}%`,
     });
-    
+
     this.guardrails.push({
-      name: 'data-integrity',
+      name: "data-integrity",
       check: (data: any) => data !== null && data !== undefined,
-      severity: 'critical',
-      message: 'Data cannot be null or undefined'
+      severity: "critical",
+      message: "Data cannot be null or undefined",
     });
   }
 }
