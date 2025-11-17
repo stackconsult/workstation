@@ -1,6 +1,8 @@
 import { generateToken, verifyToken, generateDemoToken } from '../src/auth/jwt';
 
 describe('JWT Authentication', () => {
+
+
   describe('generateToken', () => {
     it('should generate a valid token', () => {
       const payload = { userId: 'test-user', role: 'user' };
@@ -19,6 +21,26 @@ describe('JWT Authentication', () => {
       expect(decoded).toBeDefined();
       expect(decoded?.userId).toBe('admin-user');
       expect(decoded?.role).toBe('admin');
+    });
+
+    it('should sanitize userId with special characters', () => {
+      const payload = { userId: '<script>alert("xss")</script>test', role: 'user' };
+      const token = generateToken(payload);
+      const decoded = verifyToken(token);
+      
+      expect(decoded).toBeDefined();
+      expect(decoded?.userId).toBe('scriptalert("xss")/scripttest');
+      expect(decoded?.userId).not.toContain('<');
+      expect(decoded?.userId).not.toContain('>');
+    });
+
+    it('should handle userId with whitespace', () => {
+      const payload = { userId: '  test-user  ', role: 'user' };
+      const token = generateToken(payload);
+      const decoded = verifyToken(token);
+      
+      expect(decoded).toBeDefined();
+      expect(decoded?.userId).toBe('test-user');
     });
   });
 
