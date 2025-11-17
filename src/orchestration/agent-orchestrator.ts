@@ -1,6 +1,6 @@
 /**
  * Agent Orchestration System
- * 
+ *
  * Provides systematic automation for agent-to-agent handoffs with:
  * - Accuracy parameters and validation
  * - Guardrails and safety checks
@@ -8,14 +8,14 @@
  * - Error recovery and rollback
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 // Types
 export interface Agent {
   id: number;
   name: string;
   tier: 1 | 2 | 3;
-  status: 'idle' | 'active' | 'error' | 'building';
+  status: "idle" | "active" | "error" | "building";
   accuracy: number;
   requiredAccuracy: number;
   capabilities: string[];
@@ -36,7 +36,7 @@ export interface WorkflowExecution {
   id: string;
   agents: number[];
   currentAgent: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
   startTime: Date;
   endTime?: Date;
   handoffs: HandoffData[];
@@ -44,8 +44,11 @@ export interface WorkflowExecution {
 
 export interface GuardrailCheck {
   name: string;
-  check: (data: Record<string, unknown>, context: Record<string, unknown>) => boolean | Promise<boolean>;
-  severity: 'critical' | 'warning' | 'info';
+  check: (
+    data: Record<string, unknown>,
+    context: Record<string, unknown>,
+  ) => boolean | Promise<boolean>;
+  severity: "critical" | "warning" | "info";
   message: string;
 }
 
