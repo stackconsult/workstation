@@ -9,6 +9,37 @@ Browser Automation Platform with JWT Authentication and Workflow Orchestration
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/stackbrowseragent)
 
+---
+
+## 🚀 **Want to Use the Browser Agent? START HERE!**
+
+### **→ [📖 HOW TO USE THE BROWSER AGENT](./HOW_TO_USE_BROWSER_AGENT.md)** ←
+
+**Everything you need in one place:**
+- ✅ 5-minute quick start guide
+- ✅ Complete API examples
+- ✅ Web UI instructions
+- ✅ Troubleshooting help
+- ✅ Code locations
+
+**OR Quick Start Right Now:**
+
+```bash
+# 1. Start server
+npm install && npm run dev
+
+# 2. Get token (in new terminal)
+curl http://localhost:3000/auth/demo-token
+
+# 3. Open Web UI
+open docs/index.html
+```
+
+**Browser Agent Location:** [`src/automation/agents/core/browser.ts`](./src/automation/agents/core/browser.ts)  
+**Web UIs:** [`docs/index.html`](./docs/index.html) | [`docs/workstation-control-center.html`](./docs/workstation-control-center.html)
+
+---
+
 ## Features
 
 - 🔐 JWT Authentication with Express
