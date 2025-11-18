@@ -18,7 +18,7 @@ on:
 
 permissions:
   actions: read
-  contents: read
+  contents: write
   security-events: write
 
 jobs:
@@ -475,6 +475,7 @@ jobs:
       - name: Comment on commit (if push event)
         if: github.event_name == 'push'
         uses: peter-evans/commit-comment@v4
+        continue-on-error: true
         with:
           body: |
             ## 🔍 Audit Scan Completed
