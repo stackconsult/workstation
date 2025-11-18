@@ -1,7 +1,17 @@
+// ✅ JWT Secret Environment Validation (BEFORE imports to fail fast)
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Validate JWT_SECRET before server initialization - FAIL FAST
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'changeme') {
+  console.error('❌ FATAL: Unsafe JWT_SECRET configured. Server will not start.');
+  console.error('   Set a secure JWT_SECRET in your .env file');
+  throw new Error('Unsafe JWT_SECRET configured. Server will not start.');
+}
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { createHash } from 'crypto';
 import { join } from 'path';
@@ -15,8 +25,18 @@ import { validateEnvironment, printEnvironmentSummary } from './utils/env';
 import automationRoutes from './routes/automation';
 import { initializeDatabase, getDatabase } from './automation/db/database';
 
-// Load environment variables
-dotenv.config();
+// 🛡️ Fail-Fast Global Error Handlers - MUST be before server initialization
+process.on('uncaughtException', (err) => {
+  console.error('❌ FATAL: Unhandled exception:', err);
+  logger.error('Unhandled exception - shutting down', { error: err.message, stack: err.stack });
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('❌ FATAL: Unhandled promise rejection:', err);
+  logger.error('Unhandled promise rejection - shutting down', { error: err });
+  process.exit(1);
+});
 
 // Validate environment configuration
 const envConfig = validateEnvironment();
