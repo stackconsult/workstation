@@ -14,7 +14,6 @@ This guide covers deployment of the fully integrated workstation platform with a
 7. [Health Checks & Monitoring](#health-checks--monitoring)
 8. [Rollback & Recovery](#rollback--recovery)
 9. [Troubleshooting](#troubleshooting)
-9. [Build Documentation](#build-documentation)
 10. [Troubleshooting](#troubleshooting)
 
 ---
