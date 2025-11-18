@@ -334,7 +334,7 @@ jobs:
             - [ ] Review failed job logs
             - [ ] Fix any test failures
             - [ ] Address any security vulnerabilities
-            - [ ] Ensure coverage requirements are met (>90%)
+            - [ ] Ensure coverage requirements are met (>=55%)
             - [ ] Verify Playwright browsers install correctly
             - [ ] Check for secret leaks
             
