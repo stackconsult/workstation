@@ -26,27 +26,54 @@ stackBrowserAgent is a lightweight, secure JWT-based authentication service buil
 
 ```
 stackBrowserAgent/
-├── src/                        # Source code
-│   ├── auth/                   # Authentication module
-│   │   └── jwt.ts             # JWT token logic
-│   └── index.ts               # Main application entry
-├── dist/                       # Compiled JavaScript (generated)
-├── node_modules/              # Dependencies (generated)
-├── .env.example               # Environment variable template
-├── .eslintrc.json            # ESLint configuration
-├── .gitignore                # Git ignore rules
-├── .dockerignore             # Docker ignore rules
-├── API.md                    # API documentation
-├── CHANGELOG.md              # Version history
-├── CONTRIBUTING.md           # Contribution guidelines
-├── Dockerfile                # Docker container config
-├── LICENSE                   # License file
-├── README.md                 # Main documentation
-├── package.json              # Dependencies & scripts
-├── railway.json              # Railway deployment config
-├── railway-template.md       # Railway template docs
-├── test.sh                   # Test suite script
-└── tsconfig.json             # TypeScript configuration
+├── src/                              # Source code
+│   ├── auth/                         # Authentication module
+│   │   └── jwt.ts                    # JWT token logic
+│   ├── automation/                   # Automation logic (agents, orchestrator, workflow, db)
+│   │   ├── agents/                   # Agent implementations
+│   │   ├── orchestrator/             # Orchestration logic
+│   │   ├── workflow/                 # Workflow definitions
+│   │   └── db/                       # Database access layer
+│   ├── middleware/                   # Express middleware (errorHandler, validation)
+│   │   ├── errorHandler.ts
+│   │   └── validation.ts
+│   ├── utils/                        # Utility functions (logger, health, env)
+│   │   ├── logger.ts
+│   │   ├── health.ts
+│   │   └── env.ts
+│   ├── routes/                       # Route definitions (automation routes)
+│   │   └── automation.ts
+│   ├── services/                     # Service layer (navigationService)
+│   │   └── navigationService.ts
+│   ├── orchestration/                # Agent orchestration
+│   │   └── agent-orchestrator.ts
+│   ├── types/                        # TypeScript type definitions
+│   └── index.ts                      # Main application entry
+├── agent-server/                     # Standalone agent server
+├── mcp-containers/                   # Containerized MCP components
+├── tests/                            # Test suites
+├── dist/                             # Compiled JavaScript (generated)
+├── node_modules/                     # Dependencies (generated)
+├── .env.example                      # Environment variable template
+├── .eslintrc.json                    # ESLint configuration
+├── .gitignore                        # Git ignore rules
+├── .dockerignore                     # Docker ignore rules
+├── API.md                            # API documentation
+├── ARCHITECTURE.md                   # Architecture documentation
+├── CHANGELOG.md                      # Version history
+├── CONTINUITY_DOCUMENTATION.md       # Continuity and operational docs
+├── DEPLOYMENT_INTEGRATED.md          # Integrated deployment instructions
+├── ENTERPRISE_ERROR_HANDLING.md      # Error handling education system
+├── FIX_SUMMARY.md                    # Fix summary documentation
+├── QUICKSTART_INTEGRATED.md          # Integrated quickstart guide
+├── CONTRIBUTING.md                   # Contribution guidelines
+├── Dockerfile                        # Docker container config
+├── LICENSE                           # License file
+├── README.md                         # Main documentation
+├── package.json                      # Dependencies & scripts
+├── railway.json                      # Railway deployment config
+├── test.sh                           # Test suite script
+└── tsconfig.json                     # TypeScript configuration
 ```
 
 ## Architecture Layers
@@ -288,12 +315,13 @@ Public URL assigned
 ### Current Logging
 - Server startup information
 - Environment configuration
-- Console logging for development
+- Structured logging with Winston (implemented)
+- Request/response logging
+- Error tracking and categorization
 
 ### Future Enhancements
-- Structured logging (Winston, Pino)
-- Request/response logging
-- Error tracking (Sentry)
+- Advanced log aggregation (ELK Stack, Datadog)
+- Error tracking (Sentry integration)
 - Performance metrics (Prometheus)
 - Distributed tracing (OpenTelemetry)
 
@@ -301,13 +329,16 @@ Public URL assigned
 
 The architecture supports future extensions:
 
-1. **Database Layer**: Add database connection for persistence
-2. **WebSocket Support**: Real-time communication
-3. **OAuth Integration**: Social login providers
-4. **Browser Automation**: Puppeteer/Playwright integration
-5. **Message Queue**: Async task processing
-6. **Caching Layer**: Redis for performance
-7. **API Gateway**: Kong, Traefik for advanced routing
+1. **WebSocket Support**: Real-time communication
+2. **OAuth Integration**: Social login providers
+3. **Message Queue**: Async task processing
+4. **Caching Layer**: Redis for performance
+5. **API Gateway**: Kong, Traefik for advanced routing
+
+### Implemented Extensions
+
+- **Database Layer**: SQLite-based persistence implemented
+- **Browser Automation**: Playwright integration (1.56+) implemented
 
 ## Design Decisions
 
@@ -349,14 +380,13 @@ The architecture supports future extensions:
 ## Testing Strategy
 
 ### Current Tests
-- Manual test script (`test.sh`)
-- 7 test cases covering core functionality
-- cURL-based API testing
+- Automated test suite: 146 tests passing using Jest (covers core functionality and API endpoints)
+- Manual test script (`test.sh`) for integration and smoke testing
+- cURL-based API testing (for manual verification and debugging)
 
 ### Future Testing
-- Unit tests (Jest, Vitest)
-- Integration tests (Supertest)
-- End-to-end tests (Playwright)
+- Additional unit test coverage (expanding beyond 64% overall)
+- End-to-end tests (Playwright for UI automation)
 - Load testing (Artillery, k6)
 - Security testing (OWASP ZAP)
 

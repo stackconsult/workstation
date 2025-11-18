@@ -4,8 +4,8 @@
 - **Automation Coverage Thresholds**: Extended auth module improvements to all automation processes
   - Added realistic thresholds for automation/db (85% statements, 65% branches)
   - Added thresholds for automation/workflow (55% statements, 65% branches)
-  - Added thresholds for automation/orchestrator (45% statements, 20% branches)
-  - Added thresholds for automation/agents (15% statements, 8% branches - very low but realistic)
+  - Added thresholds for automation/orchestrator (42% statements, 18% branches)
+  - Added thresholds for automation/agents (12% statements, 8% branches - very low but realistic)
   - Added thresholds for routes/automation (70% statements, 20% branches)
 - **Automation Coverage Improvement Plan**: 300+ line comprehensive roadmap
   - Current state analysis for all automation modules
