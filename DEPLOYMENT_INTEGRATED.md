@@ -482,5 +482,5 @@ docker run -d \
 
 ---
 
-**Last Updated**: 2025-11-17  
-**Version**: 1.0.0
+**Last Updated**: 2025-11-18  
+**Version**: 1.0.1
