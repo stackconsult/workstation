@@ -76,12 +76,12 @@ describe('Workstation Integration Tests', () => {
 
   describe('Documentation', () => {
     test('should have integrated deployment guide', () => {
-      const deployPath = path.join(process.cwd(), 'DEPLOYMENT_INTEGRATED.md');
+      const deployPath = path.join(process.cwd(), 'docs/guides/DEPLOYMENT_INTEGRATED.md');
       expect(fs.existsSync(deployPath)).toBe(true);
     });
 
     test('should have integrated quickstart guide', () => {
-      const quickstartPath = path.join(process.cwd(), 'QUICKSTART_INTEGRATED.md');
+      const quickstartPath = path.join(process.cwd(), 'docs/guides/QUICKSTART_INTEGRATED.md');
       expect(fs.existsSync(quickstartPath)).toBe(true);
     });
 
@@ -98,13 +98,13 @@ describe('Workstation Integration Tests', () => {
     });
 
     test('deployment guide should contain architecture diagram', () => {
-      const deployPath = path.join(process.cwd(), 'DEPLOYMENT_INTEGRATED.md');
+      const deployPath = path.join(process.cwd(), 'docs/guides/DEPLOYMENT_INTEGRATED.md');
       const content = fs.readFileSync(deployPath, 'utf-8');
       expect(content).toContain('Architecture Overview');
     });
 
     test('deployment guide should contain rollback procedures', () => {
-      const deployPath = path.join(process.cwd(), 'DEPLOYMENT_INTEGRATED.md');
+      const deployPath = path.join(process.cwd(), 'docs/guides/DEPLOYMENT_INTEGRATED.md');
       const content = fs.readFileSync(deployPath, 'utf-8');
       expect(content).toContain('Rollback & Recovery');
     });
