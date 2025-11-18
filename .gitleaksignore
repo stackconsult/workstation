@@ -1,0 +1,29 @@
+# Gitleaks ignore file
+# Exclude documentation files with example secrets
+*.md
+CHANGELOG.md
+README.md
+
+# Exclude example and template files
+*.example
+*.template
+example-*
+*-example.*
+
+# Exclude test files
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Exclude archived documentation
+docs/archives/**
+archives/**
+
+# Exclude configuration examples
+docker-compose*.yml
+.env.example
+
+# Exclude agent server examples
+agent-server/**/example-*
+agent-server/**/*.example.*

@@ -13,7 +13,8 @@ This guide covers deployment of the fully integrated workstation platform with a
 6. [MCP Setup](#mcp-setup)
 7. [Health Checks & Monitoring](#health-checks--monitoring)
 8. [Rollback & Recovery](#rollback--recovery)
-9. [Troubleshooting](#troubleshooting)
+9. [Build Documentation](#build-documentation)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -391,6 +392,270 @@ curl http://localhost:8080/status
 
 ---
 
+## Build Documentation
+
+### Overview
+
+The workstation platform uses a multi-stage build process that produces optimized production images with minimal dependencies and attack surface.
+
+### Build Process
+
+#### Standard Build
+
+Build the Docker image from the repository root:
+
+```bash
+# Build with default configuration
+docker build -t workstation:latest .
+
+# Build with specific tag
+docker build -t workstation:1.0.0 .
+
+# Build without cache
+docker build --no-cache -t workstation:latest .
+```
+
+#### Multi-Stage Build
+
+The Dockerfile uses multi-stage builds for optimization:
+
+1. **Dependencies Stage**: Installs Node.js dependencies
+2. **Build Stage**: Compiles TypeScript to JavaScript
+3. **Production Stage**: Creates minimal runtime image
+
+```dockerfile
+# Example multi-stage structure
+FROM node:18-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine AS runner
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+CMD ["node", "dist/index.js"]
+```
+
+### Build Arguments
+
+Customize builds with build arguments:
+
+```bash
+# Set Node version
+docker build --build-arg NODE_VERSION=18 -t workstation:latest .
+
+# Set build environment
+docker build --build-arg BUILD_ENV=production -t workstation:latest .
+
+# Skip tests during build
+docker build --build-arg SKIP_TESTS=true -t workstation:latest .
+```
+
+### CI/CD Integration
+
+#### GitHub Actions
+
+Automated builds triggered on:
+- Push to main branch
+- Pull request creation
+- Release tags
+
+```yaml
+# .github/workflows/build.yml excerpt
+- name: Build Docker image
+  run: docker build -t workstation:${{ github.sha }} .
+
+- name: Run tests
+  run: docker run workstation:${{ github.sha }} npm test
+
+- name: Push to registry
+  run: docker push workstation:${{ github.sha }}
+```
+
+#### Build Verification
+
+Verify build integrity:
+
+```bash
+# Check image layers
+docker history workstation:latest
+
+# Inspect image metadata
+docker inspect workstation:latest
+
+# Verify size optimization
+docker images workstation:latest
+
+# Run security scan
+docker scan workstation:latest
+```
+
+### Build Optimization
+
+#### Layer Caching
+
+Optimize build times with layer caching:
+
+```dockerfile
+# Copy dependency files first (changes less frequently)
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code last (changes more frequently)
+COPY . .
+RUN npm run build
+```
+
+#### Size Reduction
+
+Minimize image size:
+
+```bash
+# Use alpine base images
+FROM node:18-alpine
+
+# Remove dev dependencies
+RUN npm prune --production
+
+# Remove unnecessary files
+RUN rm -rf /tmp/* /var/cache/apk/*
+```
+
+### Build Troubleshooting
+
+#### Common Build Errors
+
+**Error**: `npm ERR! code ELIFECYCLE`
+
+**Solution**:
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Rebuild with fresh dependencies
+docker build --no-cache -t workstation:latest .
+```
+
+**Error**: `COPY failed: no source files were specified`
+
+**Solution**:
+- Check `.dockerignore` file
+- Verify source files exist
+- Ensure correct COPY path
+
+**Error**: `The command '/bin/sh -c npm run build' returned a non-zero code`
+
+**Solution**:
+```bash
+# Run build locally to see detailed errors
+npm run build
+
+# Check TypeScript configuration
+npx tsc --noEmit
+
+# Verify all dependencies installed
+npm install
+```
+
+### Production Builds
+
+#### Security Scanning
+
+Scan images before deployment:
+
+```bash
+# Trivy scan
+trivy image workstation:latest
+
+# Snyk scan
+snyk container test workstation:latest
+
+# Docker Scout
+docker scout cves workstation:latest
+```
+
+#### Image Tagging
+
+Use semantic versioning:
+
+```bash
+# Tag with version
+docker tag workstation:latest workstation:1.0.0
+
+# Tag with commit SHA
+docker tag workstation:latest workstation:${GIT_SHA}
+
+# Tag for registry
+docker tag workstation:latest registry.example.com/workstation:1.0.0
+```
+
+#### Registry Push
+
+Push to container registry:
+
+```bash
+# Docker Hub
+docker push username/workstation:latest
+
+# GitHub Container Registry
+docker push ghcr.io/username/workstation:latest
+
+# Private registry
+docker push registry.example.com/workstation:latest
+```
+
+### Local Development Builds
+
+#### Development Image
+
+Build for local development with hot reload:
+
+```bash
+# Build development image
+docker build --target builder -t workstation:dev .
+
+# Run with volume mount
+docker run -v $(pwd):/app workstation:dev
+```
+
+#### Build Scripts
+
+Use npm scripts for common tasks:
+
+```bash
+# Full build
+npm run build
+
+# Watch mode
+npm run build:watch
+
+# Production build
+npm run build:production
+```
+
+### Build Verification Checklist
+
+Before deploying:
+
+- [ ] All tests passing
+- [ ] Security scan clean
+- [ ] Image size optimized
+- [ ] Environment variables documented
+- [ ] Health checks configured
+- [ ] Logs structured and readable
+- [ ] Metrics exposed
+- [ ] Documentation updated
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
@@ -478,8 +743,10 @@ docker run -d \
 - [Architecture Details](./ARCHITECTURE.md)
 - [Security Best Practices](./SECURITY.md)
 - [Contributing Guide](./CONTRIBUTING.md)
+- [Rollback Procedures](./ROLLBACK_PROCEDURES.md)
+- [MCP Containerization Guide](./MCP_CONTAINERIZATION_GUIDE.md)
 
 ---
 
-**Last Updated**: 2025-11-17  
-**Version**: 1.0.0
+**Last Updated**: 2025-11-18  
+**Version**: 1.0.1

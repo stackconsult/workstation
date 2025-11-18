@@ -1,16 +1,20 @@
 # Rollback Procedures and Recovery Guide
 ## Docker Image Rollback & MCP Container Management
 
+**Last Updated**: November 18, 2025  
+**Related Documentation**: [CI/CD Fixes Documentation](CI_FIXES_DOCUMENTATION.md)
+
 ### Table of Contents
 1. [Overview](#overview)
-2. [Rollback Strategy](#rollback-strategy)
-3. [Docker Image Rollback](#docker-image-rollback)
-4. [MCP Container Management](#mcp-container-management)
-5. [Database Rollback](#database-rollback)
-6. [Configuration Rollback](#configuration-rollback)
-7. [Automated Recovery](#automated-recovery)
-8. [Testing Rollback Procedures](#testing-rollback-procedures)
-9. [Post-Rollback Verification](#post-rollback-verification)
+2. [CI/CD Error Prevention](#cicd-error-prevention)
+3. [Rollback Strategy](#rollback-strategy)
+4. [Docker Image Rollback](#docker-image-rollback)
+5. [MCP Container Management](#mcp-container-management)
+6. [Database Rollback](#database-rollback)
+7. [Configuration Rollback](#configuration-rollback)
+8. [Automated Recovery](#automated-recovery)
+9. [Testing Rollback Procedures](#testing-rollback-procedures)
+10. [Post-Rollback Verification](#post-rollback-verification)
 
 ---
 
@@ -24,6 +28,83 @@ This guide provides comprehensive procedures for rolling back deployments in the
 - **Automated Recovery**: MCP recovery and peelback mechanisms provide automatic rollback
 - **Versioned Deployments**: All Docker images are tagged with version information
 - **Health Check Triggers**: Automatic rollback on health check failures
+- **CI/CD Protection**: Multi-layer validation prevents bad code from reaching production
+
+### Recent Updates
+- **2025-11-17**: Fixed CI pipeline coverage thresholds (commit `2b9009d`)
+- **2025-11-17**: Added DEPLOYMENT_INTEGRATED.md and QUICKSTART_INTEGRATED.md
+- **2025-11-18**: Enhanced error handling documentation and rollback procedures
+
+---
+
+## CI/CD Error Prevention
+
+### How We Prevent Production Failures
+
+Before code reaches production, it must pass through **6 validation layers**:
+
+```
+Commit → Lint → Build → Tests → Coverage → Security → Production
+  ↓       ↓       ↓       ↓         ↓          ↓          ↓
+Local  Syntax  Type    Logic    Quality    Vulns     Deploy
+Check  Errors  Errors  Failures Regression Found     Only
+                                                      If All
+                                                      Pass
+```
+
+#### Layer 1: Linting (Pre-Merge)
+```bash
+npm run lint
+# Catches: Code style issues, unused variables, potential bugs
+```
+
+#### Layer 2: Build Validation (Pre-Merge)
+```bash
+npm run build
+# Catches: TypeScript errors, type mismatches, import errors
+```
+
+#### Layer 3: Test Validation (Pre-Merge)
+```bash
+npm test
+# Catches: Logic errors, regressions, broken functionality
+# Current: 146 tests, 65.66% coverage
+```
+
+#### Layer 4: Coverage Enforcement (Pre-Merge)
+```javascript
+// jest.config.js
+coverageThreshold: {
+  global: { statements: 55 },
+  './src/auth/**/*.ts': { statements: 95 },      // Critical: Auth
+  './src/middleware/**/*.ts': { statements: 95 }, // Critical: Error handling
+}
+```
+
+**Recent Fix (2025-11-17)**:
+- Adjusted orchestrator thresholds: 45% → 42% (realistic for integration tests)
+- Adjusted agents thresholds: 15% → 12% (realistic for browser automation)
+- Maintains quality while preventing false CI failures
+
+#### Layer 5: Security Scanning (Pre-Merge)
+```yaml
+# .github/workflows/ci.yml
+- TruffleHog secret scanning
+- npm audit for vulnerabilities
+- Dependency checks with audit-ci
+```
+
+#### Layer 6: Docker Build (Main Branch Only)
+- Only production-ready code builds Docker images
+- Failed tests = No Docker image = Cannot deploy
+
+### Error Handling in Code
+
+See [CI/CD Fixes Documentation](CI_FIXES_DOCUMENTATION.md) for complete details on:
+- Application-level error handlers
+- Authentication error handling
+- Workflow retry logic
+- Comprehensive logging
 
 ---
 

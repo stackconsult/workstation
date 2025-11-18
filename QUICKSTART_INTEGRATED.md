@@ -1,255 +1,244 @@
-# 🚀 Quick Start - Integrated Workstation
+# Integrated Workstation Quickstart Guide
 
-This document provides a quick overview of the fully integrated workstation platform.
+**Last Updated**: November 18, 2025  
+**Related Documentation**:
+- [Full Deployment Guide](DEPLOYMENT_INTEGRATED.md)
+- [Rollback Procedures](ROLLBACK_PROCEDURES.md)
+- [CI/CD Fixes & Error Prevention](CI_FIXES_DOCUMENTATION.md)
 
-## What's Included
+Get the integrated workstation platform up and running in minutes.
 
-The workstation platform now includes:
+## Prerequisites
 
-1. **JWT Authentication API** (Port 3000)
-   - Express.js REST API
-   - Token generation and verification
-   - Rate limiting and security headers
-
-2. **Agent Server** (Ports 8080, 8082)
-   - WebSocket server for browser automation
-   - HTTP API for task submission
-   - Chrome DevTools Protocol (CDP) integration
-
-3. **MCP Server** (Model Context Protocol)
-   - Browser automation via CDP
-   - Peelback recovery mechanism
-   - Automatic rollback on failures
+- Docker and Docker Compose installed
+- 4GB+ RAM available
+- Ports 3000, 8080, 8082 available
 
 ## Quick Start
 
-### 1. Prerequisites
-
-- Docker 20.10+
-- Docker Compose v2.0+
-- 4GB RAM (minimum)
-
-### 2. Setup
+### 1. Clone and Setup
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/creditXcredit/workstation.git
 cd workstation
 
-# Create environment file
-cp .env.example .env
-
-# Edit .env and set JWT_SECRET
-nano .env
-```
-
-### 3. Run
-
-**Option A: Quick Start Script (Recommended)**
-
-```bash
+# Run the quick start script
 ./quick-start.sh
 ```
 
-**Option B: Docker Compose**
+### 2. Manual Setup
+
+If you prefer manual setup:
 
 ```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit environment variables
+nano .env
+
+# Set required variables:
+# - JWT_SECRET=your-secure-secret-here
+# - NODE_ENV=production
+```
+
+### 3. Start Services
+
+#### Using Docker Compose (Recommended)
+
+```bash
+# Start all services
 docker-compose -f docker-compose.integrated.yml up -d
+
+# Check status
+docker-compose -f docker-compose.integrated.yml ps
+
+# View logs
+docker-compose -f docker-compose.integrated.yml logs -f
 ```
 
-**Option C: Docker**
+#### Using Quick Start Script
 
 ```bash
-docker build -f Dockerfile.integrated -t workstation:latest .
-docker run -d -p 3000:3000 -p 8080:8080 -p 8082:8082 \
-  -e JWT_SECRET=your-secret-key \
-  workstation:latest
+# The quick-start.sh script handles everything
+./quick-start.sh
+
+# Follow the prompts to:
+# - Set JWT secret
+# - Configure ports
+# - Start services
 ```
 
-### 4. Verify
+## Verify Installation
+
+### 1. Health Check
 
 ```bash
-# Check JWT Auth API
+# Check JWT Auth service
 curl http://localhost:3000/health
 
-# Get demo token
-curl http://localhost:3000/auth/demo-token
-
-# Test with token
-TOKEN=$(curl -s http://localhost:3000/auth/demo-token | jq -r .token)
-curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/protected
+# Check Agent Server
+curl http://localhost:8080/health
 ```
 
-## Service URLs
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| JWT Auth API | http://localhost:3000 | Authentication and protected routes |
-| Agent Server HTTP | http://localhost:8080 | HTTP API for browser tasks |
-| Agent Server WS | ws://localhost:8082 | WebSocket for real-time communication |
-
-## Key Features
-
-### JWT Authentication
-- ✅ Token generation with custom claims
-- ✅ Token verification middleware
-- ✅ Rate limiting (100 req/15min)
-- ✅ Security headers (Helmet, CORS)
-
-### Browser Automation (Agent Server)
-- ✅ WebSocket communication (JSON-RPC 2.0)
-- ✅ Chrome DevTools Protocol integration
-- ✅ Task submission and response handling
-- ✅ Screenshot and content extraction
-
-### MCP Integration
-- ✅ Model Context Protocol server
-- ✅ Peelback recovery (snapshots every 5 min)
-- ✅ Automatic rollback on failures
-- ✅ Configurable via mcp-config.yml
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                  Workstation Platform                    │
-├─────────────────────────────────────────────────────────┤
-│                                                           │
-│  ┌──────────┐  ┌───────────┐  ┌────────────┐           │
-│  │ JWT Auth │  │   Agent   │  │    MCP     │           │
-│  │   :3000  │  │ Server    │  │   Server   │           │
-│  │          │  │ :8080/:82 │  │   :9222    │           │
-│  └──────────┘  └───────────┘  └────────────┘           │
-│                                                           │
-└─────────────────────────────────────────────────────────┘
-```
-
-## API Examples
-
-### Get JWT Token
-
-```bash
-curl http://localhost:3000/auth/demo-token
-```
-
-Response:
+Expected response:
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expiresIn": "24h"
+  "status": "healthy",
+  "uptime": "...",
+  "service": "..."
 }
 ```
 
-### Access Protected Route
+### 2. Generate Demo Token
 
 ```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:3000/api/protected
+# Get a demo JWT token
+curl http://localhost:3000/auth/demo-token
 ```
 
-### Submit Browser Task (Agent Server)
+### 3. Test Authentication
 
 ```bash
-curl -X POST http://localhost:8080/v1/responses \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": "Navigate to google.com",
-    "url": "about:blank",
-    "wait_timeout": 5000,
-    "model": {
-      "main_model": {
-        "provider": "openai",
-        "model": "gpt-4",
-        "api_key": "sk-..."
-      }
-    }
-  }'
+# Get token
+TOKEN=$(curl -s http://localhost:3000/auth/demo-token | jq -r .token)
+
+# Access protected endpoint
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/protected
+```
+
+## Using the Platform
+
+### Authentication
+
+1. **Get a token**:
+   ```bash
+   curl -X POST http://localhost:3000/auth/token \
+     -H "Content-Type: application/json" \
+     -d '{"userId": "user@example.com", "role": "user"}'
+   ```
+
+2. **Use token in requests**:
+   ```bash
+   curl -H "Authorization: Bearer $YOUR_TOKEN" \
+     http://localhost:3000/api/protected
+   ```
+
+### Agent Server
+
+1. **WebSocket Connection**:
+   ```javascript
+   const ws = new WebSocket('ws://localhost:8082');
+   ws.on('open', () => {
+     ws.send(JSON.stringify({ type: 'ping' }));
+   });
+   ```
+
+2. **HTTP API**:
+   ```bash
+   curl http://localhost:8080/api/agent/status
+   ```
+
+### MCP Integration
+
+The platform includes Model Context Protocol (MCP) integration for:
+- State management
+- Recovery operations
+- Peelback/rollback capabilities
+
+See `mcp-config.yml` for configuration options.
+
+## Common Tasks
+
+### View Logs
+
+```bash
+# All services
+docker-compose -f docker-compose.integrated.yml logs -f
+
+# Specific service
+docker-compose -f docker-compose.integrated.yml logs -f workstation
+```
+
+### Restart Services
+
+```bash
+# Restart all
+docker-compose -f docker-compose.integrated.yml restart
+
+# Restart specific service
+docker-compose -f docker-compose.integrated.yml restart workstation
+```
+
+### Stop Services
+
+```bash
+# Stop all
+docker-compose -f docker-compose.integrated.yml down
+
+# Stop without removing volumes
+docker-compose -f docker-compose.integrated.yml stop
+```
+
+### Update to Latest Version
+
+```bash
+# Pull latest changes
+git pull
+
+# Rebuild and restart
+docker-compose -f docker-compose.integrated.yml down
+docker-compose -f docker-compose.integrated.yml build --no-cache
+docker-compose -f docker-compose.integrated.yml up -d
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-```env
-# JWT Auth
-JWT_SECRET=your-super-secret-key-minimum-32-chars
+Edit `.env` file:
+
+```bash
+# JWT Configuration
+JWT_SECRET=your-super-secure-secret
 JWT_EXPIRATION=24h
+
+# Service Ports
 PORT=3000
-
-# Agent Server
-AGENT_SERVER_WS_PORT=8082
 AGENT_SERVER_HTTP_PORT=8080
+AGENT_SERVER_WS_PORT=8082
 
-# MCP / CDP
+# Environment
+NODE_ENV=production
+
+# CDP Configuration
 CDP_HOST=localhost
 CDP_PORT=9222
-
-# Security
-ALLOWED_ORIGINS=http://localhost:3000
-LOG_LEVEL=info
-NODE_ENV=production
 ```
 
 ### MCP Configuration
 
-Edit `mcp-config.yml` for advanced settings:
+Edit `mcp-config.yml`:
 
 ```yaml
 mcp:
-  recovery:
-    peelback:
-      enabled: true
-      interval: 300000  # 5 minutes
-    rollback:
-      enabled: true
-      strategy: "automatic"
-```
+  enabled: true
+  version: "1.0"
 
-## Rollback & Recovery
+recovery:
+  enabled: true
+  snapshots:
+    interval: 3600
+    retention: 7
 
-### Docker Image Rollback
+peelback:
+  enabled: true
+  stages: 5
 
-```bash
-# List available versions
-docker images workstation
-
-# Stop current
-docker stop workstation
-
-# Run previous version
-docker run -d workstation:main-previous-sha
-```
-
-### MCP Snapshot Rollback
-
-```bash
-# List snapshots
-docker exec workstation ls /app/data/snapshots
-
-# Restore snapshot
-docker exec workstation node /app/scripts/restore-snapshot.js snapshot-id
-```
-
-## Monitoring
-
-### Health Checks
-
-```bash
-# JWT Auth
-curl http://localhost:3000/health
-
-# Check all services via Docker
-docker ps --filter "name=workstation"
-
-# View logs
-docker logs -f workstation
-```
-
-### Metrics
-
-MCP metrics available at:
-```bash
-curl http://localhost:8080/metrics
+rollback:
+  enabled: true
+  autoRollback: false
 ```
 
 ## Troubleshooting
@@ -257,56 +246,113 @@ curl http://localhost:8080/metrics
 ### Port Already in Use
 
 ```bash
-# Find process
+# Find process using port
 lsof -i :3000
 
-# Use different port
-docker run -p 4000:3000 ...
+# Kill process or change port in .env
 ```
 
-### Agent Server Not Connecting
+### Container Won't Start
 
 ```bash
 # Check logs
-docker logs workstation | grep "Agent Server"
+docker-compose -f docker-compose.integrated.yml logs
 
-# Verify port
-docker port workstation 8082
+# Remove and recreate
+docker-compose -f docker-compose.integrated.yml down -v
+docker-compose -f docker-compose.integrated.yml up -d
 ```
 
-### MCP/CDP Connection Failed
-
-Ensure Chrome is running with remote debugging:
+### Authentication Issues
 
 ```bash
-# macOS
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  --remote-debugging-port=9222 \
-  --remote-allow-origins="*"
+# Verify JWT_SECRET is set
+docker-compose -f docker-compose.integrated.yml exec workstation env | grep JWT
+
+# Generate new token
+curl http://localhost:3000/auth/demo-token
 ```
 
-## Documentation
+### Agent Server Connection Failed
 
-- 📖 [Full Deployment Guide](DEPLOYMENT_INTEGRATED.md)
-- 🏗️ [Architecture](ARCHITECTURE.md)
-- 🔒 [Security](SECURITY.md)
-- 📚 [API Documentation](API.md)
-- 🐛 [Troubleshooting](DEPLOYMENT_INTEGRATED.md#troubleshooting)
+```bash
+# Check if service is running
+docker-compose -f docker-compose.integrated.yml ps
+
+# Verify ports are exposed
+docker-compose -f docker-compose.integrated.yml port workstation 8080
+docker-compose -f docker-compose.integrated.yml port workstation 8082
+```
 
 ## Next Steps
 
-1. **Set up Chrome for MCP**: See [DEPLOYMENT_INTEGRATED.md](DEPLOYMENT_INTEGRATED.md#mcp-setup)
-2. **Configure security**: Review [SECURITY.md](SECURITY.md)
-3. **Customize MCP**: Edit [mcp-config.yml](mcp-config.yml)
-4. **Monitor services**: Check health endpoints and logs
+1. **Read Full Documentation**: See [DEPLOYMENT_INTEGRATED.md](DEPLOYMENT_INTEGRATED.md)
+2. **Configure MCP**: Edit `mcp-config.yml` for your needs
+3. **Set Up Monitoring**: Configure log aggregation and metrics
+4. **Enable TLS**: Configure SSL/TLS for production
+5. **Review Security**: See security best practices in deployment guide
 
-## Support
+## Development Mode
 
-- **Issues**: https://github.com/creditXcredit/workstation/issues
-- **Discussions**: https://github.com/creditXcredit/workstation/discussions
-- **Documentation**: https://github.com/creditXcredit/workstation
+For development:
 
----
+```bash
+# Install dependencies
+npm ci
 
-**Version**: 1.0.0  
-**Last Updated**: 2025-11-17
+# Start in dev mode
+npm run dev
+
+# In another terminal, start agent server
+cd agent-server/nodejs
+npm install
+npm start
+```
+
+## Getting Help
+
+- **Documentation**: See `docs/` directory
+- **API Reference**: See `docs/API.md`
+- **Issues**: GitHub Issues for bugs and features
+- **Deployment Guide**: [DEPLOYMENT_INTEGRATED.md](DEPLOYMENT_INTEGRATED.md)
+
+## Quick Reference
+
+| Service | Port | Health Check |
+|---------|------|--------------|
+| JWT Auth | 3000 | http://localhost:3000/health |
+| Agent HTTP | 8080 | http://localhost:8080/health |
+| Agent WS | 8082 | ws://localhost:8082 |
+
+### Important Files
+
+- `.env` - Environment configuration
+- `mcp-config.yml` - MCP settings
+- `docker-compose.integrated.yml` - Docker Compose config
+- `Dockerfile.integrated` - Integrated Docker image
+
+### Important Commands
+
+```bash
+# Start
+docker-compose -f docker-compose.integrated.yml up -d
+
+# Stop
+docker-compose -f docker-compose.integrated.yml down
+
+# Logs
+docker-compose -f docker-compose.integrated.yml logs -f
+
+# Restart
+docker-compose -f docker-compose.integrated.yml restart
+```
+
+## Success Checklist
+
+- [ ] Services running (check with `docker-compose ps`)
+- [ ] Health checks passing (curl health endpoints)
+- [ ] JWT tokens working (test authentication)
+- [ ] Agent server accessible (test HTTP and WS)
+- [ ] Logs clean (no errors in `docker-compose logs`)
+
+You're all set! 🚀

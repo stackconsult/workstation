@@ -4,12 +4,15 @@
 
 stackBrowserAgent is a lightweight, secure JWT-based authentication service built with Express.js and TypeScript. It provides a foundation for browser automation agents with enterprise-grade security features including rate limiting and JWT authentication.
 
+**MCP Integration**: This repository implements the Model Context Protocol (MCP) for seamless integration with GitHub Copilot and AI agents. The MCP server provides standardized access to browser automation capabilities through natural language.
+
 **Key Technologies:**
 - Node.js v18+ runtime
 - Express.js v4.18+ web framework
 - TypeScript v5.3+ for type safety
 - JWT (jsonwebtoken) for authentication
 - express-rate-limit for security
+- Model Context Protocol (MCP) for AI integration
 
 ## Repository Structure
 
@@ -22,8 +25,10 @@ src/
 
 **Important Directories:**
 - `src/` - All TypeScript source code
+- `src/routes/` - API route handlers (including MCP endpoints)
 - `dist/` - Compiled JavaScript output (generated, not tracked)
 - `node_modules/` - Dependencies (generated, not tracked)
+- `.mcp/` - Model Context Protocol documentation and specifications
 
 ## Development Guidelines
 
@@ -208,6 +213,14 @@ When implementing features, consider:
 **Main files:**
 - `src/index.ts` - Express app and routes
 - `src/auth/jwt.ts` - JWT authentication
+- `src/routes/mcp.ts` - MCP endpoints for GitHub Copilot
 - `package.json` - Dependencies and scripts
 - `tsconfig.json` - TypeScript configuration
 - `.eslintrc.json` - Linting rules
+- `server.json` - MCP server specification
+
+**MCP Documentation:**
+- `.mcp/README.md` - MCP documentation index
+- `.mcp/guides/PUBLISHING.md` - How to publish MCP servers
+- `.mcp/guides/API_USAGE.md` - How to consume MCP APIs
+- `.mcp/specs/API_SPEC.md` - Complete API reference

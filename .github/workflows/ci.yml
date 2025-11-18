@@ -27,14 +27,46 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Install Playwright Browsers (Full)
+        if: matrix.node-version == '20.x'
+        run: npx playwright install --with-deps
+      
+      - name: Generate dependency map
+        run: |
+          npm install -g madge
+          madge --image dependency-graph.svg --extensions ts,js src
+        continue-on-error: true
+      
+      - name: Upload dependency graph
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-graph
+          path: dependency-graph.svg
+        continue-on-error: true
+      
+      - name: Generate documentation
+        run: |
+          npm install -g typedoc
+          npx typedoc --out docs-generated src
+        continue-on-error: true
+      
+      - name: Upload generated documentation
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs-generated
+        continue-on-error: true
+      
       - name: Run linter
         run: npm run lint
       
       - name: Build project
         run: npm run build
       
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npm test -- --coverage
         env:
           JWT_SECRET: test-secret-for-ci
           NODE_ENV: test
@@ -72,13 +104,18 @@ jobs:
         run: npm ci
       
       - name: Run TruffleHog secret scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.91.0
         with:
           path: ./
           base: ""
           head: ${{ github.ref_name }}
           extra_args: --json --only-verified
         continue-on-error: true
+      - name: Secret detection with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
       
       - name: Run npm audit
         run: |
@@ -272,106 +309,83 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Rollback instructions:** See ROLLBACK_GUIDE.md" >> $GITHUB_STEP_SUMMARY
 
-  ci-status-summary:
-    name: CI Status Summary
+  report-failures:
+    name: Report CI Failures
     runs-on: ubuntu-latest
     needs: [test, security]
-    if: always()
+    if: failure()
+    permissions:
+      issues: write
     
     steps:
       - uses: actions/checkout@v5
       
-      - name: Generate CI Status Summary
-        run: |
-          echo "# 🎯 CI/CD Status Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "This summary clarifies what checks are passing and what might be blocking your PR." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Core CI Checks Status
-          echo "## ✅ Core CI/Test/Build/Security Checks" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          TEST_STATUS="${{ needs.test.result }}"
-          SECURITY_STATUS="${{ needs.security.result }}"
-          
-          if [ "$TEST_STATUS" = "success" ]; then
-            echo "- ✅ **Tests (Node.js 18.x, 20.x)**: PASS" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ❌ **Tests**: $TEST_STATUS" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          if [ "$SECURITY_STATUS" = "success" ]; then
-            echo "- ✅ **Security Audit (npm audit, audit-ci, TruffleHog)**: PASS" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ⚠️ **Security Audit (npm audit, audit-ci, TruffleHog)**: $SECURITY_STATUS (non-blocking)" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Check if all core checks passed
-          if [ "$TEST_STATUS" = "success" ] && [ "$SECURITY_STATUS" = "success" ]; then
-            echo "### 🎉 All Core Checks: **PASSING**" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "All actual code, tests, build, and security checks have succeeded." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ⚠️ Some Core Checks Need Attention" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Review the failed checks above for details." >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Phantom/Optional Checks Information
-          echo "## ⚠️ Known Issues: Phantom/Optional/Skipped Checks" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "If your PR is blocked despite core checks passing, it may be due to:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Phantom CI Checks (Non-Existent)" >> $GITHUB_STEP_SUMMARY
-          echo "These checks don't exist in the repository but may appear in branch protection:" >> $GITHUB_STEP_SUMMARY
-          echo "- ❌ Backend CI / test (3.9, 3.10, 3.11) - Python checks (this is a Node.js project)" >> $GITHUB_STEP_SUMMARY
-          echo "- ❌ Extension CI / build - Non-existent workflow" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Optional/Disabled Workflows" >> $GITHUB_STEP_SUMMARY
-          echo "These workflows are intentionally disabled (non-essential features):" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔇 agent-doc-generator.yml.disabled" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔇 agent-scaffolder.yml.disabled" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔇 agent-ui-matcher.yml.disabled" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Secret Scanning" >> $GITHUB_STEP_SUMMARY
-          echo "Secret scanning is **automatically included** in the Security Audit job:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ TruffleHog - Free, no license required (automatic, runs on every PR)" >> $GITHUB_STEP_SUMMARY
-          echo "- ⊘ Gitleaks - Optional separate workflow, requires license (disabled by default)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**No key = No failure** - TruffleHog always runs, Gitleaks is optional" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Resolution steps
-          echo "## 🔧 If Your PR is Blocked" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### When Core Checks Pass But PR Can't Merge:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**This is a configuration/admin issue, NOT a code/test failure.**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Action Required (Repository Admin):**" >> $GITHUB_STEP_SUMMARY
-          echo "1. Go to: Settings → Branches → Branch Protection Rules" >> $GITHUB_STEP_SUMMARY
-          echo "2. Remove phantom checks from required status checks:" >> $GITHUB_STEP_SUMMARY
-          echo "   - Backend CI / test (3.9, 3.10, 3.11)" >> $GITHUB_STEP_SUMMARY
-          echo "   - Extension CI / build" >> $GITHUB_STEP_SUMMARY
-          echo "3. Keep only these actual checks:" >> $GITHUB_STEP_SUMMARY
-          echo "   - Test (18.x)" >> $GITHUB_STEP_SUMMARY
-          echo "   - Test (20.x)" >> $GITHUB_STEP_SUMMARY
-          echo "   - Security Audit" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Documentation:**" >> $GITHUB_STEP_SUMMARY
-          echo "- [ERROR_ANALYSIS_AND_FIXES.md](https://github.com/${{ github.repository }}/blob/${{ github.head_ref || github.ref_name }}/ERROR_ANALYSIS_AND_FIXES.md)" >> $GITHUB_STEP_SUMMARY
-          echo "- [.github/workflows/PHANTOM_CHECKS_RESOLUTION.md](https://github.com/${{ github.repository }}/blob/main/.github/workflows/PHANTOM_CHECKS_RESOLUTION.md)" >> $GITHUB_STEP_SUMMARY
-          echo "- [.github/workflows/CI_STATUS.md](https://github.com/${{ github.repository }}/blob/main/.github/workflows/CI_STATUS.md)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Summary:** All code/test/build/security checks are passing. Any merge blocks are due to branch protection configuration, not code issues." >> $GITHUB_STEP_SUMMARY
+      - name: Create issue on failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `[CI Failure] Automated build/test failure on ${context.ref}`;
+            const body = `## CI Pipeline Failure Report
+            
+            **Workflow:** ${context.workflow}
+            **Run ID:** ${context.runId}
+            **Branch:** ${context.ref}
+            **Commit:** ${context.sha}
+            **Triggered by:** ${context.actor}
+            **Event:** ${context.eventName}
+            
+            ### Failure Details
+            One or more CI jobs failed. Please review the workflow run for details:
+            
+            [View Workflow Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            
+            ### Action Items
+            - [ ] Review failed job logs
+            - [ ] Fix any test failures
+            - [ ] Address any security vulnerabilities
+            - [ ] Ensure coverage requirements are met (>=55%)
+            - [ ] Verify Playwright browsers install correctly
+            - [ ] Check for secret leaks
+            
+            ### Labels Applied
+            - \`automation-fail\` - Indicates automated CI failure
+            - \`blocking\` - Blocks merges until resolved
+            
+            This issue was automatically created by the CI/CD pipeline.
+            `;
+            
+            // Check if similar issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'automation-fail',
+              per_page: 10
+            });
+            
+            const existingIssue = issues.data.find(issue => 
+              issue.title.includes(context.ref) && 
+              issue.created_at > new Date(Date.now() - 86400000).toISOString()
+            );
+            
+            if (existingIssue) {
+              // Update existing issue with comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `### Additional Failure\n\nAnother CI failure occurred for this branch.\n\n[View Latest Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n**Commit:** ${context.sha}`
+              });
+              console.log(`Updated existing issue #${existingIssue.number}`);
+            } else {
+              // Create new issue
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['automation-fail', 'blocking']
+              });
+              console.log(`Created issue #${issue.data.number}`);
+            }
+
