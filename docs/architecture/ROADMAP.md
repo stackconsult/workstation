@@ -65,7 +65,7 @@
 **Code Statistics**
 - 📊 3,367 lines of TypeScript
 - 📊 112 source files
-- 📊 19 agent directories
+- 📊 17 agent directories
 - 📊 754 npm packages
 
 ### Bonus Features Implemented 🎁
