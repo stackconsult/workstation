@@ -31,12 +31,32 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Pass gracefully on PR
+        continue-on-error: false
         run: |
+          set -euo pipefail
+          
+          # Error handling
+          handle_error() {
+            echo "## ⚠️ Audit Verification Warning" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "An error occurred while processing verification status." >> $GITHUB_STEP_SUMMARY
+            echo "**Fallback**: Passing gracefully - verification runs after automated fixes." >> $GITHUB_STEP_SUMMARY
+          }
+          trap handle_error ERR
+          
           echo "## ✅ Audit Verification Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Verification runs only after automated fixes from scans." >> $GITHUB_STEP_SUMMARY
           echo "**Trigger**: Pull Request (verification not required)" >> $GITHUB_STEP_SUMMARY
           echo "**Status**: ✅ Passed (runs after weekly scans)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Workflow Information" >> $GITHUB_STEP_SUMMARY
+          echo "- Verification runs tests on fixed code" >> $GITHUB_STEP_SUMMARY
+          echo "- Ensures fixes don't break existing functionality" >> $GITHUB_STEP_SUMMARY
+          echo "- Creates PR with verified fixes" >> $GITHUB_STEP_SUMMARY
+          echo "- Next verification: After next weekly scan, classification, and fixes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Workflow completed successfully"
 
   run-tests:
     name: Run Tests on Fixed Code
