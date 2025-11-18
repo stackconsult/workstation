@@ -132,7 +132,7 @@ open docs/landing.html
 📊 Total Test Files:        36 files
 📊 Total Tests:             146 tests (100% passing)
 📊 Test Coverage:           65.66%
-📊 Agent Directories:       19 agents
+📊 Agent Directories:       17 agents
 📊 Documentation Files:     112 docs
 📊 Build Status:            ✅ Passing
 📊 Security Vulnerabilities: 0 critical/high
