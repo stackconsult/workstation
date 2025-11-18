@@ -54,7 +54,7 @@ The ROADMAP.md showed all phases as "not started" with empty checkboxes, suggest
 ├── 36 test files
 ├── 146 tests (all passing)
 ├── 65.66% test coverage
-├── 19 agent directories
+├── 17 agent directories
 ├── 112 documentation files
 └── 0 critical security vulnerabilities
 
