@@ -1,0 +1,22 @@
+{
+  "$schema": "https://aka.ms/copilot/mcp-servers-schema",
+  "mcpServers": {
+    "workstation": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "NODE_ENV": "development",
+        "PORT": "3000",
+        "JWT_SECRET": "${JWT_SECRET}",
+        "JWT_EXPIRATION": "24h"
+      },
+      "description": "Workstation browser automation MCP server for GitHub Copilot integration",
+      "capabilities": [
+        "browser-automation",
+        "workflow-orchestration",
+        "web-scraping",
+        "form-automation"
+      ]
+    }
+  }
+}

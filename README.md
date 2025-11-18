@@ -3,6 +3,7 @@
 **Privacy-First Browser Automation Platform**
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/stackbrowseragent)
+[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io)
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue)
 ![Test Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)
@@ -21,8 +22,9 @@ Workstation is a comprehensive browser automation platform that combines:
 - 💾 **Data persistence** - SQLite/PostgreSQL workflow storage
 - 🎨 **Web dashboard** - Beautiful UI for management
 - 🐳 **Easy deployment** - Docker, Railway, or local
+- 🔌 **MCP Integration** - Model Context Protocol for GitHub Copilot and AI agents
 
-**Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, and custom browser workflows.
+**Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, and AI-powered browser automation.
 
 ---
 
@@ -101,6 +103,10 @@ open docs/landing.html
 | [🛣️ Roadmap](docs/architecture/ROADMAP.md) | Future plans |
 | [🔐 Security](docs/guides/SECURITY.md) | Security best practices |
 | [🚀 Deployment](docs/guides/DEPLOYMENT.md) | Deployment options |
+| [🔄 Rollback Procedures](ROLLBACK_PROCEDURES.md) | Emergency rollback and recovery |
+| [🐛 CI/CD Fixes](CI_FIXES_DOCUMENTATION.md) | CI pipeline fixes and error prevention |
+| [⚡ Integrated Deployment](DEPLOYMENT_INTEGRATED.md) | Full-stack deployment with rollback |
+| [🚀 Integrated Quickstart](QUICKSTART_INTEGRATED.md) | Quickstart for integrated platform |
 
 ---
 
@@ -209,9 +215,20 @@ npm run test:coverage
 
 # Run linting
 npm run lint
+
+# Check coverage scaling (prevents regression)
+node scripts/coverage-scaling.js check
 ```
 
-**Test Coverage**: 94% (753 tests)
+**Test Coverage**: 65.66% statements, 48.57% branches, 67.01% functions, 65.43% lines (146 tests)
+
+**Quality Gates**:
+- ✅ Global coverage: 55%+ statements required
+- ✅ Critical components (auth, middleware): 95%+ required
+- ✅ Coverage scaling: No regressions allowed
+- ✅ All tests must pass before merge
+
+See [CI/CD Fixes Documentation](CI_FIXES_DOCUMENTATION.md) for details on coverage thresholds and error prevention.
 
 ---
 
@@ -245,6 +262,36 @@ ISC License - see [LICENSE](LICENSE) file for details.
 **Phase 3**: 📋 Planned - Slack Integration & AI Features
 
 See [Roadmap](docs/architecture/ROADMAP.md) for detailed plans.
+
+---
+
+## 🔌 GitHub Copilot & MCP Integration
+
+Workstation implements the Model Context Protocol (MCP), enabling seamless integration with GitHub Copilot and AI agents:
+
+- **Natural Language Automation**: Control browser through Copilot chat
+- **AI-Powered Workflows**: Let AI create and execute complex automations
+- **Enterprise-Ready**: JWT auth, rate limiting, comprehensive security
+- **Extensible**: Build custom tools and capabilities
+
+**Quick Setup:**
+```json
+// .github/copilot/mcp-servers.json
+{
+  "mcpServers": {
+    "workstation": {
+      "url": "http://localhost:3000",
+      "auth": { "type": "bearer", "token": "${WORKSTATION_TOKEN}" }
+    }
+  }
+}
+```
+
+**Learn More:**
+- [MCP Documentation](.mcp/README.md)
+- [Publishing Guide](.mcp/guides/PUBLISHING.md)
+- [API Usage](.mcp/guides/API_USAGE.md)
+- [Ecosystem Vision](.mcp/guides/ECOSYSTEM_VISION.md)
 
 ---
 

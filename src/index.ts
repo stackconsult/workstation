@@ -27,6 +27,7 @@ import { getHealthStatus } from './utils/health';
 import { validateEnvironment, printEnvironmentSummary } from './utils/env';
 // Phase 1: Import automation routes and database
 import automationRoutes from './routes/automation';
+import mcpRoutes from './routes/mcp';
 import { initializeDatabase, getDatabase } from './automation/db/database';
 
 // Load environment variables
@@ -214,6 +215,9 @@ app.get('/api/agent/status', authenticateToken, (req: Request, res: Response) =>
 
 // Phase 1: Mount automation routes
 app.use('/api/v2', automationRoutes);
+
+// MCP routes for GitHub Copilot integration
+app.use('/api/v2', mcpRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
