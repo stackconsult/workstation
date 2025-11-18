@@ -10,7 +10,7 @@ export interface Workflow {
   definition: WorkflowDefinition;
   owner_id: string;
   workspace_id?: string;
-  status: 'active' | 'inactive' | 'archived';
+  status: "active" | "inactive" | "archived";
   version: number;
   timeout_seconds: number;
   max_retries: number;
@@ -23,7 +23,7 @@ export interface Workflow {
 export interface WorkflowDefinition {
   tasks: WorkflowTask[];
   variables?: Record<string, unknown>;
-  on_error?: 'stop' | 'continue' | 'retry';
+  on_error?: "stop" | "continue" | "retry";
 }
 
 export interface WorkflowTask {
@@ -39,8 +39,8 @@ export interface WorkflowTask {
 export interface Execution {
   id: string;
   workflow_id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
-  trigger_type?: 'manual' | 'scheduled' | 'webhook' | 'slack';
+  status: "pending" | "running" | "completed" | "failed" | "cancelled";
+  trigger_type?: "manual" | "scheduled" | "webhook" | "slack";
   triggered_by?: string;
   started_at?: string;
   completed_at?: string;
@@ -57,7 +57,7 @@ export interface Task {
   agent_type: string;
   action: string;
   parameters: Record<string, unknown>;
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'skipped';
+  status: "queued" | "running" | "completed" | "failed" | "skipped";
   retry_count: number;
   queued_at: string;
   started_at?: string;
@@ -80,6 +80,6 @@ export interface CreateWorkflowInput {
 export interface ExecuteWorkflowInput {
   workflow_id: string;
   triggered_by?: string;
-  trigger_type?: 'manual' | 'scheduled' | 'webhook' | 'slack';
+  trigger_type?: "manual" | "scheduled" | "webhook" | "slack";
   variables?: Record<string, unknown>;
 }
