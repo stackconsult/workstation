@@ -554,12 +554,14 @@ router.post('/mcp/prompts/:promptName', authenticateToken, async (req: Request, 
               action: 'navigate',
               parameters: { url: arguments_.url }
             },
-            ...Object.entries(arguments_.selectors).map(([key, selector]) => ({
-              name: `extract_${key}`,
-              agent_type: 'browser',
-              action: 'getText',
-              parameters: { selector }
-            }))
+            ...(arguments_.selectors && typeof arguments_.selectors === 'object'
+              ? Object.entries(arguments_.selectors).map(([key, selector]) => ({
+                  name: `extract_${key}`,
+                  agent_type: 'browser',
+                  action: 'getText',
+                  parameters: { selector }
+                }))
+              : [])
           ]
         };
         break;
