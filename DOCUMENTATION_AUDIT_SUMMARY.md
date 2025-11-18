@@ -207,7 +207,7 @@ Browser Automation (Production Ready)
 **Implemented**:
 - ✅ Agent registry (`src/automation/agents/core/registry.ts`)
 - ✅ Browser agent complete
-- ✅ 19 agent directories with infrastructure
+- ✅ 17 agent directories with infrastructure
 - ⚠️ Data agents (CSV, JSON, Excel) - pending
 - ⚠️ Integration agents - pending
 - ⚠️ Parallel execution - pending
