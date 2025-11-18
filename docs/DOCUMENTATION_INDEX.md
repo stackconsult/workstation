@@ -57,16 +57,54 @@ Deep dive into how Workstation works:
 API documentation and integrations:
 
 - [API Documentation](api/API.md) - Complete API reference
+- [Data Schemas](SCHEMAS.md) - ⭐ **JSON schemas for workflows, agents, and system components**
 - [Available Integrations](api/AVAILABLE_INTEGRATIONS.md) - Third-party integrations
+
+## 📅 Project Continuity & History
+
+Complete timeline and development phases:
+
+- [PROJECT_TIMELINE.md](../PROJECT_TIMELINE.md) - ⭐ **Complete project history and timeline**
+- [DEVELOPMENT_PHASES.md](../DEVELOPMENT_PHASES.md) - ⭐ **Detailed phase documentation**
+- [REORGANIZATION_SUMMARY.md](../REORGANIZATION_SUMMARY.md) - Repository reorganization details
+- [COMPLETION_REPORT.md](../COMPLETION_REPORT.md) - Reorganization completion report
+- [CHANGELOG.md](archives/CHANGELOG.md) - Complete change history with dates
+
+### Visual Documentation
+- [Visual Documentation](assets/diagrams/VISUAL_DOCUMENTATION.md) - ⭐ **25+ Mermaid diagrams**:
+  - Project timeline diagrams
+  - Phase progression charts
+  - Agent ecosystem flowcharts
+  - System architecture diagrams
+  - Workflow execution sequences
+  - Authentication flows
+  - Deployment architecture
+
+### Agent Development History
+- [Agent 8 Implementation](archives/AGENT8_IMPLEMENTATION_SUMMARY.md) - Error assessment (Nov 15, 2025)
+- [Agent 9 Implementation](archives/AGENT9_IMPLEMENTATION_SUMMARY.md) - Optimization (Nov 15, 2025)
+- [Agent 10 Implementation](archives/AGENT10_IMPLEMENTATION_SUMMARY.md) - Guard rails (Nov 15, 2025)
+- [Agent 11 Implementation](archives/AGENT11_IMPLEMENTATION_SUMMARY.md) - Analytics (Nov 15, 2025)
+- [Agent 12 Implementation](archives/AGENT12_IMPLEMENTATION_COMPLETE.md) - QA intelligence (Nov 16, 2025)
+- [Agent 16 Implementation](archives/AGENT16_IMPLEMENTATION_SUMMARY.md) - Research (Nov 16, 2025)
+- [Agent 17 Implementation](archives/AGENT17_IMPLEMENTATION_COMPLETE.md) - Builder (Nov 17, 2025)
+- [Coding Agent Implementation](archives/AGENT_CODING_IMPLEMENTATION_SUMMARY.md) - Specialized coding (Nov 17, 2025)
 
 ## 📦 Archives
 
 Historical implementation documents and completion reports:
 
-The `archives/` folder contains 80+ implementation summaries, completion reports, and historical documentation. These are useful for:
+The `archives/` folder contains 85+ implementation summaries, completion reports, and historical documentation. These are useful for:
 - Understanding implementation decisions
 - Reviewing development history
 - Troubleshooting based on past issues
+- Tracking agent development progression
+
+**Key Archives**:
+- [Comprehensive Audit Report](archives/COMPREHENSIVE_AUDIT_REPORT.md) - Complete system audit
+- [Browser Agent Audit](archives/BROWSER_AGENT_AUDIT_REPORT.md) - Browser agent analysis
+- [Security Audit Summary](archives/SECURITY_AUDIT_SUMMARY.md) - Security review
+- [Executive Summary](archives/EXECUTIVE_SUMMARY.md) - Project overview
 
 **Note**: Archives are kept for reference but are not needed for day-to-day use.
 
@@ -74,6 +112,7 @@ The `archives/` folder contains 80+ implementation summaries, completion reports
 
 Interactive dashboards (open directly in browser):
 
+- [Landing Page](landing.html) - Professional public showcase
 - [Simple Dashboard](index.html) - Basic JWT and API testing
 - [Control Center](workstation-control-center.html) - Advanced workflow management
 
@@ -82,7 +121,10 @@ Interactive dashboards (open directly in browser):
 Visual resources and examples:
 
 - `assets/screenshots/` - UI screenshots and demos
+  - [Screenshot Guidelines](assets/screenshots/README.md)
 - `assets/diagrams/` - Architecture diagrams
+  - [Diagram Guide](assets/diagrams/README.md)
+  - [Visual Documentation](assets/diagrams/VISUAL_DOCUMENTATION.md) - 25+ Mermaid diagrams
 
 ## 📖 Quick Reference by Task
 
@@ -103,8 +145,17 @@ Visual resources and examples:
 **Understand the architecture**
 → [ARCHITECTURE.md](architecture/ARCHITECTURE.md) → [ROADMAP.md](architecture/ROADMAP.md)
 
+**View system diagrams**
+→ [VISUAL_DOCUMENTATION.md](assets/diagrams/VISUAL_DOCUMENTATION.md)
+
+**See project timeline**
+→ [PROJECT_TIMELINE.md](../PROJECT_TIMELINE.md) → [DEVELOPMENT_PHASES.md](../DEVELOPMENT_PHASES.md)
+
 **Use the API**
-→ [API.md](api/API.md)
+→ [API.md](api/API.md) → [SCHEMAS.md](SCHEMAS.md)
+
+**Create workflows**
+→ [HOW_TO_USE_BROWSER_AGENT.md](guides/HOW_TO_USE_BROWSER_AGENT.md) → [SCHEMAS.md](SCHEMAS.md)
 
 **Contribute code**
 → [CONTRIBUTING.md](guides/CONTRIBUTING.md) → [BUILD.md](guides/BUILD.md)
@@ -121,13 +172,18 @@ Visual resources and examples:
 **Handle errors properly**
 → [ENTERPRISE_AUTOMATION.md](guides/ENTERPRISE_AUTOMATION.md#error-handling-system)
 
+**Understand development history**
+→ [PROJECT_TIMELINE.md](../PROJECT_TIMELINE.md) → [CHANGELOG.md](archives/CHANGELOG.md)
+
 ## 🔍 Need More Help?
 
 - Check the [GitHub Issues](https://github.com/creditXcredit/workstation/issues) for common problems
 - Review the [archives](archives/) for implementation details
+- Explore [visual documentation](assets/diagrams/VISUAL_DOCUMENTATION.md) for system diagrams
 - Open a new issue if you can't find what you need
 
 ---
 
-**Last Updated**: 2025-11-17  
-**Documentation Version**: 1.0
+**Last Updated**: November 17, 2025  
+**Documentation Version**: 1.1  
+**New in 1.1**: PROJECT_TIMELINE.md, DEVELOPMENT_PHASES.md, Visual Documentation (25+ diagrams)

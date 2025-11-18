@@ -91,9 +91,13 @@ open docs/landing.html
 |----------|-------------|
 | [📖 Documentation Index](docs/DOCUMENTATION_INDEX.md) | Complete navigation of all docs |
 | [🎯 START_HERE.md](START_HERE.md) | 30-second quick start |
+| [📅 Project Timeline](PROJECT_TIMELINE.md) | Complete development history |
+| [🚀 Development Phases](DEVELOPMENT_PHASES.md) | Detailed phase documentation |
 | [📘 User Guide](docs/guides/HOW_TO_USE_BROWSER_AGENT.md) | Complete usage manual |
 | [🔌 API Reference](docs/api/API.md) | REST API documentation |
+| [📋 Data Schemas](docs/SCHEMAS.md) | JSON schemas for workflows & agents |
 | [🏗️ Architecture](docs/architecture/ARCHITECTURE.md) | System design overview |
+| [📊 Visual Documentation](docs/assets/diagrams/VISUAL_DOCUMENTATION.md) | 25+ Mermaid diagrams |
 | [🛣️ Roadmap](docs/architecture/ROADMAP.md) | Future plans |
 | [🔐 Security](docs/guides/SECURITY.md) | Security best practices |
 | [🚀 Deployment](docs/guides/DEPLOYMENT.md) | Deployment options |
