@@ -329,6 +329,13 @@ jobs:
           echo "- 🔇 agent-scaffolder.yml.disabled" >> $GITHUB_STEP_SUMMARY
           echo "- 🔇 agent-ui-matcher.yml.disabled" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Secret Scanning (Separate Workflow)" >> $GITHUB_STEP_SUMMARY
+          echo "Secret scanning runs in a separate workflow and **never blocks CI:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ TruffleHog - Free, no license required (primary scanner)" >> $GITHUB_STEP_SUMMARY
+          echo "- ⊘ Gitleaks - Optional, requires license (disabled by default)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**No key = No failure** - Gitleaks only runs if ENABLE_GITLEAKS variable is set to 'true'" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           

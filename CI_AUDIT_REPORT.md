@@ -88,15 +88,27 @@ npm test       # ✅ PASS - 146/146 tests passing
 
 **Separate Workflow: `.github/workflows/secret-scan.yml`**
 
+**Design Philosophy: No Key = No Failure**
+- Secret scanning is completely separated from main CI workflow
+- Primary scanner (TruffleHog) is free and always available
+- Gitleaks is optional and never blocks CI when disabled
+
 **Jobs:**
 1. **trufflehog-scan** - Open-source secret scanning (no license required)
+   - Primary secret scanner
+   - Always runs on push/PR
+   - Free alternative that never fails CI
+   
 2. **github-secret-scanning-info** - Instructions for enabling GitHub native scanning
-3. **gitleaks-scan** (optional)
+
+3. **gitleaks-scan** (optional - BYOK)
    - Only runs if `vars.ENABLE_GITLEAKS == 'true'`
    - Requires `GITLEAKS_LICENSE` secret
-   - Properly configured as optional for organization repos
+   - **If not enabled: Job is skipped (no failure)**
+   - If enabled without license: Fails gracefully with `continue-on-error: true`
+   - Properly configured for organization repos
 
-**Status**: ✅ Correctly configured with free alternative (TruffleHog) and optional Gitleaks with BYOK
+**Status**: ✅ **No-key-no-failure strategy implemented** - TruffleHog provides free scanning, Gitleaks is optional add-on
 
 ---
 
@@ -133,12 +145,20 @@ npm test       # ✅ PASS - 146/146 tests passing
      Actual: QUICKSTART_INTEGRATED.md (wrong path in old test code)
    ```
 
-2. **Security Scan Failure**
+2. **Security Scan Failure - Gitleaks License Error**
    ```
    Secret detection with Gitleaks - FAILED
    Error: missing gitleaks license. 
    Organization repos require GITLEAKS_LICENSE secret.
    ```
+   **Problem**: Gitleaks was in main CI workflow and failed when no license was provided
+   
+   **Solution Implemented**:
+   - ✅ Moved Gitleaks to separate `secret-scan.yml` workflow
+   - ✅ Made conditional: only runs if `ENABLE_GITLEAKS == 'true'`
+   - ✅ Added `continue-on-error: true` for graceful failure
+   - ✅ Replaced with TruffleHog as primary free scanner
+   - ✅ **Result: No key = No failure, CI always passes**
 
 **Resolution**: Fixed in PR #57
 - Tests updated to look for docs in correct location (`docs/guides/`)
