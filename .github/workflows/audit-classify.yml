@@ -5,6 +5,10 @@ name: Audit Classify - Issue Classification
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - develop
   workflow_run:
     workflows: ["Audit Scan - Discovery & Analysis"]
     types:
@@ -15,10 +19,43 @@ permissions:
   actions: read
 
 jobs:
+  # Pass gracefully on PRs without classification
+  pr-pass:
+    name: PR Check - Pass Without Classification
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Pass gracefully on PR
+        continue-on-error: false
+        run: |
+          set -euo pipefail
+          
+          # Error handling
+          handle_error() {
+            echo "## ⚠️ Audit Classification Warning" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "An error occurred while processing classification status." >> $GITHUB_STEP_SUMMARY
+            echo "**Fallback**: Passing gracefully - classification runs after weekly scans." >> $GITHUB_STEP_SUMMARY
+          }
+          trap handle_error ERR
+          
+          echo "## ✅ Audit Classification Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Classification runs only after scheduled audit scans." >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: Pull Request (classification not required)" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ✅ Passed (runs after weekly scans)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Workflow Information" >> $GITHUB_STEP_SUMMARY
+          echo "- Classification triggered by completed audit scans" >> $GITHUB_STEP_SUMMARY
+          echo "- Issues categorized by severity, type, and impact" >> $GITHUB_STEP_SUMMARY
+          echo "- Next classification: After next weekly scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Workflow completed successfully"
+
   download-scan-results:
     name: Download Scan Results
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ (github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch') && github.event_name != 'pull_request' }}
     
     steps:
       - name: Checkout repository

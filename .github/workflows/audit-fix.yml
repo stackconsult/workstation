@@ -15,6 +15,10 @@ on:
         required: false
         default: false
         type: boolean
+  pull_request:
+    branches:
+      - main
+      - develop
   workflow_run:
     workflows: ["Audit Classify - Issue Classification"]
     types:
@@ -26,9 +30,44 @@ permissions:
   issues: write
 
 jobs:
+  # Pass gracefully on PRs without fixes
+  pr-pass:
+    name: PR Check - Pass Without Fixes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Pass gracefully on PR
+        continue-on-error: false
+        run: |
+          set -euo pipefail
+          
+          # Error handling
+          handle_error() {
+            echo "## ⚠️ Audit Fix Warning" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "An error occurred while processing fix status." >> $GITHUB_STEP_SUMMARY
+            echo "**Fallback**: Passing gracefully - fixes run after weekly scans." >> $GITHUB_STEP_SUMMARY
+          }
+          trap handle_error ERR
+          
+          echo "## ✅ Audit Fix Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Automated fixes run only after scheduled audit scans." >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: Pull Request (fixes not required)" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ✅ Passed (runs after weekly scans)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Workflow Information" >> $GITHUB_STEP_SUMMARY
+          echo "- Automated fixes applied after classification" >> $GITHUB_STEP_SUMMARY
+          echo "- Uses open-source tools prioritized over paid services" >> $GITHUB_STEP_SUMMARY
+          echo "- Creates pull requests with fixes for review" >> $GITHUB_STEP_SUMMARY
+          echo "- Next fix run: After next weekly scan and classification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Workflow completed successfully"
+
   setup-fix-environment:
     name: Setup Fix Environment
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     outputs:
       should-fix: ${{ steps.check.outputs.should_fix }}
     
