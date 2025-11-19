@@ -27,6 +27,9 @@ fix-summary.md
 fixes/
 *.rej
 
+# Build artifacts
+build/
+
 # Agent 1-6 artifacts (Build Setup Agents)
 agents/agent1/reports/*/
 !agents/agent1/reports/.gitkeep

@@ -164,4 +164,70 @@ router.get('/executions/:id/tasks', authenticateToken, async (req: Request, res:
   }
 });
 
+/**
+ * Execute workflow from description (Chrome Extension endpoint)
+ * POST /api/v2/execute
+ * Creates and executes a workflow in one step
+ */
+router.post('/execute', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { description, actions } = req.body;
+
+    if (!description && (!actions || actions.length === 0)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Either description or actions array is required'
+      });
+    }
+
+    // Create workflow definition from actions or description
+    const workflowDefinition = {
+      tasks: actions && actions.length > 0 ? actions : [
+        {
+          name: 'Execute prompt',
+          agent_type: 'browser',
+          action: 'evaluate',
+          parameters: { 
+            expression: description || 'console.log("No action specified")'
+          }
+        }
+      ],
+      variables: req.body.variables || {},
+      on_error: 'stop' as const
+    };
+
+    // Create workflow from description or actions
+    const workflow = await workflowService.createWorkflow({
+      name: description || 'Chrome Extension Workflow',
+      description: description || '',
+      definition: workflowDefinition,
+      owner_id: authReq.user?.userId || 'chrome-extension'
+    });
+
+    // Execute the workflow immediately
+    const execution = await orchestrationEngine.executeWorkflow({
+      workflow_id: workflow.id,
+      triggered_by: authReq.user?.userId,
+      trigger_type: 'manual',
+      variables: req.body.variables || {}
+    });
+
+    res.status(202).json({
+      success: true,
+      data: {
+        workflow,
+        execution
+      },
+      message: 'Workflow created and execution started'
+    });
+  } catch (error) {
+    logger.error('Failed to execute workflow from description', { error });
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to execute workflow'
+    });
+  }
+});
+
 export default router;

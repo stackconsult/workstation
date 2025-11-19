@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workstation AI Agent</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 380px;
+      min-height: 400px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      flex: 1;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.record {
+      background: #FF5722;
+    }
+
+    button.stop {
+      background: #F44336;
+      display: none;
+    }
+
+    button.secondary {
+      background: #9E9E9E;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      margin: 12px 0;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      max-height: 250px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .result.visible {
+      display: block;
+    }
+
+    .result pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .status {
+      color: #666;
+      font-size: 13px;
+      margin-top: 8px;
+      padding: 8px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      text-align: center;
+      display: none;
+    }
+
+    .status.visible {
+      display: block;
+    }
+
+    .status.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .status.info {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    .recording-indicator {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #fff3e0;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #e65100;
+    }
+
+    .recording-indicator.active {
+      display: flex;
+    }
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background: #f44336;
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .footer {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 12px;
+      color: white;
+    }
+
+    .footer a {
+      color: white;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>
+      <span>🤖</span>
+      Workstation Agent
+    </h2>
+    
+    <div class="recording-indicator" id="recordingIndicator">
+      <span class="recording-dot"></span>
+      <span>Recording actions...</span>
+    </div>
+    
+    <div class="button-group">
+      <button class="record" id="recordBtn">
+        ⏺️ Record
+      </button>
+      <button class="stop" id="stopBtn">
+        ⏹️ Stop
+      </button>
+      <button class="secondary" id="clearBtn">
+        🗑️ Clear
+      </button>
+    </div>
+    
+    <textarea 
+      id="prompt" 
+      placeholder="Describe what to automate...&#10;&#10;Example: Search for 'Workstation' on Google and take a screenshot"
+    ></textarea>
+    
+    <button id="executeBtn">
+      🚀 Execute Workflow
+    </button>
+    
+    <div class="status" id="status"></div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="footer">
+    Powered by <a href="https://github.com/creditXcredit/workstation" target="_blank">Workstation</a>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
