@@ -4,7 +4,7 @@
  */
 
 // Mock @octokit/rest to avoid ESM import issues in tests
-jest.mock('@octokit/rest', () => {
+jest.mock("@octokit/rest", () => {
   return {
     Octokit: jest.fn().mockImplementation(() => ({
       rest: {
@@ -13,7 +13,9 @@ jest.mock('@octokit/rest', () => {
           create: jest.fn().mockResolvedValue({ data: { number: 1 } }),
         },
         repos: {
-          get: jest.fn().mockResolvedValue({ data: { default_branch: 'main' } }),
+          get: jest
+            .fn()
+            .mockResolvedValue({ data: { default_branch: "main" } }),
         },
       },
     })),
