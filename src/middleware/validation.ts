@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import Joi from 'joi';
+import { Request, Response, NextFunction } from "express";
+import Joi from "joi";
 
 /**
  * Validation middleware factory
@@ -14,13 +14,13 @@ export function validateRequest(schema: Joi.ObjectSchema) {
     });
 
     if (error) {
-      const errors = error.details.map(detail => ({
-        field: detail.path.join('.'),
+      const errors = error.details.map((detail) => ({
+        field: detail.path.join("."),
         message: detail.message,
       }));
-      
+
       res.status(400).json({
-        error: 'Validation failed',
+        error: "Validation failed",
         details: errors,
       });
       return;
@@ -36,6 +36,9 @@ export function validateRequest(schema: Joi.ObjectSchema) {
 export const schemas = {
   generateToken: Joi.object({
     userId: Joi.string().required().min(1).max(255),
-    role: Joi.string().optional().valid('user', 'admin', 'moderator').default('user'),
+    role: Joi.string()
+      .optional()
+      .valid("user", "admin", "moderator")
+      .default("user"),
   }),
 };
