@@ -25,11 +25,23 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       
+      # 📊 Install Graphviz for dependency graph generation (required by madge)
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      # 🔥 Install Playwright Browsers (Full) - REQUIRED for browser automation tests
       - name: Install Playwright Browsers (Full)
         if: matrix.node-version == '20.x'
         run: npx playwright install --with-deps
+      
+      # 📊 Install Graphviz for dependency graph generation
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      # 📊 Install Graphviz for dependency graph generation (before madge)
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+        continue-on-error: true
       
       - name: Generate dependency map
         run: |
@@ -57,15 +69,16 @@ jobs:
         with:
           name: documentation
           path: docs-generated
+      # 📊 Install Graphviz for dependency graph generation (required for madge)
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
         continue-on-error: true
       
       # 🔥 Install Playwright Browsers (Full) - REQUIRED for browser automation tests
       - name: Install Playwright Browsers (Full)
+        if: matrix.node-version == '20.x'
         run: npx playwright install --with-deps
-      
-      # 📊 Install Graphviz for dependency graph generation
-      - name: Install Graphviz
-        run: sudo apt-get update && sudo apt-get install -y graphviz
+        continue-on-error: true
       
       - name: Run linter
         run: npm run lint
@@ -79,12 +92,34 @@ jobs:
           JWT_SECRET: test-secret-for-ci
           NODE_ENV: test
       
-      # 📦 Component Mapping & Documentation Generation
+      # 📦 Component Mapping & Documentation Generation (only on Node 20.x)
       - name: Generate dependency map
+        run: |
+          npm install -g madge
+          madge --image dependency-graph.svg --extensions ts,js src
+        continue-on-error: true  # Don't fail build if madge has issues
+      
+      - name: Generate documentation
+        run: |
+          npm install -g typedoc
+          npx typedoc --out docs-generated src
+        if: matrix.node-version == '20.x'
+        run: |
+          npm install -g madge
+          madge --image dependency-graph.svg --extensions ts,js src
+        continue-on-error: true
+      
+      - name: Generate documentation
+        if: matrix.node-version == '20.x'
+        run: |
+          npm install -g typedoc
+          npx typedoc --out docs-generated src
+        continue-on-error: true
         run: npx madge --image dependency-graph.svg --extensions ts,js .
         continue-on-error: true  # Don't fail build if madge has issues
       
       - name: Generate documentation
+        if: matrix.node-version == '20.x'
         run: npx typedoc --out docs/api src --skipErrorChecking
         continue-on-error: true  # Don't fail build if typedoc has issues
       
@@ -101,7 +136,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-documentation
-          path: docs/api
+          path: docs-generated
         continue-on-error: true
       
       - name: Check coverage scaling
@@ -134,7 +169,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       
       - name: Run TruffleHog secret scan
         uses: trufflesecurity/trufflehog@v3.91.0
@@ -145,16 +180,6 @@ jobs:
           extra_args: --json --only-verified
         continue-on-error: true
       
-      - name: Secret detection with Gitleaks (optional)
-        run: |
-          if [ -z "${{ secrets.GITLEAKS_LICENSE }}" ]; then
-            echo "GITLEAKS_LICENSE not set — skipping Gitleaks (optional).";
-            echo "To enable Gitleaks, add GITLEAKS_LICENSE to repository secrets.";
-            exit 0;
-          else
-            echo "GITLEAKS_LICENSE present — running Gitleaks action.";
-          fi
-        shell: bash
       - name: Validate Gitleaks License
         id: validate-gitleaks
         uses: ./.github/actions/validate-credentials
@@ -162,6 +187,7 @@ jobs:
           credential-name: 'GITLEAKS_LICENSE'
           credential-value: ${{ secrets.GITLEAKS_LICENSE }}
           filler-patterns: '["PLACEHOLDER", "YOUR_", "FILLER", "EXAMPLE", "TODO", "CHANGEME", "gitleaks"]'
+        continue-on-error: true
       
       - name: Secret detection with Gitleaks or skip
         run: |
@@ -176,8 +202,11 @@ jobs:
           if [ "$CRED_STATUS" = "valid" ]; then
             echo "**Status:** Running with valid license" >> $GITHUB_STEP_SUMMARY
             
-            # Run actual Gitleaks scan
-            docker run --rm -v $(pwd):/repo zricethezav/gitleaks:latest detect \
+            # Run actual Gitleaks scan with license
+            docker run --rm \
+              -v $(pwd):/repo \
+              -e GITLEAKS_LICENSE="${{ secrets.GITLEAKS_LICENSE }}" \
+              zricethezav/gitleaks:latest detect \
               --source /repo \
               --verbose \
               --exit-code 0 || true

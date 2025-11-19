@@ -40,8 +40,9 @@ router.post('/add-commit-push', async (req: Request, res: Response) => {
     }
 
     return res.json({ add, commit, push, pr: prResult });
-  } catch (err: any) {
-    return res.status(500).json({ ok: false, error: err.message || String(err) });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ ok: false, error: message });
   }
 });
 

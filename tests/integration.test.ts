@@ -1,3 +1,15 @@
+// Mock @octokit/rest before any imports that might use it
+jest.mock('@octokit/rest', () => ({
+  Octokit: jest.fn().mockImplementation(() => ({
+    rest: {
+      pulls: {
+        list: jest.fn().mockResolvedValue({ data: [] }),
+        create: jest.fn().mockResolvedValue({ data: { number: 1 } }),
+      },
+    },
+  })),
+}));
+
 import request from 'supertest';
 import app from '../src/index';
 import { generateDemoToken } from '../src/auth/jwt';
