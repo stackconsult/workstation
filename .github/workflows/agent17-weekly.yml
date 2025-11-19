@@ -33,7 +33,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: agents/agent17
-        run: npm ci
+        run: npm install
 
       - name: Install Playwright browsers
         working-directory: agents/agent17

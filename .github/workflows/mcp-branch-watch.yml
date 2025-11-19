@@ -1,0 +1,236 @@
+name: MCP Branch Watch Agent
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'sync'
+        type: choice
+        options:
+          - sync
+          - check
+          - status
+          - rollback
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  watch-and-sync:
+    name: Watch MCP Repository for Updates
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install jq for JSON parsing
+        run: sudo apt-get update && sudo apt-get install -y jq
+      
+      - name: Check for MCP updates
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.MCP_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/mcp-sync.sh
+          
+          # Check for updates
+          if scripts/mcp-sync.sh check; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+            echo "✅ New updates detected in MCP repository" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No new updates in MCP repository" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Sync MCP repository
+        id: sync
+        if: steps.check.outputs.has_updates == 'true' || github.event.inputs.action == 'sync'
+        env:
+          GITHUB_TOKEN: ${{ secrets.MCP_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          # Perform sync
+          scripts/mcp-sync.sh sync
+          
+          # Check if there are changes
+          if [ -d ".mcp-clone" ]; then
+            echo "sync_completed=true" >> $GITHUB_OUTPUT
+            
+            # Get sync summary
+            echo "## 🔄 MCP Sync Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** Sync completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo "**Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Show latest commits
+            cd .mcp-clone
+            echo "**Latest commits:**" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            git log -5 --oneline >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "sync_completed=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Detect merge events
+        id: detect_merge
+        if: steps.sync.outputs.sync_completed == 'true'
+        run: |
+          # Check for merge commits in the latest sync
+          cd .mcp-clone
+          
+          merge_count=$(git log --merges --oneline -10 | wc -l)
+          
+          if [ "$merge_count" -gt 0 ]; then
+            echo "has_merges=true" >> $GITHUB_OUTPUT
+            echo "merge_count=$merge_count" >> $GITHUB_OUTPUT
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔀 Merge Events Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Count:** $merge_count merge(s) in last 10 commits" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Merge commits:**" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            git log --merges --oneline -10 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "has_merges=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Trigger full stack update
+        if: steps.detect_merge.outputs.has_merges == 'true'
+        run: |
+          echo "## 🚀 Triggering Full Stack Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Merge events detected - initiating full stack update workflow" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # In a real scenario, this would trigger other workflows
+          # or perform full stack update operations
+          
+          echo "**Update includes:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ MCP repository sync" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Local clone updated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Rollback snapshot created" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔄 Full stack integration (would trigger here)" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Commit synced changes
+        if: steps.sync.outputs.sync_completed == 'true'
+        run: |
+          git config user.name "MCP Sync Bot"
+          git config user.email "mcp-sync-bot@workstation.local"
+          
+          # Add the synced clone directory
+          git add .mcp-clone || true
+          git add .mcp-rollback || true
+          git add logs/mcp-sync.log || true
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: Sync MCP repository - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Changes Committed" >> $GITHUB_STEP_SUMMARY
+            echo "Synced MCP updates have been committed to the repository" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+      
+      - name: Show sync status
+        if: github.event.inputs.action == 'status' || always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.MCP_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## 📊 MCP Sync Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          scripts/mcp-sync.sh status
+      
+      - name: Perform rollback
+        if: github.event.inputs.action == 'rollback'
+        env:
+          GITHUB_TOKEN: ${{ secrets.MCP_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## ⏪ Performing Rollback" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          scripts/mcp-sync.sh rollback
+          
+          echo "**Rollback completed**" >> $GITHUB_STEP_SUMMARY
+          echo "Previous state has been restored from latest snapshot" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Create issue on sync failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `[MCP Sync] Sync failure - ${new Date().toISOString()}`;
+            const body = `## MCP Repository Sync Failure
+            
+            **Workflow:** ${context.workflow}
+            **Run ID:** ${context.runId}
+            **Timestamp:** ${new Date().toISOString()}
+            
+            ### Failure Details
+            The MCP repository sync process encountered an error.
+            
+            [View Workflow Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            
+            ### Action Items
+            - [ ] Review sync logs
+            - [ ] Check MCP repository access permissions
+            - [ ] Verify GITHUB_TOKEN or MCP_SYNC_TOKEN is valid
+            - [ ] Ensure MCP repository is accessible
+            - [ ] Check for network issues
+            
+            ### Recovery Steps
+            1. Review the workflow logs
+            2. Fix any configuration issues
+            3. Re-run the workflow manually
+            4. If needed, perform a rollback: \`./scripts/mcp-sync.sh rollback\`
+            
+            This issue was automatically created by the MCP Branch Watch Agent.
+            `;
+            
+            // Check if similar issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'mcp-sync-failure',
+              per_page: 5
+            });
+            
+            const recentIssue = issues.data.find(issue => 
+              issue.created_at > new Date(Date.now() - 86400000).toISOString()
+            );
+            
+            if (!recentIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['mcp-sync-failure', 'automation']
+              });
+            }

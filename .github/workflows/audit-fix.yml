@@ -106,7 +106,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Run ESLint with auto-fix (Free)
         run: |
@@ -206,7 +206,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Run npm audit fix (Free)
         run: |
