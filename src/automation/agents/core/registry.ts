@@ -1,9 +1,12 @@
 /**
- * Agent Registry - Phase 1
+ * Agent Registry - Phase 1 & Phase 10
  * Manages available agents and their capabilities
  */
 
 import { BrowserAgent } from './browser';
+import { EmailAgent } from '../integration/email';
+import { FileAgent } from '../storage/file';
+import { RssAgent } from '../data/rss';
 import { logger } from '../../../utils/logger';
 
 export interface AgentCapability {
@@ -25,7 +28,7 @@ export class AgentRegistry {
   }
 
   /**
-   * Register default Phase 1 agents
+   * Register default Phase 1 & Phase 10 agents
    */
   private registerDefaultAgents(): void {
     // Browser agent capabilities
@@ -35,7 +38,26 @@ export class AgentRegistry {
       description: 'Browser automation using Playwright'
     });
 
-    logger.info('Default agents registered');
+    // Phase 10: Workspace automation agents
+    this.registerCapability({
+      agent_type: 'email',
+      actions: ['sendEmail', 'getUnreadEmails', 'markAsRead', 'createFilter'],
+      description: 'Email automation (Gmail, Outlook, IMAP/SMTP)'
+    });
+
+    this.registerCapability({
+      agent_type: 'file',
+      actions: ['readFile', 'writeFile', 'listFiles', 'createDirectory', 'deleteFile', 'moveFile', 'copyFile', 'searchFiles'],
+      description: 'File system operations (local and cloud storage)'
+    });
+
+    this.registerCapability({
+      agent_type: 'rss',
+      actions: ['fetchFeed', 'extractClientInfo', 'buildClientRepository', 'monitorFeeds'],
+      description: 'RSS feed parsing and client intelligence gathering'
+    });
+
+    logger.info('Default agents registered', { count: this.capabilities.length });
   }
 
   /**
@@ -108,6 +130,105 @@ export class AgentRegistry {
           } finally {
             // Cleanup after action
             await browserAgent.cleanup();
+          }
+        }
+      };
+
+      this.agents.set(key, actionWrapper);
+      return actionWrapper;
+    }
+
+    // Phase 10: Email agent
+    if (agentType === 'email') {
+      const actionWrapper: AgentAction = {
+        execute: async (params: Record<string, unknown>) => {
+          // Email config should be passed in params or retrieved from workspace config
+          const emailConfig = (params as any).emailConfig || {
+            provider: 'gmail' as const,
+            email: 'default@example.com'
+          };
+          
+          const emailAgent = new EmailAgent(emailConfig);
+          await emailAgent.connect();
+
+          try {
+            switch (action) {
+              case 'sendEmail':
+                return await emailAgent.sendEmail(params as never);
+              case 'getUnreadEmails':
+                return await emailAgent.getUnreadEmails(params as never);
+              case 'markAsRead':
+                return await emailAgent.markAsRead(params.emailIds as string[]);
+              case 'createFilter':
+                return await emailAgent.createFilter(params as never);
+              default:
+                throw new Error(`Unknown email action: ${action}`);
+            }
+          } finally {
+            await emailAgent.disconnect();
+          }
+        }
+      };
+
+      this.agents.set(key, actionWrapper);
+      return actionWrapper;
+    }
+
+    // Phase 10: File agent
+    if (agentType === 'file') {
+      const actionWrapper: AgentAction = {
+        execute: async (params: Record<string, unknown>) => {
+          const fileConfig = (params as any).fileConfig || {
+            storageType: 'local' as const,
+            basePath: '/tmp/workstation'
+          };
+          
+          const fileAgent = new FileAgent(fileConfig);
+
+          switch (action) {
+            case 'readFile':
+              return await fileAgent.readFile(params as never);
+            case 'writeFile':
+              return await fileAgent.writeFile(params as never);
+            case 'listFiles':
+              return await fileAgent.listFiles(params as never);
+            case 'createDirectory':
+              return await fileAgent.createDirectory(params as never);
+            case 'deleteFile':
+              return await fileAgent.deleteFile(params as never);
+            case 'moveFile':
+              return await fileAgent.moveFile(params as never);
+            case 'copyFile':
+              return await fileAgent.copyFile(params as never);
+            case 'searchFiles':
+              return await fileAgent.searchFiles(params as never);
+            default:
+              throw new Error(`Unknown file action: ${action}`);
+          }
+        }
+      };
+
+      this.agents.set(key, actionWrapper);
+      return actionWrapper;
+    }
+
+    // Phase 10: RSS agent
+    if (agentType === 'rss') {
+      const rssAgent = new RssAgent();
+
+      const actionWrapper: AgentAction = {
+        execute: async (params: Record<string, unknown>) => {
+          switch (action) {
+            case 'fetchFeed':
+              return await rssAgent.fetchFeed(params as never);
+            case 'extractClientInfo':
+              return await rssAgent.extractClientInfo(params as never);
+            case 'buildClientRepository':
+              return await rssAgent.buildClientRepository(params as never);
+            case 'monitorFeeds':
+              return await rssAgent.monitorFeeds(params as never);
+            default:
+              throw new Error(`Unknown RSS action: ${action}`);
           }
         }
       };
