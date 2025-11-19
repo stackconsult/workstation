@@ -47,7 +47,9 @@
         "playwright/execution.js",
         "playwright/self-healing.js",
         "playwright/form-filling.js",
-        "playwright/trace-recorder.js"
+        "playwright/trace-recorder.js",
+        "playwright/agentic-network.js",
+        "playwright/context-learning.js"
       ],
       "matches": ["<all_urls>"]
     }

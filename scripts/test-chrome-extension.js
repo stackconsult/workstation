@@ -25,10 +25,12 @@ const REQUIRED_FILES = [
   'playwright/network.js',
   'playwright/retry.js',
   'playwright/execution.js',
-  // New agentic modules (Phase 9)
+  // Agentic modules (Phase 9)
   'playwright/self-healing.js',
   'playwright/form-filling.js',
-  'playwright/trace-recorder.js'
+  'playwright/trace-recorder.js',
+  'playwright/agentic-network.js',
+  'playwright/context-learning.js'
 ];
 
 console.log('🧪 Testing Chrome Extension Build with Playwright Features\n');
@@ -105,7 +107,9 @@ const playwrightModules = [
   { file: 'playwright/execution.js', exportClass: 'PlaywrightExecution' },
   { file: 'playwright/self-healing.js', exportClass: 'SelfHealingSelectors' },
   { file: 'playwright/form-filling.js', exportClass: 'FormFillingAgent' },
-  { file: 'playwright/trace-recorder.js', exportClass: 'TraceRecorder' }
+  { file: 'playwright/trace-recorder.js', exportClass: 'TraceRecorder' },
+  { file: 'playwright/agentic-network.js', exportClass: 'AgenticNetworkMonitor' },
+  { file: 'playwright/context-learning.js', exportClass: 'AgenticContextLearner' }
 ];
 
 playwrightModules.forEach(({ file, exportClass }) => {
@@ -164,7 +168,9 @@ const features = [
   { name: 'getSelectorStrategies usage', check: () => contentContent.includes('getSelectorStrategies') },
   { name: 'SelfHealingSelectors in content', check: () => contentContent.includes('SelfHealingSelectors') },
   { name: 'FormFillingAgent in content', check: () => contentContent.includes('FormFillingAgent') },
-  { name: 'TraceRecorder in content', check: () => contentContent.includes('TraceRecorder') }
+  { name: 'TraceRecorder in content', check: () => contentContent.includes('TraceRecorder') },
+  { name: 'AgenticNetworkMonitor in content', check: () => contentContent.includes('AgenticNetworkMonitor') },
+  { name: 'AgenticContextLearner in content', check: () => contentContent.includes('AgenticContextLearner') }
 ];
 
 features.forEach(({ name, check }) => {
@@ -187,13 +193,14 @@ if (allTestsPassed) {
   console.log('   4. Select: build/chrome-extension/');
   console.log('\n🎭 Playwright Features:');
   console.log('   ✨ Auto-waiting for elements');
-  console.log('   ✨ Multi-strategy selectors');
+  console.log('   ✨ Multi-strategy selectors (8 strategies)');
   console.log('   ✨ Self-healing workflows');
-  console.log('   ✨ Network monitoring');
-  console.log('   ✨ Automatic retries');
-  console.log('   ✨ Self-healing selectors (8 strategies)');
+  console.log('   ✨ Network monitoring with recovery');
+  console.log('   ✨ Automatic retries with exponential backoff');
   console.log('   ✨ Form filling with LLM integration');
   console.log('   ✨ Trace recording & analysis');
+  console.log('   ✨ Agentic network error recovery');
+  console.log('   ✨ Context learning (learns from experience)');
   process.exit(0);
 } else {
   console.error('❌ Some tests failed. Please fix the issues above.');

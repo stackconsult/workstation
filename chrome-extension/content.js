@@ -9,6 +9,8 @@ import { PlaywrightNetworkMonitor } from './playwright/network.js';
 import { SelfHealingSelectors } from './playwright/self-healing.js';
 import { FormFillingAgent } from './playwright/form-filling.js';
 import { TraceRecorder } from './playwright/trace-recorder.js';
+import { AgenticNetworkMonitor } from './playwright/agentic-network.js';
+import { AgenticContextLearner } from './playwright/context-learning.js';
 
 let isRecording = false;
 let recordedActions = [];
@@ -20,6 +22,25 @@ networkMonitor.setupInterception();
 const selfHealingSelectors = new SelfHealingSelectors();
 const formFillingAgent = new FormFillingAgent();
 const traceRecorder = new TraceRecorder();
+
+// Initialize agentic components
+const agenticNetworkMonitor = AgenticNetworkMonitor.getInstance();
+agenticNetworkMonitor.setupInterception();
+
+const agenticContextLearner = new AgenticContextLearner();
+agenticContextLearner.initialize().then(() => {
+  console.log('🧠 Agentic context learner initialized');
+});
+
+// Setup agentic network monitor listener
+agenticNetworkMonitor.addListener((eventType, data) => {
+  if (eventType === 'error') {
+    console.warn('🌐 Network error detected:', data);
+  }
+  if (eventType === 'info') {
+    console.log('ℹ️', data.message);
+  }
+});
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
