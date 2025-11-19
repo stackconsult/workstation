@@ -1,0 +1,70 @@
+name: 'Validate Credentials'
+description: 'Validates credentials and determines if workflow should run, skip, or fail'
+inputs:
+  credential-name:
+    description: 'Name of the credential/secret to validate'
+    required: true
+  credential-value:
+    description: 'Value of the credential to validate'
+    required: true
+  filler-patterns:
+    description: 'JSON array of patterns that indicate filler credentials (e.g., ["PLACEHOLDER", "YOUR_", "FILLER", "EXAMPLE"])'
+    required: false
+    default: '["PLACEHOLDER", "YOUR_", "FILLER", "EXAMPLE", "TODO", "CHANGEME", "xxx", "yyy", "zzz"]'
+  
+outputs:
+  status:
+    description: 'Status of credential validation: "valid", "filler", or "missing"'
+    value: ${{ steps.validate.outputs.status }}
+  should-run:
+    description: 'Boolean indicating if workflow should proceed'
+    value: ${{ steps.validate.outputs.should-run }}
+  skip-reason:
+    description: 'Reason for skipping if applicable'
+    value: ${{ steps.validate.outputs.skip-reason }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate credential
+      id: validate
+      shell: bash
+      run: |
+        set -e
+        
+        CRED_NAME="${{ inputs.credential-name }}"
+        CRED_VALUE="${{ inputs.credential-value }}"
+        FILLER_PATTERNS='${{ inputs.filler-patterns }}'
+        
+        echo "🔍 Validating credential: $CRED_NAME"
+        
+        # Check if credential is empty or not provided
+        if [ -z "$CRED_VALUE" ] || [ "$CRED_VALUE" = "null" ] || [ "$CRED_VALUE" = "" ]; then
+          echo "status=missing" >> $GITHUB_OUTPUT
+          echo "should-run=false" >> $GITHUB_OUTPUT
+          echo "skip-reason=Credential '$CRED_NAME' is not configured" >> $GITHUB_OUTPUT
+          echo "⚠️ Status: MISSING - Credential '$CRED_NAME' is not configured"
+          exit 0
+        fi
+        
+        # Check if credential matches filler patterns
+        IS_FILLER=false
+        for pattern in $(echo "$FILLER_PATTERNS" | jq -r '.[]' 2>/dev/null || echo "PLACEHOLDER YOUR_ FILLER EXAMPLE TODO CHANGEME"); do
+          if echo "$CRED_VALUE" | grep -qi "$pattern"; then
+            IS_FILLER=true
+            echo "⏭️ Detected filler pattern: '$pattern' in $CRED_NAME"
+            break
+          fi
+        done
+        
+        if [ "$IS_FILLER" = "true" ]; then
+          echo "status=filler" >> $GITHUB_OUTPUT
+          echo "should-run=false" >> $GITHUB_OUTPUT
+          echo "skip-reason=Credential '$CRED_NAME' contains filler/placeholder values" >> $GITHUB_OUTPUT
+          echo "⏭️ Status: FILLER - Workflow will complete gracefully without action"
+        else
+          echo "status=valid" >> $GITHUB_OUTPUT
+          echo "should-run=true" >> $GITHUB_OUTPUT
+          echo "skip-reason=" >> $GITHUB_OUTPUT
+          echo "✅ Status: VALID - Real credential detected, workflow will proceed"
+        fi
