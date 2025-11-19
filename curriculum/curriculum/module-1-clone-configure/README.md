@@ -1,5 +1,14 @@
 # Module 1: Clone & Configure
 
+## Learning objectives
+
+By the end of this module, you will be able to:
+
+- Clone the Workstation repository, install dependencies, and run the backend locally or in a Codespace without errors.  
+- Configure environment variables for JWT auth, database paths, and any external services in a way that is safe to commit to Git.  
+- Run a basic health check and a sample workflow execution via curl so you know your environment matches the course reference environment.  
+- Capture these steps in your own notes or internal docs so you can repeat them quickly for future projects or client implementations.
+
 ## Overview
 
 Set up your local development environment and get the Workstation browser-agent system running in under 30 minutes.

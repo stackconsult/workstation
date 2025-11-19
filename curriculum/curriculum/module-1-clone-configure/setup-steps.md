@@ -268,3 +268,17 @@ Before proceeding to Module 2, verify:
 - Clear development workflow
 - TypeScript build validation
 - E2E test coverage
+
+## Common pitfalls and how to fix them
+
+- **`npm install` fails with native module errors (SQLite, better-sqlite3):**  
+  Make sure you are on Node 18+ and have a working build toolchain (Python + build-essential on Linux, Xcode tools on macOS, or the recommended Windows build tools). If the error mentions `node-gyp`, reinstall dependencies after fixing your toolchain.
+
+- **`npm run dev` starts but `/health` returns 500 or times out:**  
+  Check that your `.env` file matches `.env.example` and that `DATABASE_PATH` is writable. If the DB schema has not been applied, run `sqlite3 $DATABASE_PATH < schema.sql` and restart the server.
+
+- **CORS or network errors from the Chrome extension hitting `http://localhost:3000`:**  
+  Confirm `host_permissions` in `manifest.json` include your backend origin, and that there are no proxy or VPN rules intercepting localhost calls. For Codespaces, use the forwarded port URL and update the host in your extension config.
+
+- **JWT token endpoint returns 401/403:**  
+  Ensure the signing key is set in `.env` and that the `/auth/demo-token` route is wired up to the same secret used by the main auth middleware. Regenerate tokens after any secret or config change.
