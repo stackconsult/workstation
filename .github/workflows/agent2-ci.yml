@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd agents/agent2
-          npm ci
+          npm install
       
       - name: Run tests
         run: |

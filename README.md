@@ -85,6 +85,14 @@ open docs/landing.html
 - **Simple Dashboard**: JWT and API testing
 - **Control Center**: Advanced workflow management
 
+### 🔄 MCP Repository Sync (NEW!)
+- **Automated Sync**: Monitors private MCP repo every 5 minutes
+- **Branch Watching**: Tracks main, develop, staging branches
+- **Merge Detection**: Auto-triggers updates on merge events
+- **Rollback System**: One-command rollback with 10 snapshots
+- **Full Integration**: GitHub Actions automation included
+- 📖 [Quick Start Guide](docs/MCP_SYNC_QUICKSTART.md) | [Full Documentation](docs/MCP_SYNC_SYSTEM.md)
+
 ### 🚀 Deployment Ready
 - **Railway**: One-click deployment
 - **Docker**: Multi-platform containers (amd64, arm64)

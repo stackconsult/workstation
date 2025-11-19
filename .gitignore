@@ -15,6 +15,10 @@ logs/
 # Rollback snapshots
 .rollback/
 
+# MCP Sync directories
+.mcp-clone/
+.mcp-rollback/
+
 # Audit workflow artifacts
 fix-summary.md
 fixes/
