@@ -73,4 +73,4 @@ Common issues and solutions:
 
 ## Support
 
-For questions or issues, open a GitHub issue or check the [main README](../../README.md).
+For questions or issues, open a GitHub issue or check the [main README](../../../README.md).
