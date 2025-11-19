@@ -227,10 +227,10 @@ Start with [system-overview.md](./system-overview.md) for a comprehensive archit
 
 ## Resources
 
-- [ARCHITECTURE.md](../../ARCHITECTURE.md) - Main architecture documentation
-- [src/automation/orchestrator/engine.ts](../../src/automation/orchestrator/engine.ts) - Orchestrator implementation
-- [src/automation/agents/core/registry.ts](../../src/automation/agents/core/registry.ts) - Agent registry
-- [src/automation/agents/core/browser.ts](../../src/automation/agents/core/browser.ts) - Browser agent example
+- [ARCHITECTURE.md](../../../ARCHITECTURE.md) - Main architecture documentation
+- [src/automation/orchestrator/engine.ts](../../../src/automation/orchestrator/engine.ts) - Orchestrator implementation
+- [src/automation/agents/core/registry.ts](../../../src/automation/agents/core/registry.ts) - Agent registry
+- [src/automation/agents/core/browser.ts](../../../src/automation/agents/core/browser.ts) - Browser agent example
 
 ## Next Module
 

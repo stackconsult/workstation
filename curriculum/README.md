@@ -49,7 +49,7 @@ By completing this curriculum, you will:
 
 ## Getting Started
 
-Start with [Module 1: Clone & Configure](./module-1-clone-configure/README.md) to set up your local environment.
+Start with [Module 1: Clone & Configure](./curriculum/module-1-clone-configure/README.md) to set up your local environment.
 
 ---
 

@@ -562,10 +562,10 @@ After completing this module:
 
 ## Resources
 
-- [TypeScript Agent Examples](../../src/automation/agents/)
-- [Workflow Schema Reference](../../docs/workflow-schema.md)
-- [Agent Registry Implementation](../../src/automation/agents/core/registry.ts)
-- [Browser Agent Source](../../src/automation/agents/core/browser.ts)
+- [TypeScript Agent Examples](../../../src/automation/agents/)
+- [Workflow Schema Reference](../../../docs/workflow-schema.md)
+- [Agent Registry Implementation](../../../src/automation/agents/core/registry.ts)
+- [Browser Agent Source](../../../src/automation/agents/core/browser.ts)
 
 ## Success Metrics
 
