@@ -24,12 +24,14 @@ Workstation is a **production-ready** browser automation platform that combines:
 - 🐳 **Easy deployment** - Docker, Railway, or local (✅ LIVE)
 - 🔌 **MCP Integration** - Model Context Protocol for GitHub Copilot and AI agents (✅ LIVE)
 - 🛠️ **Coding Agent Service** - REST API for Git operations, branch management, and PR automation (✅ NEW)
+- 🌐 **Chrome Extension** - Browser automation with natural language (✅ NEW)
 
 **Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, AI-powered browser automation, and automated code deployment workflows.
 
 **Current Status**: 
 - ✅ **Phase 1 Complete**: Full browser automation with 7 core actions
 - ✅ **170 Tests Passing**: Production-ready code quality
+- ✅ **Chrome Extension MVP**: Browser integration ready
 - 🚧 **Phase 2 Active**: Building multi-agent ecosystem
 
 ---
@@ -47,6 +49,9 @@ npm run dev
 # Get authentication token
 curl http://localhost:3000/auth/demo-token
 
+# Build Chrome extension
+npm run build:chrome
+
 # Open dashboard
 open docs/landing.html
 ```
@@ -54,8 +59,38 @@ open docs/landing.html
 **Next Steps:**
 - 📖 [Complete User Guide](docs/guides/HOW_TO_USE_BROWSER_AGENT.md)
 - 🎯 [30-Second Tutorial](START_HERE.md)
+- 🌐 [Chrome Extension Guide](chrome-extension/README.md)
 - 📚 [Full Documentation](docs/DOCUMENTATION_INDEX.md)
 - 🎨 [Interactive Dashboard](docs/index.html)
+
+---
+
+## 🌐 Chrome Extension (NEW!)
+
+Control browser automation directly from Chrome with natural language:
+
+```bash
+# Build the extension
+npm run build:chrome
+
+# Test the build
+npm run test:chrome
+
+# Load in Chrome:
+# 1. Navigate to chrome://extensions/
+# 2. Enable "Developer mode"
+# 3. Click "Load unpacked"
+# 4. Select: build/chrome-extension/
+```
+
+**Features:**
+- ✨ Natural language workflow execution
+- 🎯 Visual action recording (click, type, navigate)
+- 🔐 Secure JWT authentication
+- ⚡ Real-time execution feedback
+- 📊 Workflow status monitoring
+
+📖 [Complete Chrome Extension Documentation](chrome-extension/README.md)
 
 ---
 
@@ -123,6 +158,7 @@ open docs/landing.html
 | **JWT Auth** | ✅ Production | `src/auth/jwt.ts` | ✅ Passing | HS256/384/512 |
 | **Rate Limiting** | ✅ Production | `src/index.ts` | ✅ Passing | 100 req/15min |
 | **Docker Deploy** | ✅ Production | `Dockerfile`, Railway | ✅ Working | Multi-platform |
+| **Chrome Extension** | ✅ Complete | `chrome-extension/` | ✅ Validated | Natural language automation |
 
 ### Agent Ecosystem (Phase 2) 🚧 40% Complete
 
@@ -139,6 +175,7 @@ open docs/landing.html
 
 | Feature | Status | Notes |
 |---------|--------|-------|
+| **Chrome Extension** | ✅ MVP Ready | Manifest V3, JWT auth, recording |
 | **Slack Integration** | ⏳ Planned | Infrastructure ready, SDK pending |
 | **Multi-tenant Workspaces** | ⏳ Planned | Database schema ready |
 | **Secrets Management** | ⏳ Planned | Encryption layer needed |
@@ -154,6 +191,7 @@ open docs/landing.html
 📊 Test Coverage:           67.18% statements, 51.92% branches, 70.94% functions, 66.88% lines
 📊 Agent Directories:       17 agents
 📊 Documentation Files:     112 docs
+📊 Chrome Extension:        ✅ Built & Validated (18.46 KB)
 📊 Build Status:            ✅ Passing
 📊 Security Vulnerabilities: 0 critical/high
 ```
@@ -166,6 +204,7 @@ open docs/landing.html
 |----------|-------------|
 | [📖 Documentation Index](docs/DOCUMENTATION_INDEX.md) | Complete navigation of all docs |
 | [🎯 START_HERE.md](START_HERE.md) | 30-second quick start |
+| [🌐 Chrome Extension Guide](chrome-extension/README.md) | Complete Chrome extension documentation |
 | [📅 Project Timeline](PROJECT_TIMELINE.md) | Complete development history |
 | [🚀 Development Phases](DEVELOPMENT_PHASES.md) | Detailed phase documentation |
 | [📘 User Guide](docs/guides/HOW_TO_USE_BROWSER_AGENT.md) | Complete usage manual |
