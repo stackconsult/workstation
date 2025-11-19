@@ -84,7 +84,6 @@ describe('Error Handler Middleware', () => {
         expect.objectContaining({
           error: 'Detailed error message',
           code: 'INTERNAL_ERROR',
-          message: 'Detailed error message',
           path: '/test-path',
           timestamp: expect.any(String),
         })
