@@ -394,6 +394,138 @@ lsof -ti:3000 | xargs kill
 
 ---
 
+## 🤖 Coding Agent & MCP Containers
+
+### Running MCP Containers
+
+Workstation includes 20 MCP containers managed through Docker Compose:
+
+```bash
+# Start all MCP containers
+docker-compose -f docker-compose.mcp.yml up -d
+
+# Start specific container (e.g., Agent-16)
+docker-compose -f docker-compose.mcp.yml up -d mcp-16-data
+
+# Check container status
+docker-compose -f docker-compose.mcp.yml ps
+
+# View logs
+docker-compose -f docker-compose.mcp.yml logs -f mcp-16-data
+
+# Stop all containers
+docker-compose -f docker-compose.mcp.yml down
+```
+
+### Coding Agent Tool
+
+The coding agent tool enables GitHub integration:
+
+```bash
+# Navigate to coding agent directory
+cd tools/coding-agent
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your GITHUB_TOKEN
+
+# Push branch to GitHub
+npm run push-branch -- --branch feature/my-feature --message "Add new feature"
+
+# Sync with GitHub
+npm run sync-repo
+
+# Check status
+npm run status
+```
+
+### Coding Agent Endpoints
+
+Agent-16 (MCP Container Manager) provides these endpoints:
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/containers/status` | Yes | Get all container statuses |
+| GET | `/api/containers/:name/health` | Yes | Check specific container health |
+| POST | `/api/containers/peelback` | Yes | Trigger container rollback |
+| GET | `/api/containers/peelback/status/:id` | Yes | Check peelback operation status |
+| POST | `/api/github/push-branch` | Yes | Push branch to GitHub |
+| POST | `/api/github/sync` | Yes | Sync repository with GitHub |
+
+**Example: Check Container Status**
+
+```bash
+# Get status of all containers
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3016/api/containers/status
+
+# Response:
+{
+  "containers": [
+    {
+      "name": "mcp-01-selector",
+      "status": "running",
+      "health": "healthy",
+      "port": 3001
+    },
+    ...
+  ],
+  "total": 20,
+  "healthy": 20,
+  "unhealthy": 0
+}
+```
+
+**Example: Push Branch to GitHub**
+
+```bash
+# Push a new branch
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:3016/api/github/push-branch \
+  -d '{
+    "branch": "feature/new-mcp-container",
+    "message": "Add new MCP container configuration",
+    "files": ["docker-compose.mcp.yml"]
+  }'
+
+# Response:
+{
+  "success": true,
+  "branch": "feature/new-mcp-container",
+  "commit": "a1b2c3d4",
+  "url": "https://github.com/creditXcredit/workstation/tree/feature/new-mcp-container"
+}
+```
+
+**Example: Trigger Container Peelback**
+
+```bash
+# Roll back a specific container
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  http://localhost:3016/api/containers/peelback \
+  -d '{
+    "container": "mcp-01-selector",
+    "tag": "v1.0.0",
+    "verify_health": true
+  }'
+
+# Response:
+{
+  "success": true,
+  "operation_id": "peelback-20241119-123456",
+  "container": "mcp-01-selector",
+  "tag": "v1.0.0",
+  "status": "in_progress"
+}
+```
+
+---
+
 ## Quick Reference
 
 ### Common Commands
@@ -410,6 +542,18 @@ npm run lint            # Run linter
 docker build -t workstation .
 docker run -p 3000:3000 workstation
 
+# MCP Containers
+docker-compose -f docker-compose.mcp.yml up -d     # Start all MCP containers
+docker-compose -f docker-compose.mcp.yml ps        # Check status
+docker-compose -f docker-compose.mcp.yml logs -f   # View logs
+
+# Coding Agent
+cd tools/coding-agent && npm run push-branch       # Push branch to GitHub
+cd tools/coding-agent && npm run sync-repo         # Sync with GitHub
+
+# Container Peelback (Rollback)
+./.docker/peelback.sh mcp-16-data v1.0.0          # Rollback container
+
 # Database
 npm run db:migrate      # Run migrations (if any)
 npm run db:seed         # Seed test data (if any)
@@ -425,6 +569,12 @@ npm run db:seed         # Seed test data (if any)
 | `NODE_ENV` | No | `development` | Environment |
 | `ALLOWED_ORIGINS` | No | `*` | CORS allowed origins |
 | `LOG_LEVEL` | No | `info` | Logging verbosity |
+| **`GITHUB_TOKEN`** | For coding agent | - | **GitHub personal access token** |
+| **`MCP_MANAGER_AGENT`** | No | `agent-16` | **MCP container manager agent** |
+| **`MCP_PORT_OFFSET`** | No | `3000` | **Base port for MCP containers** |
+| **`MCP_CONTAINER_PREFIX`** | No | `mcp` | **Prefix for container names** |
+
+⚠️ **Security**: Never commit `GITHUB_TOKEN` or `JWT_SECRET` to version control. Use environment variables or secret management tools.
 
 ### API Endpoints
 
@@ -437,9 +587,165 @@ npm run db:seed         # Seed test data (if any)
 | GET | `/api/v2/workflows` | Yes | List workflows |
 | POST | `/api/v2/workflows/:id/execute` | Yes | Execute workflow |
 | GET | `/api/v2/executions/:id` | Yes | Get execution status |
+| **GET** | **`/api/containers/status`** | **Yes** | **Get container statuses** |
+| **POST** | **`/api/containers/peelback`** | **Yes** | **Trigger container rollback** |
+| **POST** | **`/api/github/push-branch`** | **Yes** | **Push branch to GitHub** |
 
 ---
 
 **Welcome to Workstation! 🎉**
 
+For more information:
+- [MCP Containers Guide](mcp-containers/README.md)
+- [Rollback Procedures](ROLLBACK.md)
+- [Agent-16 Assignment](.agents/agent-16-assignment.json)
+- [Architecture Documentation](ARCHITECTURE.md)
+
 Questions? Open an issue or start a discussion on GitHub!
+
+---
+
+## 🤖 Addendum: Coding Agent & MCP Containers
+
+### Overview
+
+Workstation now includes **Agent 16 (Coding Agent)** and a full MCP container infrastructure for deploying 20+ specialized agents.
+
+### What's New?
+
+1. **Coding Agent (Agent 16)**:
+   - GitHub API integration for repository management
+   - Automated pull request reviews
+   - Code analysis and quality checks
+   - Data processing pipelines
+   - Deployed as MCP container on port 3016
+
+2. **MCP Container Infrastructure**:
+   - 20+ specialized agents in isolated containers
+   - Automated health monitoring and recovery
+   - Peelback rollback script for safe deployments
+   - Master orchestrator for agent coordination
+
+### Quick Setup for Coding Agent
+
+**Step 1: Configure Environment**
+```bash
+# Copy environment template
+cp mcp-containers/.env.example mcp-containers/.env
+
+# Edit and add your GitHub token
+nano mcp-containers/.env
+# Set: GITHUB_TOKEN=ghp_your_token_here
+```
+
+**Step 2: Start Coding Agent Container**
+```bash
+# Start Agent 16
+docker-compose -f mcp-containers/docker-compose.mcp.yml up -d mcp-16-data-processing
+
+# Check health
+curl http://localhost:3016/health
+
+# View logs
+docker-compose -f mcp-containers/docker-compose.mcp.yml logs -f mcp-16-data-processing
+```
+
+**Step 3: Test GitHub Integration**
+```bash
+# List your repositories
+curl http://localhost:3016/api/github/repos
+
+# Get MCP server info
+curl http://localhost:3016/mcp/info
+```
+
+### Starting All MCP Containers
+
+To start all 20+ agent containers:
+
+```bash
+# Start all MCP containers
+docker-compose -f mcp-containers/docker-compose.mcp.yml up -d
+
+# Check status
+docker-compose -f mcp-containers/docker-compose.mcp.yml ps
+
+# View orchestrator logs (coordinates all agents)
+docker-compose -f mcp-containers/docker-compose.mcp.yml logs -f mcp-20-orchestrator
+```
+
+### Rollback and Recovery
+
+If a deployment fails or containers are unhealthy:
+
+```bash
+# Automatic rollback with peelback script
+./.docker/peelback.sh
+
+# Manual container restart
+docker-compose -f mcp-containers/docker-compose.mcp.yml restart mcp-16-data-processing
+```
+
+### Environment Variables for Agent 16
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITHUB_TOKEN` | ✅ Yes | GitHub Personal Access Token (scopes: repo, workflow, read:org) |
+| `NODE_ENV` | No | Environment (default: production) |
+| `MCP_PORT` | No | Internal port (default: 3000) |
+| `LOG_LEVEL` | No | Logging verbosity (default: info) |
+
+### Coding Agent Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/mcp/info` | MCP metadata |
+| GET | `/api/github/repos` | List repositories |
+| GET | `/api/github/repos/:owner/:repo` | Get repository details |
+| GET | `/api/github/pulls/:owner/:repo` | List pull requests |
+| GET | `/api/github/issues/:owner/:repo` | List issues |
+| GET | `/api/github/commits/:owner/:repo` | List commits |
+| POST | `/api/code/analyze` | Analyze code quality |
+
+### Port Allocation for MCP Containers
+
+| Agent | Port | Container |
+|-------|------|-----------|
+| 00 | 3000 | Base MCP |
+| 01 | 3001 | Selector |
+| ... | ... | ... |
+| 16 | 3016 | **Coding Agent (Data Processing)** |
+| ... | ... | ... |
+| 20 | 3020 | Master Orchestrator |
+
+### Additional Resources
+
+- **[MCP Containers README](mcp-containers/README.md)** - Complete MCP documentation
+- **[Agent 16 Assignment](.agents/agent-16-assignment.json)** - Agent configuration
+- **[Rollback Guide](ROLLBACK.md)** - Quick rollback procedures
+- **[Architecture](ARCHITECTURE.md)** - Updated with agent & MCP sections
+
+### Troubleshooting
+
+**Container won't start:**
+```bash
+# Check logs
+docker-compose -f mcp-containers/docker-compose.mcp.yml logs mcp-16-data-processing
+
+# Rebuild without cache
+docker-compose -f mcp-containers/docker-compose.mcp.yml build --no-cache mcp-16-data-processing
+```
+
+**GitHub token not working:**
+- Ensure token has `repo`, `workflow`, and `read:org` scopes
+- Generate at: https://github.com/settings/tokens
+- Set in `mcp-containers/.env` as `GITHUB_TOKEN=ghp_...`
+
+**Port already in use:**
+- Change host port in `docker-compose.mcp.yml`
+- Example: `"3116:3000"` maps host 3116 to container 3000
+
+---
+
+**Happy Automating! 🚀**

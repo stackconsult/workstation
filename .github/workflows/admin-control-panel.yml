@@ -35,19 +35,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Validate credentials
+        id: validate-creds
+        uses: ./.github/actions/validate-credentials
+        with:
+          credential-name: 'RAILWAY_URL'
+          credential-value: ${{ secrets.RAILWAY_URL }}
+          filler-patterns: '["PLACEHOLDER", "YOUR_", "FILLER", "EXAMPLE", "TODO", "CHANGEME", "https://your-app", "https://example"]'
+      
       - name: Setup info
         run: |
           echo "🎯 Executing: ${{ github.event.inputs.action }}"
           echo "👤 Triggered by: ${{ github.actor }}"
           echo "⏰ Time: $(date)"
+          echo "🔐 Credential Status: ${{ steps.validate-creds.outputs.status }}"
       
-      - name: Execute Health Check
+      - name: Skip or Execute Health Check
         if: github.event.inputs.action == 'Health Check'
         run: |
+          set -e
+          
           echo "### 🏥 Health Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ -n "${{ secrets.RAILWAY_URL }}" ]; then
+          CRED_STATUS="${{ steps.validate-creds.outputs.status }}"
+          SKIP_REASON="${{ steps.validate-creds.outputs.skip-reason }}"
+          
+          if [ "$CRED_STATUS" = "valid" ]; then
+            # Real credentials - execute health check
             echo "Checking health at ${{ secrets.RAILWAY_URL }}/health"
             RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" ${{ secrets.RAILWAY_URL }}/health || echo "ERROR: Connection failed")
             
@@ -64,9 +79,28 @@ jobs:
               echo "✅ Application is healthy!" >> $GITHUB_STEP_SUMMARY
             else
               echo "❌ Health check failed" >> $GITHUB_STEP_SUMMARY
+              exit 1
             fi
+          elif [ "$CRED_STATUS" = "filler" ]; then
+            # Filler credentials - complete gracefully
+            echo "⏭️ **Workflow Completed with Filler Credentials**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$SKIP_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Action:** Health check skipped (no real deployment URL configured)" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Completed successfully (no action required)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To use this feature with real credentials:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Go to repository Settings > Secrets and variables > Actions" >> $GITHUB_STEP_SUMMARY
+            echo "2. Update secret: RAILWAY_URL" >> $GITHUB_STEP_SUMMARY
+            echo "3. Value: Your actual Railway deployment URL" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ RAILWAY_URL secret not configured" >> $GITHUB_STEP_SUMMARY
+            # Missing credentials - complete gracefully
+            echo "⏭️ **Workflow Completed - Credentials Not Configured**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$SKIP_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Completed successfully (configuration required)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "To use this feature:" >> $GITHUB_STEP_SUMMARY
             echo "1. Go to repository Settings > Secrets and variables > Actions" >> $GITHUB_STEP_SUMMARY
@@ -74,13 +108,19 @@ jobs:
             echo "3. Value: Your Railway deployment URL (e.g., https://your-app.railway.app)" >> $GITHUB_STEP_SUMMARY
           fi
       
-      - name: Generate Demo Token
+      - name: Skip or Generate Demo Token
         if: github.event.inputs.action == 'Generate Demo Token'
         run: |
+          set -e
+          
           echo "### 🔑 Demo Token Generation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ -n "${{ secrets.RAILWAY_URL }}" ]; then
+          CRED_STATUS="${{ steps.validate-creds.outputs.status }}"
+          SKIP_REASON="${{ steps.validate-creds.outputs.skip-reason }}"
+          
+          if [ "$CRED_STATUS" = "valid" ]; then
+            # Real credentials - generate token
             echo "Generating demo token..."
             RESPONSE=$(curl -s ${{ secrets.RAILWAY_URL }}/auth/demo-token)
             
@@ -94,20 +134,39 @@ jobs:
             echo '```bash' >> $GITHUB_STEP_SUMMARY
             echo 'curl -H "Authorization: Bearer YOUR_TOKEN" ${{ secrets.RAILWAY_URL }}/api/protected' >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
+          elif [ "$CRED_STATUS" = "filler" ]; then
+            # Filler credentials - complete gracefully
+            echo "⏭️ **Workflow Completed with Filler Credentials**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$SKIP_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Action:** Demo token generation skipped (no real deployment URL configured)" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Completed successfully (no action required)" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ RAILWAY_URL secret not configured" >> $GITHUB_STEP_SUMMARY
+            # Missing credentials - complete gracefully
+            echo "⏭️ **Workflow Completed - Credentials Not Configured**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$SKIP_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Completed successfully (configuration required)" >> $GITHUB_STEP_SUMMARY
           fi
       
-      - name: Generate Custom Token
+      - name: Skip or Generate Custom Token
         if: github.event.inputs.userId != ''
         run: |
+          set -e
+          
           echo "### 🔐 Custom Token Generation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**User ID:** ${{ github.event.inputs.userId }}" >> $GITHUB_STEP_SUMMARY
           echo "**Role:** ${{ github.event.inputs.userRole }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ -n "${{ secrets.RAILWAY_URL }}" ]; then
+          CRED_STATUS="${{ steps.validate-creds.outputs.status }}"
+          SKIP_REASON="${{ steps.validate-creds.outputs.skip-reason }}"
+          
+          if [ "$CRED_STATUS" = "valid" ]; then
+            # Real credentials - generate token
             RESPONSE=$(curl -s -X POST ${{ secrets.RAILWAY_URL }}/auth/token \
               -H "Content-Type: application/json" \
               -d "{\"userId\":\"${{ github.event.inputs.userId }}\",\"role\":\"${{ github.event.inputs.userRole }}\"}")
@@ -117,13 +176,28 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "✅ Custom token generated!" >> $GITHUB_STEP_SUMMARY
+          elif [ "$CRED_STATUS" = "filler" ]; then
+            # Filler credentials - complete gracefully
+            echo "⏭️ **Workflow Completed with Filler Credentials**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$SKIP_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Action:** Custom token generation skipped (no real deployment URL configured)" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Completed successfully (no action required)" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ RAILWAY_URL secret not configured" >> $GITHUB_STEP_SUMMARY
+            # Missing credentials - complete gracefully
+            echo "⏭️ **Workflow Completed - Credentials Not Configured**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "$SKIP_REASON" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Completed successfully (configuration required)" >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: View API Documentation
         if: github.event.inputs.action == 'View API Documentation'
         run: |
+          set -e
+          
           echo "### 📚 API Documentation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Available Documentation:**" >> $GITHUB_STEP_SUMMARY
@@ -134,16 +208,28 @@ jobs:
           echo "4. 🚀 [Deployment Guide](https://github.com/${{ github.repository }}/blob/main/DEPLOYMENT.md)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ -n "${{ secrets.RAILWAY_URL }}" ]; then
+          CRED_STATUS="${{ steps.validate-creds.outputs.status }}"
+          
+          if [ "$CRED_STATUS" = "valid" ]; then
+            # Real credentials - show live endpoints
             echo "**Live API Endpoints:**" >> $GITHUB_STEP_SUMMARY
             echo "- Health: ${{ secrets.RAILWAY_URL }}/health" >> $GITHUB_STEP_SUMMARY
             echo "- Demo Token: ${{ secrets.RAILWAY_URL }}/auth/demo-token" >> $GITHUB_STEP_SUMMARY
             echo "- API Docs (if enabled): ${{ secrets.RAILWAY_URL }}/api-docs" >> $GITHUB_STEP_SUMMARY
+          elif [ "$CRED_STATUS" = "filler" ]; then
+            echo "**Live API Endpoints:**" >> $GITHUB_STEP_SUMMARY
+            echo "⏭️ Not available (filler credentials in use)" >> $GITHUB_STEP_SUMMARY
+            echo "Configure real RAILWAY_URL to see live endpoints" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Live API Endpoints:**" >> $GITHUB_STEP_SUMMARY
+            echo "⏭️ Not available (RAILWAY_URL not configured)" >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: Check System Status
         if: github.event.inputs.action == 'Check System Status'
         run: |
+          set -e
+          
           echo "### 📊 System Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
@@ -154,8 +240,10 @@ jobs:
           echo "- Last commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
+          CRED_STATUS="${{ steps.validate-creds.outputs.status }}"
+          
           # Deployment status
-          if [ -n "${{ secrets.RAILWAY_URL }}" ]; then
+          if [ "$CRED_STATUS" = "valid" ]; then
             echo "**Deployment:**" >> $GITHUB_STEP_SUMMARY
             echo "- Railway URL: ${{ secrets.RAILWAY_URL }}" >> $GITHUB_STEP_SUMMARY
             echo "- Status: Checking..." >> $GITHUB_STEP_SUMMARY
@@ -165,9 +253,12 @@ jobs:
             else
               echo "- Health: ❌ Offline or unreachable" >> $GITHUB_STEP_SUMMARY
             fi
+          elif [ "$CRED_STATUS" = "filler" ]; then
+            echo "**Deployment:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: ⏭️ Filler credentials in use (no real deployment configured)" >> $GITHUB_STEP_SUMMARY
           else
             echo "**Deployment:**" >> $GITHUB_STEP_SUMMARY
-            echo "- Status: Not configured (RAILWAY_URL secret missing)" >> $GITHUB_STEP_SUMMARY
+            echo "- Status: ⏭️ Not configured (RAILWAY_URL secret missing)" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY

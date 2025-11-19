@@ -1,0 +1,568 @@
+{
+  "agent": {
+    "id": 16,
+    "name": "Data Processing & Coding Agent",
+    "type": "coding-agent",
+    "status": "active",
+    "version": "1.0.0"
+  },
+  "assignment": {
+    "title": "GitHub Integration and Code Automation",
+    "description": "Agent 16 provides comprehensive GitHub integration, code analysis, and automated coding capabilities through the Model Context Protocol (MCP).",
+    "assignedDate": "2025-11-19",
+    "priority": "high",
+    "category": "development-automation"
+  },
+  "capabilities": [
+    {
+      "name": "github-operations",
+      "description": "Full GitHub API integration for repository management",
+      "endpoints": [
+        "/api/github/repos",
+        "/api/github/pulls",
+        "/api/github/issues",
+        "/api/github/commits"
+      ]
+    },
+    {
+      "name": "code-analysis",
+      "description": "Static code analysis and quality checking",
+      "tools": ["eslint", "prettier", "typescript-compiler"]
+    },
+    {
+      "name": "automated-reviews",
+      "description": "Automated pull request reviews and suggestions",
+      "features": ["style-check", "best-practices", "security-scan"]
+    },
+    {
+      "name": "data-processing",
+      "description": "ETL pipelines and data transformation",
+      "formats": ["json", "csv", "yaml", "xml"]
+    },
+    {
+      "name": "mcp-server",
+      "description": "Model Context Protocol server for AI integration",
+      "port": 3016,
+      "health_endpoint": "/health"
+    }
+  ],
+  "dependencies": {
+    "required": [
+      "GITHUB_TOKEN"
+    ],
+    "optional": [
+      "SLACK_WEBHOOK_URL",
+      "SENTRY_DSN"
+    ]
+  },
+  "configuration": {
+    "mcp_container": "mcp-16-data-processing",
+    "docker_image": "workstation-mcp-16:latest",
+    "port_mapping": "3016:3000",
+    "health_check": {
+      "enabled": true,
+      "interval": "30s",
+      "timeout": "10s",
+      "retries": 3
+    },
+    "restart_policy": "unless-stopped"
+  },
+  "integration": {
+    "coding_agent_path": "tools/coding-agent",
+    "dockerfile": "tools/coding-agent/Dockerfile",
+    "entry_point": "src/index.ts"
+  },
+  "deployment": {
+    "compose_file": "mcp-containers/docker-compose.mcp.yml",
+    "service_name": "mcp-16-data-processing",
+    "rollback_script": ".docker/peelback.sh"
+  },
+  "documentation": {
+    "readme": "tools/coding-agent/README.md",
+    "api_docs": "docs/agent-16-api.md",
+    "mcp_guide": "mcp-containers/README.md"
+  },
+  "tasks": [
+    {
+      "id": "t16-001",
+      "title": "Implement GitHub webhook listener",
+      "status": "planned",
+      "priority": "high"
+    },
+    {
+      "id": "t16-002",
+      "title": "Add automated PR review capabilities",
+      "status": "planned",
+      "priority": "high"
+    },
+    {
+      "id": "t16-003",
+      "title": "Build data transformation pipelines",
+      "status": "planned",
+      "priority": "medium"
+    },
+    {
+      "id": "t16-004",
+      "title": "Integrate with CI/CD workflows",
+      "status": "planned",
+      "priority": "medium"
+    },
+    {
+      "id": "t16-005",
+      "title": "Add code generation templates",
+      "status": "planned",
+      "priority": "low"
+    }
+  ],
+  "metrics": {
+    "uptime_target": "99.9%",
+    "response_time_target": "< 500ms",
+    "success_rate_target": "> 95%"
+  },
+  "alerts": {
+    "health_check_failures": {
+      "threshold": 3,
+      "action": "restart"
+    },
+    "high_error_rate": {
+      "threshold": "5%",
+      "action": "notify"
+    },
+    "slow_response_time": {
+      "threshold": "1000ms",
+      "action": "investigate"
+    }
+  },
+  "notes": [
+    "Agent 16 requires GITHUB_TOKEN environment variable for API access",
+    "MCP server runs on port 3016 (mapped from container port 3000)",
+    "Supports hot reload in development mode",
+    "Automatic rollback via peelback.sh script on health check failures",
+    "Integrates with master orchestrator (Agent 20) for coordinated workflows"
+  ]
+    "id": "agent-16",
+    "name": "Data Processing MCP",
+    "role": "MCP Container Manager",
+    "version": "1.0.0",
+    "status": "active"
+  },
+  "assignment": {
+    "title": "MCP Container Management & Orchestration",
+    "assigned_date": "2024-11-19",
+    "priority": "high",
+    "scope": "Manage all 20 MCP containers in the Workstation ecosystem"
+  },
+  "responsibilities": {
+    "primary": [
+      "Monitor health of all 20 MCP containers",
+      "Execute peelback (rollback) operations on containers",
+      "Coordinate inter-container communication",
+      "Aggregate and report container status",
+      "Handle container lifecycle management"
+    ],
+    "secondary": [
+      "Log container events and metrics",
+      "Alert on container failures",
+      "Maintain service registry",
+      "Perform automated recovery on failures",
+      "Generate health and performance reports"
+    ],
+    "emergency": [
+      "Execute emergency rollbacks",
+      "Isolate failing containers",
+      "Coordinate disaster recovery",
+      "Restore from backups"
+    ]
+  },
+  "managed_containers": {
+    "total_count": 20,
+    "containers": [
+      {
+        "id": "mcp-01",
+        "name": "selector-mcp",
+        "port": 3001,
+        "role": "CSS Selector Builder"
+      },
+      {
+        "id": "mcp-02",
+        "name": "navigation-mcp",
+        "port": 3002,
+        "role": "Browser Navigation Helper"
+      },
+      {
+        "id": "mcp-03",
+        "name": "database-orchestration-specialist-mcp",
+        "port": 3003,
+        "role": "Database Operations"
+      },
+      {
+        "id": "mcp-04",
+        "name": "integration-specialist-slack-webhooks-mcp",
+        "port": 3004,
+        "role": "Slack/Webhook Integration"
+      },
+      {
+        "id": "mcp-05",
+        "name": "workflow-mcp",
+        "port": 3005,
+        "role": "Workflow Orchestration"
+      },
+      {
+        "id": "mcp-06",
+        "name": "project-builder-mcp",
+        "port": 3006,
+        "role": "Project Scaffolding"
+      },
+      {
+        "id": "mcp-07",
+        "name": "code-quality-mcp",
+        "port": 3007,
+        "role": "Code Quality & Linting"
+      },
+      {
+        "id": "mcp-08",
+        "name": "performance-mcp",
+        "port": 3008,
+        "role": "Performance Monitoring"
+      },
+      {
+        "id": "mcp-09",
+        "name": "error-tracker-mcp",
+        "port": 3009,
+        "role": "Error Tracking"
+      },
+      {
+        "id": "mcp-10",
+        "name": "security-mcp",
+        "port": 3010,
+        "role": "Security Scanning"
+      },
+      {
+        "id": "mcp-11",
+        "name": "accessibility-mcp",
+        "port": 3011,
+        "role": "Accessibility Checks"
+      },
+      {
+        "id": "mcp-12",
+        "name": "integration-mcp",
+        "port": 3012,
+        "role": "API Integration Hub"
+      },
+      {
+        "id": "mcp-13",
+        "name": "docs-auditor-mcp",
+        "port": 3013,
+        "role": "Documentation Auditing"
+      },
+      {
+        "id": "mcp-14",
+        "name": "advanced-automation-mcp",
+        "port": 3014,
+        "role": "Advanced Automation"
+      },
+      {
+        "id": "mcp-15",
+        "name": "api-integration-mcp",
+        "port": 3015,
+        "role": "External API Integration"
+      },
+      {
+        "id": "mcp-16",
+        "name": "data-processing-mcp",
+        "port": 3016,
+        "role": "Data Processing & Container Manager",
+        "is_manager": true
+      },
+      {
+        "id": "mcp-17",
+        "name": "learning-platform-mcp",
+        "port": 3017,
+        "role": "Learning Platform"
+      },
+      {
+        "id": "mcp-18",
+        "name": "community-hub-mcp",
+        "port": 3018,
+        "role": "Community Features"
+      },
+      {
+        "id": "mcp-19",
+        "name": "deployment-mcp",
+        "port": 3019,
+        "role": "Deployment Automation"
+      },
+      {
+        "id": "mcp-20",
+        "name": "orchestrator-mcp",
+        "port": 3020,
+        "role": "Master Orchestrator"
+      }
+    ]
+  },
+  "api_endpoints": {
+    "base_url": "http://localhost:3016",
+    "authentication": "JWT Bearer Token",
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/health",
+        "description": "Health check for Agent-16",
+        "auth_required": false,
+        "response_example": {
+          "status": "healthy",
+          "timestamp": "2024-11-19T12:00:00Z",
+          "uptime": 3600,
+          "container": "mcp-16-data",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/containers/status",
+        "description": "Get status of all MCP containers",
+        "auth_required": true,
+        "response_example": {
+          "containers": [
+            {
+              "name": "mcp-01-selector",
+              "status": "running",
+              "health": "healthy",
+              "port": 3001,
+              "uptime": 7200
+            }
+          ],
+          "total": 20,
+          "healthy": 20,
+          "unhealthy": 0,
+          "stopped": 0
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/containers/:name/health",
+        "description": "Check health of specific container",
+        "auth_required": true,
+        "parameters": {
+          "name": "Container name (e.g., mcp-01-selector)"
+        },
+        "response_example": {
+          "container": "mcp-01-selector",
+          "status": "healthy",
+          "last_check": "2024-11-19T12:00:00Z",
+          "uptime": 7200,
+          "health_checks_passed": 240,
+          "health_checks_failed": 0
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/containers/peelback",
+        "description": "Trigger container rollback to previous version",
+        "auth_required": true,
+        "request_body": {
+          "container": "mcp-01-selector",
+          "tag": "v1.0.0",
+          "verify_health": true,
+          "force": false
+        },
+        "response_example": {
+          "success": true,
+          "operation_id": "peelback-20241119-123456",
+          "container": "mcp-01-selector",
+          "tag": "v1.0.0",
+          "status": "in_progress",
+          "estimated_time": 60
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/containers/peelback/status/:id",
+        "description": "Check status of peelback operation",
+        "auth_required": true,
+        "parameters": {
+          "id": "Operation ID from peelback request"
+        },
+        "response_example": {
+          "operation_id": "peelback-20241119-123456",
+          "status": "completed",
+          "container": "mcp-01-selector",
+          "tag": "v1.0.0",
+          "started_at": "2024-11-19T12:00:00Z",
+          "completed_at": "2024-11-19T12:01:30Z",
+          "duration": 90,
+          "health_check_passed": true
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/github/push-branch",
+        "description": "Push branch to GitHub repository",
+        "auth_required": true,
+        "request_body": {
+          "branch": "feature/new-mcp-container",
+          "message": "Add new MCP container configuration",
+          "files": [
+            "docker-compose.mcp.yml"
+          ]
+        },
+        "response_example": {
+          "success": true,
+          "branch": "feature/new-mcp-container",
+          "commit": "a1b2c3d4",
+          "url": "https://github.com/creditXcredit/workstation/tree/feature/new-mcp-container"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/github/sync",
+        "description": "Sync repository with GitHub",
+        "auth_required": true,
+        "request_body": {
+          "branch": "main",
+          "pull": true,
+          "push": false
+        },
+        "response_example": {
+          "success": true,
+          "branch": "main",
+          "commits_pulled": 5,
+          "commits_pushed": 0,
+          "timestamp": "2024-11-19T12:00:00Z"
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/metrics",
+        "description": "Get container metrics and performance data",
+        "auth_required": true,
+        "response_example": {
+          "containers": 20,
+          "total_requests": 15000,
+          "avg_response_time_ms": 45,
+          "uptime_percentage": 99.9,
+          "last_24h": {
+            "requests": 2500,
+            "errors": 3,
+            "avg_response_time_ms": 42
+          }
+        }
+      }
+    ]
+  },
+  "environment_variables": {
+    "required": [
+      "MCP_MANAGER_AGENT",
+      "MCP_CONTAINER_COUNT",
+      "NODE_ENV",
+      "JWT_SECRET"
+    ],
+    "optional": [
+      "GITHUB_TOKEN",
+      "MCP_PORT_OFFSET",
+      "LOG_LEVEL",
+      "DEBUG"
+    ],
+    "example": {
+      "MCP_MANAGER_AGENT": "agent-16",
+      "MCP_CONTAINER_COUNT": "20",
+      "MCP_PORT_OFFSET": "3000",
+      "NODE_ENV": "production",
+      "LOG_LEVEL": "info"
+    }
+  },
+  "health_monitoring": {
+    "check_interval": "30s",
+    "check_timeout": "10s",
+    "retries_before_unhealthy": 3,
+    "alerts": {
+      "container_down": {
+        "severity": "critical",
+        "action": "Auto-restart if restart policy allows"
+      },
+      "container_unhealthy": {
+        "severity": "high",
+        "action": "Log warning and monitor"
+      },
+      "high_error_rate": {
+        "severity": "medium",
+        "action": "Alert manager for review"
+      }
+    }
+  },
+  "peelback_policies": {
+    "auto_peelback_on_failure": false,
+    "backup_before_peelback": true,
+    "verify_health_after_peelback": true,
+    "rollback_on_peelback_failure": true,
+    "default_stable_tag": "stable",
+    "max_peelback_attempts": 3
+  },
+  "security": {
+    "authentication": "JWT Bearer Token",
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 100
+    },
+    "cors": {
+      "enabled": true,
+      "allowed_origins": [
+        "http://localhost:3000",
+        "https://workstation.example.com"
+      ]
+    },
+    "secrets_management": {
+      "github_token": "Store in environment variables, never commit",
+      "jwt_secret": "Generate using crypto.randomBytes(32).toString('hex')"
+    }
+  },
+  "logging": {
+    "log_level": "info",
+    "log_format": "json",
+    "log_destinations": [
+      "/app/logs/agent-16.log",
+      "/var/log/mcp/manager.log"
+    ],
+    "log_rotation": {
+      "enabled": true,
+      "max_size": "100M",
+      "max_files": 10
+    }
+  },
+  "integration": {
+    "coding_agent_tool": {
+      "location": "tools/coding-agent",
+      "description": "TypeScript/Node tool for GitHub integration",
+      "capabilities": [
+        "Push branches to GitHub",
+        "Sync repository",
+        "Trigger CI/CD workflows"
+      ]
+    },
+    "peelback_script": {
+      "location": ".docker/peelback.sh",
+      "description": "Bash script for container rollback",
+      "usage": "./peelback.sh <container-name> <image-tag> [--verify-health]"
+    }
+  },
+  "documentation": {
+    "main_readme": "README.md",
+    "architecture": "ARCHITECTURE.md",
+    "getting_started": "GETTING_STARTED.md",
+    "rollback_guide": "ROLLBACK.md",
+    "mcp_containers": "mcp-containers/README.md",
+    "ci_cd_workflows": ".github/workflows/README.md"
+  },
+  "contact": {
+    "team": "Workstation Development Team",
+    "repository": "https://github.com/creditXcredit/workstation",
+    "issues": "https://github.com/creditXcredit/workstation/issues",
+    "discussions": "https://github.com/creditXcredit/workstation/discussions"
+  },
+  "version_info": {
+    "specification_version": "1.0.0",
+    "last_updated": "2024-11-19",
+    "status": "active",
+    "next_review": "2024-12-19"
+  }
+}

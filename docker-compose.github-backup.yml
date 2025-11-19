@@ -1,0 +1,102 @@
+# Docker Compose for GitHub Private Repository Immutable Backup Container
+# This configuration sets up the backup container with persistent volumes
+# for immutable storage and daily snapshots
+
+version: '3.8'
+
+services:
+  github-private-backup:
+    build:
+      context: ./mcp-containers/github-private-backup-mcp
+      dockerfile: Dockerfile
+    container_name: github-private-backup
+    restart: unless-stopped
+    
+    environment:
+      - GITHUB_TOKEN=${GITHUB_PRIVATE_TOKEN}
+      - TZ=UTC
+      - BACKUP_SCHEDULE=daily
+    
+    # Persistent volumes for immutable backup and snapshots
+    volumes:
+      # Immutable repository storage (never deleted)
+      - github-private-immutable:/backup/immutable:rw
+      
+      # Daily snapshots (30-day retention)
+      - github-private-snapshots:/backup/snapshots:rw
+      
+      # Backup logs
+      - github-private-logs:/backup/logs:rw
+      
+      # Optional: Mount local directory for external backups
+      - ./data/github-private-backup:/backup/external:rw
+    
+    # Network configuration
+    networks:
+      - backup-network
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "sh", "-c", "[ -d /backup/immutable/.git ] && echo healthy || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    
+    # Labels for monitoring and identification
+    labels:
+      - "mcp.type=backup"
+      - "mcp.repository=github-private"
+      - "mcp.backup.immutable=true"
+      - "mcp.backup.schedule=daily"
+      - "com.creditxcredit.workstation.component=backup"
+
+# Named volumes for persistent storage
+volumes:
+  github-private-immutable:
+    name: github-private-immutable
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/github-private-backup/immutable
+  
+  github-private-snapshots:
+    name: github-private-snapshots
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/github-private-backup/snapshots
+  
+  github-private-logs:
+    name: github-private-logs
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/github-private-backup/logs
+
+# Dedicated backup network (isolated from public network)
+networks:
+  backup-network:
+    name: workstation-backup-network
+    driver: bridge
+    internal: false  # Set to true for complete isolation
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

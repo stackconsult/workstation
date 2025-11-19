@@ -1,0 +1,36 @@
+[Unit]
+Description=Workstation Coding Agent Service
+Documentation=https://github.com/creditXcredit/workstation
+After=network.target
+
+[Service]
+Type=simple
+User=runner
+Group=runner
+WorkingDirectory=/home/runner/work/workstation/workstation
+Environment="NODE_ENV=production"
+Environment="PORT=7042"
+Environment="LOG_LEVEL=info"
+EnvironmentFile=-/home/runner/work/workstation/workstation/.env
+ExecStart=/usr/bin/node /home/runner/work/workstation/workstation/dist/index.js
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=workstation-agent
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/runner/work/workstation/workstation
+ReadWritePaths=/var/log/workstation
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

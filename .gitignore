@@ -15,6 +15,13 @@ logs/
 # Rollback snapshots
 .rollback/
 
+# MCP Sync directories
+.mcp-clone/
+.mcp-rollback/
+
+# GitHub Private Backup data
+data/github-private-backup/
+
 # Audit workflow artifacts
 fix-summary.md
 fixes/

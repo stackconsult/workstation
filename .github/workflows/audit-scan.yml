@@ -232,7 +232,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Run ESLint (Free)
         continue-on-error: true
@@ -274,7 +274,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Run npm audit (Free)
         continue-on-error: true
@@ -411,7 +411,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Run tests with coverage (Free)
         continue-on-error: true
