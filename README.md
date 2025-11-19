@@ -187,6 +187,13 @@ open docs/landing.html
 
 ## 💻 Installation & Setup
 
+### Prerequisites
+
+- **Node.js 18+** (18.x or 20.x recommended)
+- **npm** (included with Node.js)
+- **Docker** (optional, for containerized deployment)
+- **Graphviz** (optional, for dependency graph generation)
+
 ### Local Development
 
 1. **Clone the repository:**
@@ -200,43 +207,80 @@ cd workstation
 npm install
 ```
 
-3. **Configure environment:**
+3. **Install Playwright browsers (REQUIRED):**
+```bash
+npx playwright install --with-deps
+```
+
+4. **Configure environment:**
 ```bash
 cp .env.example .env
 # Edit .env with your settings
 ```
 
-**Security Note**: Generate a secure JWT secret:
+**⚠️ Security Note**: Generate a secure JWT secret (REQUIRED):
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
+Then add it to your `.env` file:
+```
+JWT_SECRET=your_generated_secret_here
+```
 
-4. **Start development server:**
+**The server will NOT start with `JWT_SECRET=changeme` or empty JWT_SECRET!**
+
+5. **Start development server:**
 ```bash
 npm run dev
 ```
 
-5. **Build for production:**
+6. **Build for production:**
 ```bash
 npm run build
 npm start
 ```
 
-### Docker Deployment
+### Docker Deployment (Local-First)
+
+**⚠️ No Railway or cloud dependencies required!**
 
 ```bash
 # Build image
 docker build -t workstation .
 
-# Run container
-docker run -p 3000:3000 -e JWT_SECRET=your_secret workstation
+# Run container (MUST set JWT_SECRET)
+docker run -p 3000:3000 \
+  -e JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))") \
+  workstation
 ```
 
-### Railway Deployment
+**Production Docker with persistent data:**
+```bash
+# Create volume for SQLite database
+docker volume create workstation-data
 
-Click the button above or visit:
+# Run with volume mount
+docker run -d \
+  --name workstation \
+  -p 3000:3000 \
+  -v workstation-data:/app/data \
+  -e JWT_SECRET=your_secure_secret_here \
+  -e NODE_ENV=production \
+  --restart unless-stopped \
+  workstation
 ```
-https://railway.app/template/stackbrowseragent
+
+### Docker Compose (Recommended)
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
 ```
 
 ---

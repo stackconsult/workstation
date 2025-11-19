@@ -1,4 +1,16 @@
-// CRITICAL: Global error handlers must be registered BEFORE any other code
+// ✅ JWT Secret Environment Validation (BEFORE imports to fail fast)
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Validate JWT_SECRET before server initialization - FAIL FAST
+// Skip this check in test environment to allow tests to run
+if (process.env.NODE_ENV !== 'test' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'changeme')) {
+  console.error('❌ FATAL: Unsafe JWT_SECRET configured. Server will not start.');
+  console.error('   Set a secure JWT_SECRET in your .env file');
+  throw new Error('Unsafe JWT_SECRET configured. Server will not start.');
+}
+
+// CRITICAL: Global error handlers must be registered early
 // These handlers prevent unhandled errors from crashing the process silently
 process.on('uncaughtException', (err: Error) => {
   console.error('FATAL: Unhandled exception:', err);
@@ -15,7 +27,6 @@ process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) =>
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { createHash } from 'crypto';
 import { join } from 'path';
@@ -31,23 +42,6 @@ import mcpRoutes from './routes/mcp';
 import gitRoutes from './routes/git';
 import gitopsRoutes from './routes/gitops';
 import { initializeDatabase, getDatabase } from './automation/db/database';
-
-// Load environment variables
-dotenv.config();
-
-// CRITICAL: JWT_SECRET validation MUST happen before server starts
-// This prevents insecure configurations from reaching production
-const jwtSecret = process.env.JWT_SECRET;
-if (!jwtSecret || jwtSecret === 'changeme' || jwtSecret === 'default-secret-change-this-in-production-use-at-least-32-characters') {
-  if (process.env.NODE_ENV === 'production') {
-    console.error('FATAL: Unsafe JWT_SECRET configured. Server will not start.');
-    console.error('JWT_SECRET must be set to a secure value in production (at least 32 characters).');
-    console.error('Current value is either missing or using a default/unsafe value.');
-    throw new Error('Unsafe JWT_SECRET configured. Server will not start.');
-  } else if (process.env.NODE_ENV !== 'test') {
-    console.warn('WARNING: Using default/unsafe JWT_SECRET. This is only acceptable in development.');
-  }
-}
 
 // Validate environment configuration
 const envConfig = validateEnvironment();

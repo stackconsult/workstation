@@ -59,6 +59,14 @@ jobs:
           path: docs-generated
         continue-on-error: true
       
+      # 🔥 Install Playwright Browsers (Full) - REQUIRED for browser automation tests
+      - name: Install Playwright Browsers (Full)
+        run: npx playwright install --with-deps
+      
+      # 📊 Install Graphviz for dependency graph generation
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      
       - name: Run linter
         run: npm run lint
       
@@ -70,6 +78,31 @@ jobs:
         env:
           JWT_SECRET: test-secret-for-ci
           NODE_ENV: test
+      
+      # 📦 Component Mapping & Documentation Generation
+      - name: Generate dependency map
+        run: npx madge --image dependency-graph.svg --extensions ts,js .
+        continue-on-error: true  # Don't fail build if madge has issues
+      
+      - name: Generate documentation
+        run: npx typedoc --out docs/api src --skipErrorChecking
+        continue-on-error: true  # Don't fail build if typedoc has issues
+      
+      - name: Upload dependency graph
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-graph
+          path: dependency-graph.svg
+        continue-on-error: true
+      
+      - name: Upload generated documentation
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-documentation
+          path: docs/api
+        continue-on-error: true
       
       - name: Check coverage scaling
         run: node scripts/coverage-scaling.js check

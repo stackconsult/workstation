@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StackBrowserAgent Dashboard</title>
+  <meta name="description" content="Web interface for StackBrowserAgent - JWT Authentication API">
+  
+  <!-- Alpine.js for reactivity -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+  
+  <!-- DaisyUI + Tailwind CSS for styling -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Custom styles -->
+  <style>
+    [x-cloak] { display: none !important; }
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-base-200 min-h-screen" x-data="dashboard()" x-cloak>
+  <!-- Navigation -->
+  <div class="navbar bg-base-100 shadow-lg">
+    <div class="flex-1">
+      <a href="#" class="btn btn-ghost text-xl">
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+        StackBrowserAgent
+      </a>
+    </div>
+    <div class="flex-none">
+      <span class="badge badge-primary badge-lg" x-show="connected" x-cloak>
+        <span class="mr-1">●</span> Connected
+      </span>
+      <span class="badge badge-error badge-lg" x-show="!connected" x-cloak>
+        <span class="mr-1">●</span> Not Connected
+      </span>
+    </div>
+  </div>
+
+  <div class="container mx-auto p-4 md:p-8">
+    
+    <!-- Configuration Alert -->
+    <div class="alert alert-warning shadow-lg mb-6" x-show="!apiUrl || apiUrl === 'YOUR_RAILWAY_URL_HERE'" x-cloak>
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Configuration Required</h3>
+        <div class="text-xs">Update the API URL in the script section at the bottom of this file with your Railway deployment URL</div>
+      </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold mb-3">Welcome to StackBrowserAgent</h1>
+      <p class="text-lg opacity-70">Manage your JWT authentication and test API endpoints</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs tabs-boxed justify-center mb-6">
+      <a class="tab" :class="{ 'tab-active': activeTab === 'health' }" @click="activeTab = 'health'">
+        Health Check
+      </a>
+      <a class="tab" :class="{ 'tab-active': activeTab === 'tokens' }" @click="activeTab = 'tokens'">
+        Token Management
+      </a>
+      <a class="tab" :class="{ 'tab-active': activeTab === 'test' }" @click="activeTab = 'test'">
+        Test API
+      </a>
+      <a class="tab" :class="{ 'tab-active': activeTab === 'docs' }" @click="activeTab = 'docs'">
+        Documentation
+      </a>
+    </div>
+
+    <!-- Health Check Tab -->
+    <div x-show="activeTab === 'health'" class="fade-in">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title text-2xl mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            System Health
+          </h2>
+          
+          <div class="form-control mb-4">
+            <button class="btn btn-primary btn-lg" @click="checkHealth" :disabled="loading">
+              <span x-show="!loading">Check Health</span>
+              <span x-show="loading" class="loading loading-spinner"></span>
+            </button>
+          </div>
+          
+          <div x-show="health" class="mt-4 fade-in" x-cloak>
+            <div class="alert" :class="health?.status === 'ok' ? 'alert-success' : 'alert-error'">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h3 class="font-bold">Status: <span x-text="health?.status"></span></h3>
+                <div class="text-xs" x-text="'Last checked: ' + (health?.timestamp || 'N/A')"></div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <pre class="bg-base-300 p-4 rounded-lg overflow-x-auto"><code x-text="JSON.stringify(health, null, 2)"></code></pre>
+            </div>
+          </div>
+
+          <div x-show="error" class="alert alert-error mt-4 fade-in" x-cloak>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span x-text="error"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Token Management Tab -->
+    <div x-show="activeTab === 'tokens'" class="fade-in">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Demo Token -->
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+              </svg>
+              Demo Token
+            </h2>
+            <p class="text-sm opacity-70">Quick token for testing (demo-user)</p>
+            
+            <div class="card-actions">
+              <button class="btn btn-secondary w-full" @click="generateDemoToken" :disabled="loading">
+                <span x-show="!loading">Generate Demo Token</span>
+                <span x-show="loading" class="loading loading-spinner"></span>
+              </button>
+            </div>
+            
+            <div x-show="demoToken" class="mt-4 fade-in" x-cloak>
+              <div class="form-control">
+                <label class="label"><span class="label-text font-semibold">Token:</span></label>
+                <textarea class="textarea textarea-bordered h-24 font-mono text-xs" x-text="demoToken" readonly></textarea>
+              </div>
+              <div class="flex gap-2 mt-2">
+                <button class="btn btn-sm btn-outline flex-1" @click="copyToClipboard(demoToken, 'Demo token copied!')">
+                  📋 Copy
+                </button>
+                <button class="btn btn-sm btn-outline flex-1" @click="testToken = demoToken; activeTab = 'test'">
+                  🧪 Test
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Token -->
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+              Custom Token
+            </h2>
+            <p class="text-sm opacity-70">Generate with custom user data</p>
+            
+            <div class="form-control">
+              <label class="label"><span class="label-text">User ID</span></label>
+              <input type="text" placeholder="e.g., user123" class="input input-bordered" x-model="userId">
+            </div>
+            
+            <div class="form-control">
+              <label class="label"><span class="label-text">Role</span></label>
+              <select class="select select-bordered" x-model="role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            
+            <div class="card-actions">
+              <button class="btn btn-primary w-full" @click="generateCustomToken" :disabled="!userId || loading">
+                <span x-show="!loading">Generate</span>
+                <span x-show="loading" class="loading loading-spinner"></span>
+              </button>
+            </div>
+            
+            <div x-show="customToken" class="mt-4 fade-in" x-cloak>
+              <div class="form-control">
+                <label class="label"><span class="label-text font-semibold">Token:</span></label>
+                <textarea class="textarea textarea-bordered h-24 font-mono text-xs" x-text="customToken" readonly></textarea>
+              </div>
+              <div class="flex gap-2 mt-2">
+                <button class="btn btn-sm btn-outline flex-1" @click="copyToClipboard(customToken, 'Custom token copied!')">
+                  📋 Copy
+                </button>
+                <button class="btn btn-sm btn-outline flex-1" @click="testToken = customToken; activeTab = 'test'">
+                  🧪 Test
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="error" class="alert alert-error mt-4 fade-in" x-cloak>
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span x-text="error"></span>
+      </div>
+    </div>
+
+    <!-- Test API Tab -->
+    <div x-show="activeTab === 'test'" class="fade-in">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title text-2xl mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            Test Protected Routes
+          </h2>
+          
+          <div class="form-control">
+            <label class="label"><span class="label-text">JWT Token</span></label>
+            <textarea class="textarea textarea-bordered h-32 font-mono text-xs" 
+                      placeholder="Paste your JWT token here or generate one in the Token Management tab"
+                      x-model="testToken"></textarea>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+            <button class="btn btn-primary" @click="testProtectedRoute" :disabled="!testToken || loading">
+              Test /api/protected
+            </button>
+            <button class="btn btn-primary" @click="testAgentStatus" :disabled="!testToken || loading">
+              Test /api/agent/status
+            </button>
+          </div>
+          
+          <div x-show="testResult" class="mt-6 fade-in" x-cloak>
+            <div class="divider">Response</div>
+            <div class="alert" :class="testSuccess ? 'alert-success' : 'alert-error'">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="testSuccess ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'" />
+              </svg>
+              <span x-text="testSuccess ? 'Success!' : 'Request Failed'"></span>
+            </div>
+            <pre class="bg-base-300 p-4 rounded-lg overflow-x-auto mt-4"><code x-text="JSON.stringify(testResult, null, 2)"></code></pre>
+          </div>
+
+          <div x-show="error" class="alert alert-error mt-4 fade-in" x-cloak>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span x-text="error"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documentation Tab -->
+    <div x-show="activeTab === 'docs'" class="fade-in">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title text-2xl mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+            Documentation & Resources
+          </h2>
+          
+          <div class="space-y-4">
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="font-bold text-lg">📖 API Reference</h3>
+                <p class="text-sm opacity-70">Complete API documentation with examples</p>
+                <a href="https://github.com/creditXcredit/workstation/blob/main/API.md" target="_blank" class="btn btn-sm btn-primary">View API Docs</a>
+              </div>
+            </div>
+            
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="font-bold text-lg">🏗️ Architecture</h3>
+                <p class="text-sm opacity-70">System architecture and design decisions</p>
+                <a href="https://github.com/creditXcredit/workstation/blob/main/ARCHITECTURE.md" target="_blank" class="btn btn-sm btn-primary">View Architecture</a>
+              </div>
+            </div>
+            
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="font-bold text-lg">🖼️ Interface Solutions</h3>
+                <p class="text-sm opacity-70">UI/Interface planning and implementation options</p>
+                <a href="https://github.com/creditXcredit/workstation/blob/main/INTERFACE_SOLUTIONS.md" target="_blank" class="btn btn-sm btn-primary">View Solutions</a>
+              </div>
+            </div>
+            
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="font-bold text-lg">🚀 Deployment</h3>
+                <p class="text-sm opacity-70">Production deployment instructions</p>
+                <a href="https://github.com/creditXcredit/workstation/blob/main/DEPLOYMENT.md" target="_blank" class="btn btn-sm btn-primary">View Deployment Guide</a>
+              </div>
+            </div>
+            
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="font-bold text-lg">🔒 Security</h3>
+                <p class="text-sm opacity-70">Security best practices and policies</p>
+                <a href="https://github.com/creditXcredit/workstation/blob/main/SECURITY.md" target="_blank" class="btn btn-sm btn-primary">View Security Docs</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider">Quick Links</div>
+          
+          <div class="flex flex-wrap gap-2">
+            <a href="https://github.com/creditXcredit/workstation" target="_blank" class="btn btn-outline btn-sm">
+              GitHub Repository
+            </a>
+            <a href="https://github.com/creditXcredit/workstation/issues" target="_blank" class="btn btn-outline btn-sm">
+              Report Issue
+            </a>
+            <a href="https://railway.app/" target="_blank" class="btn btn-outline btn-sm">
+              Deploy on Railway
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast for notifications -->
+  <div class="toast toast-end" x-show="toast.show" x-cloak>
+    <div class="alert" :class="toast.type === 'success' ? 'alert-success' : 'alert-info'">
+      <span x-text="toast.message"></span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer footer-center p-10 bg-base-300 text-base-content mt-12">
+    <aside>
+      <p class="font-bold">StackBrowserAgent</p>
+      <p>JWT Authentication API · Built with Express.js & TypeScript</p>
+      <p class="text-xs opacity-70">Made with ❤️ by stackconsult</p>
+    </aside>
+  </footer>
+
+  <script>
+    function dashboard() {
+      return {
+        // Configuration - UPDATE THIS WITH YOUR RAILWAY URL
+        apiUrl: 'YOUR_RAILWAY_URL_HERE', // e.g., 'https://your-app.railway.app'
+        
+        // State
+        activeTab: 'health',
+        loading: false,
+        connected: false,
+        error: null,
+        
+        // Health
+        health: null,
+        
+        // Tokens
+        demoToken: '',
+        customToken: '',
+        userId: '',
+        role: 'user',
+        
+        // Testing
+        testToken: '',
+        testResult: null,
+        testSuccess: false,
+        
+        // Toast notifications
+        toast: {
+          show: false,
+          message: '',
+          type: 'info'
+        },
+        
+        // Initialize
+        async init() {
+          // Check if API is configured
+          if (this.apiUrl && this.apiUrl !== 'YOUR_RAILWAY_URL_HERE') {
+            await this.checkConnection();
+          }
+        },
+        
+        // Check API connection
+        async checkConnection() {
+          try {
+            const response = await fetch(`${this.apiUrl}/health`);
+            this.connected = response.ok;
+          } catch (e) {
+            this.connected = false;
+          }
+        },
+        
+        // Health check
+        async checkHealth() {
+          this.loading = true;
+          this.error = null;
+          this.health = null;
+          
+          try {
+            const response = await fetch(`${this.apiUrl}/health`);
+            this.health = await response.json();
+            this.connected = true;
+          } catch (e) {
+            this.error = `Failed to connect: ${e.message}`;
+            this.connected = false;
+          } finally {
+            this.loading = false;
+          }
+        },
+        
+        // Generate demo token
+        async generateDemoToken() {
+          this.loading = true;
+          this.error = null;
+          this.demoToken = '';
+          
+          try {
+            const response = await fetch(`${this.apiUrl}/auth/demo-token`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            this.demoToken = data.token;
+            this.showToast('Demo token generated successfully!', 'success');
+          } catch (e) {
+            this.error = `Failed to generate token: ${e.message}`;
+          } finally {
+            this.loading = false;
+          }
+        },
+        
+        // Generate custom token
+        async generateCustomToken() {
+          if (!this.userId) {
+            this.error = 'Please enter a User ID';
+            return;
+          }
+          
+          this.loading = true;
+          this.error = null;
+          this.customToken = '';
+          
+          try {
+            const response = await fetch(`${this.apiUrl}/auth/token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: this.userId, role: this.role })
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            this.customToken = data.token;
+            this.showToast('Custom token generated successfully!', 'success');
+          } catch (e) {
+            this.error = `Failed to generate token: ${e.message}`;
+          } finally {
+            this.loading = false;
+          }
+        },
+        
+        // Test protected route
+        async testProtectedRoute() {
+          await this.testEndpoint('/api/protected');
+        },
+        
+        // Test agent status
+        async testAgentStatus() {
+          await this.testEndpoint('/api/agent/status');
+        },
+        
+        // Generic endpoint test
+        async testEndpoint(endpoint) {
+          if (!this.testToken) {
+            this.error = 'Please provide a JWT token';
+            return;
+          }
+          
+          this.loading = true;
+          this.error = null;
+          this.testResult = null;
+          this.testSuccess = false;
+          
+          try {
+            const response = await fetch(`${this.apiUrl}${endpoint}`, {
+              headers: { 'Authorization': `Bearer ${this.testToken}` }
+            });
+            
+            this.testSuccess = response.ok;
+            this.testResult = await response.json();
+            
+            if (this.testSuccess) {
+              this.showToast('Request successful!', 'success');
+            } else {
+              this.error = `Request failed with status ${response.status}`;
+            }
+          } catch (e) {
+            this.error = `Request failed: ${e.message}`;
+            this.testSuccess = false;
+            this.testResult = { error: e.message };
+          } finally {
+            this.loading = false;
+          }
+        },
+        
+        // Copy to clipboard
+        async copyToClipboard(text, message) {
+          try {
+            await navigator.clipboard.writeText(text);
+            this.showToast(message || 'Copied to clipboard!', 'success');
+          } catch (e) {
+            this.error = 'Failed to copy to clipboard';
+          }
+        },
+        
+        // Show toast notification
+        showToast(message, type = 'info') {
+          this.toast = { show: true, message, type };
+          setTimeout(() => {
+            this.toast.show = false;
+          }, 3000);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
