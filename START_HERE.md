@@ -42,6 +42,7 @@ open docs/landing.html
 |------|-------|
 | **🚀 Complete Getting Started** | [GETTING_STARTED.md](GETTING_STARTED.md) |
 | **📚 Documentation Index** | [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) |
+| **🔄 MCP Sync Workflow** | [docs/MCP_SYNC_DEVELOPER_WORKFLOW.md](docs/MCP_SYNC_DEVELOPER_WORKFLOW.md) - ⭐ **NEW!** |
 | **🎨 Landing Page** | [docs/landing.html](docs/landing.html) |
 | **🎛️ Simple Dashboard** | [docs/index.html](docs/index.html) |
 | **🔧 Control Center** | [docs/workstation-control-center.html](docs/workstation-control-center.html) |

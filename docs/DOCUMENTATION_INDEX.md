@@ -38,6 +38,11 @@ Essential guides for using Workstation:
 - [Monitoring Guide](guides/MONITORING.md) - System monitoring
 - [Publishing Guide](guides/PUBLISHING.md) - Publishing packages
 
+### MCP Repository Sync (NEW!)
+- [**Developer Workflow**](MCP_SYNC_DEVELOPER_WORKFLOW.md) - ⭐ **Efficient dev workflow and best practices**
+- [Quick Start Guide](MCP_SYNC_QUICKSTART.md) - 5-minute setup guide
+- [Complete Documentation](MCP_SYNC_SYSTEM.md) - Full reference and troubleshooting
+
 ### User Interface
 - [Interface Quick Start](guides/INTERFACE_QUICKSTART.md) - UI setup guide
 - [Interface Solutions](guides/INTERFACE_SOLUTIONS.md) - UI options overview
