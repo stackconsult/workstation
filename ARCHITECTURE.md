@@ -412,3 +412,295 @@ The architecture supports future extensions:
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/)
 - [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)
 - [Railway Docs](https://docs.railway.app/)
+
+---
+
+## Agent Ecosystem & MCP Architecture
+
+### Overview
+
+Workstation implements a **multi-agent architecture** with 20+ specialized agents orchestrated through the Model Context Protocol (MCP). Each agent runs in an isolated container with standardized interfaces and health monitoring.
+
+### Agent 16: Coding Agent (Data Processing)
+
+**Purpose**: GitHub integration, code automation, and data processing
+
+**Architecture Components**:
+```
+┌─────────────────────────────────────────┐
+│     Coding Agent (Agent 16)             │
+│  ┌────────────────────────────────────┐ │
+│  │   Express.js REST API              │ │
+│  │   - GitHub Operations              │ │
+│  │   - Code Analysis                  │ │
+│  │   - Data Processing                │ │
+│  └────────────────────────────────────┘ │
+│  ┌────────────────────────────────────┐ │
+│  │   Octokit GitHub Client            │ │
+│  │   - Repository Management          │ │
+│  │   - PR/Issue Operations            │ │
+│  │   - Commit History                 │ │
+│  └────────────────────────────────────┘ │
+│  ┌────────────────────────────────────┐ │
+│  │   MCP Protocol Layer               │ │
+│  │   - Standardized Interface         │ │
+│  │   - Health Monitoring              │ │
+│  │   - Metadata Exposure              │ │
+│  └────────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+         │
+         │ HTTP/REST
+         │ Port 3016
+         ▼
+┌─────────────────────────────────────────┐
+│   Docker Container                      │
+│   - Health Checks (30s interval)        │
+│   - Auto-restart on failure             │
+│   - Resource limits (1g memory)         │
+└─────────────────────────────────────────┘
+```
+
+**Technology Stack**:
+- **Runtime**: Node.js 18 Alpine
+- **Framework**: Express.js with TypeScript
+- **GitHub API**: Octokit REST client
+- **Security**: Rate limiting, JWT (future), non-root user
+- **Deployment**: Multi-stage Docker build
+
+**Key Endpoints**:
+```typescript
+GET  /health                            // Health check
+GET  /mcp/info                          // MCP metadata
+GET  /api/github/repos                  // List repositories
+GET  /api/github/repos/:owner/:repo     // Repository details
+GET  /api/github/pulls/:owner/:repo     // Pull requests
+GET  /api/github/issues/:owner/:repo    // Issues
+GET  /api/github/commits/:owner/:repo   // Commits
+POST /api/code/analyze                  // Code analysis
+```
+
+**Configuration**:
+```typescript
+interface Agent16Config {
+  GITHUB_TOKEN: string;      // Required: GitHub PAT
+  NODE_ENV: string;          // production | development
+  MCP_PORT: number;          // Default: 3000
+  LOG_LEVEL: string;         // debug | info | warn | error
+}
+```
+
+### MCP Container Infrastructure
+
+**Container Architecture**:
+```
+┌──────────────────────────────────────────────────────────┐
+│                 Docker Network                           │
+│              workstation-mcp-network                     │
+│                                                          │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐   │
+│  │ Agent 01│  │ Agent 02│  │   ...   │  │ Agent 16│   │
+│  │ Port    │  │ Port    │  │         │  │ Port    │   │
+│  │ 3001    │  │ 3002    │  │         │  │ 3016    │   │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘   │
+│                                                          │
+│                    ┌─────────────┐                      │
+│                    │  Agent 20   │                      │
+│                    │ Orchestrator│                      │
+│                    │  Port 3020  │                      │
+│                    └─────────────┘                      │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Health Monitoring**:
+Each container includes:
+- **Health Checks**: HTTP GET to `/health` every 30s
+- **Timeout**: 10s per check
+- **Retries**: 3 consecutive failures trigger restart
+- **Start Period**: 40s grace period on startup
+
+**Orchestration Features**:
+1. **Service Discovery**: Containers discover each other via DNS
+2. **Dependency Management**: Orchestrator depends on all agents
+3. **Volume Persistence**: Shared data volume `workstation-mcp-data`
+4. **Network Isolation**: Private bridge network
+
+### Rollback & Recovery
+
+**Peelback Script** (`.docker/peelback.sh`):
+```bash
+# Automated rollback process
+1. Check prerequisites (Docker, Compose)
+2. Backup current state (containers, images, env)
+3. Stop unhealthy containers
+4. Rollback to previous Docker images
+5. Restart containers with retry logic
+6. Verify health of all services
+```
+
+**Recovery Strategies**:
+- **Automatic**: Health check failures trigger container restart
+- **Manual**: Use peelback script for full rollback
+- **Selective**: Restart individual containers via Compose
+
+**Backup Locations**:
+```
+/tmp/mcp-backups/
+├── containers-{timestamp}.txt
+├── .env.backup-{timestamp}
+└── {image-name}-{timestamp}.tar
+```
+
+### Agent Communication
+
+**Inter-Agent Protocol**:
+```typescript
+interface MCPMessage {
+  from: string;           // Source agent ID
+  to: string;             // Target agent ID
+  action: string;         // Action to perform
+  payload: any;           // Action-specific data
+  timestamp: string;      // ISO 8601 timestamp
+  correlationId: string;  // Request tracking ID
+}
+```
+
+**Message Flow**:
+```
+Client → Agent 16 → GitHub API
+                 ↓
+           Orchestrator (Agent 20)
+                 ↓
+           Other Agents (as needed)
+```
+
+### Deployment Configuration
+
+**Docker Compose Structure**:
+```yaml
+version: '3.8'
+
+services:
+  mcp-16-data-processing:
+    build: ./16-data-processing-mcp
+    ports: ["3016:3000"]
+    environment:
+      - NODE_ENV=production
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+**Environment Management**:
+- **Template**: `mcp-containers/.env.example`
+- **Active Config**: `mcp-containers/.env` (not committed)
+- **Required Vars**: `GITHUB_TOKEN` for Agent 16
+- **Optional Vars**: Slack webhooks, monitoring keys
+
+### Security Considerations
+
+**Container Security**:
+1. **Non-root User**: Containers run as user `appuser` (UID 1001)
+2. **Minimal Base**: Alpine Linux (minimal attack surface)
+3. **Multi-stage Build**: Separate build and runtime environments
+4. **Secret Management**: Environment variables, never in images
+
+**Network Security**:
+1. **Bridge Network**: Isolated from host network
+2. **Port Mapping**: Only exposed ports accessible
+3. **Rate Limiting**: API-level protection (100 req/15min)
+4. **CORS**: Configured per-service
+
+**API Security**:
+1. **GitHub Token**: Personal Access Token with limited scopes
+2. **Input Validation**: Request payload validation
+3. **Error Handling**: No sensitive info in error messages
+4. **Logging**: Audit trail without secrets
+
+### Monitoring & Observability
+
+**Health Metrics**:
+```typescript
+interface HealthResponse {
+  status: 'ok' | 'degraded' | 'error';
+  agent: string;
+  timestamp: string;
+  uptime: number;
+  environment: string;
+}
+```
+
+**Logging Strategy**:
+- **Container Logs**: `docker-compose logs -f {service}`
+- **Aggregation**: Future: ELK stack or Datadog
+- **Retention**: Configurable via Docker daemon
+
+**Metrics** (Future):
+- **Request Rate**: Requests per second per agent
+- **Error Rate**: Error percentage per endpoint
+- **Response Time**: p50, p95, p99 latencies
+- **Resource Usage**: CPU, memory, disk per container
+
+### Development Workflow
+
+**Local Development**:
+```bash
+# Start coding agent only
+cd tools/coding-agent
+npm install
+npm run dev
+
+# Or via Docker
+docker-compose -f mcp-containers/docker-compose.mcp.yml up mcp-16-data-processing
+```
+
+**Testing**:
+```bash
+# Unit tests
+cd tools/coding-agent
+npm test
+
+# Integration tests
+curl http://localhost:3016/health
+curl http://localhost:3016/api/github/repos
+
+# Load testing (future)
+# k6 run load-test.js
+```
+
+**CI/CD Integration**:
+- **Build**: Multi-stage Docker build on push
+- **Test**: Automated test suite in CI
+- **Deploy**: Railway or manual via Compose
+- **Rollback**: Automated via peelback script
+
+### Future Enhancements
+
+**Planned Features**:
+1. **GraphQL API**: Unified query interface for all agents
+2. **WebSocket Support**: Real-time updates and bidirectional communication
+3. **Event Bus**: Redis-based pub/sub for agent coordination
+4. **Service Mesh**: Istio or Linkerd for advanced networking
+5. **Observability**: Prometheus + Grafana dashboards
+6. **Auto-scaling**: Kubernetes deployment with HPA
+7. **Multi-region**: Geographic distribution of agents
+
+**Agent Roadmap**:
+- **Agent 21-25**: ML/AI specialized agents
+- **Agent 26-30**: Industry-specific agents (fintech, healthcare, etc.)
+- **Custom Agents**: SDK for building custom agents
+
+### References
+
+- **MCP Specification**: [Model Context Protocol Docs](https://modelcontextprotocol.io)
+- **Docker Best Practices**: [Docker Docs](https://docs.docker.com/develop/dev-best-practices/)
+- **GitHub API**: [Octokit Documentation](https://octokit.github.io/rest.js/)
+- **Container Security**: [OWASP Container Security](https://owasp.org/www-project-docker-top-10/)
+
+---
+
+**Last Updated**: November 19, 2025  
+**Architecture Version**: 2.0 (MCP-enabled)

@@ -1,0 +1,143 @@
+{
+  "agent": {
+    "id": 16,
+    "name": "Data Processing & Coding Agent",
+    "type": "coding-agent",
+    "status": "active",
+    "version": "1.0.0"
+  },
+  "assignment": {
+    "title": "GitHub Integration and Code Automation",
+    "description": "Agent 16 provides comprehensive GitHub integration, code analysis, and automated coding capabilities through the Model Context Protocol (MCP).",
+    "assignedDate": "2025-11-19",
+    "priority": "high",
+    "category": "development-automation"
+  },
+  "capabilities": [
+    {
+      "name": "github-operations",
+      "description": "Full GitHub API integration for repository management",
+      "endpoints": [
+        "/api/github/repos",
+        "/api/github/pulls",
+        "/api/github/issues",
+        "/api/github/commits"
+      ]
+    },
+    {
+      "name": "code-analysis",
+      "description": "Static code analysis and quality checking",
+      "tools": ["eslint", "prettier", "typescript-compiler"]
+    },
+    {
+      "name": "automated-reviews",
+      "description": "Automated pull request reviews and suggestions",
+      "features": ["style-check", "best-practices", "security-scan"]
+    },
+    {
+      "name": "data-processing",
+      "description": "ETL pipelines and data transformation",
+      "formats": ["json", "csv", "yaml", "xml"]
+    },
+    {
+      "name": "mcp-server",
+      "description": "Model Context Protocol server for AI integration",
+      "port": 3016,
+      "health_endpoint": "/health"
+    }
+  ],
+  "dependencies": {
+    "required": [
+      "GITHUB_TOKEN"
+    ],
+    "optional": [
+      "SLACK_WEBHOOK_URL",
+      "SENTRY_DSN"
+    ]
+  },
+  "configuration": {
+    "mcp_container": "mcp-16-data-processing",
+    "docker_image": "workstation-mcp-16:latest",
+    "port_mapping": "3016:3000",
+    "health_check": {
+      "enabled": true,
+      "interval": "30s",
+      "timeout": "10s",
+      "retries": 3
+    },
+    "restart_policy": "unless-stopped"
+  },
+  "integration": {
+    "coding_agent_path": "tools/coding-agent",
+    "dockerfile": "tools/coding-agent/Dockerfile",
+    "entry_point": "src/index.ts"
+  },
+  "deployment": {
+    "compose_file": "mcp-containers/docker-compose.mcp.yml",
+    "service_name": "mcp-16-data-processing",
+    "rollback_script": ".docker/peelback.sh"
+  },
+  "documentation": {
+    "readme": "tools/coding-agent/README.md",
+    "api_docs": "docs/agent-16-api.md",
+    "mcp_guide": "mcp-containers/README.md"
+  },
+  "tasks": [
+    {
+      "id": "t16-001",
+      "title": "Implement GitHub webhook listener",
+      "status": "planned",
+      "priority": "high"
+    },
+    {
+      "id": "t16-002",
+      "title": "Add automated PR review capabilities",
+      "status": "planned",
+      "priority": "high"
+    },
+    {
+      "id": "t16-003",
+      "title": "Build data transformation pipelines",
+      "status": "planned",
+      "priority": "medium"
+    },
+    {
+      "id": "t16-004",
+      "title": "Integrate with CI/CD workflows",
+      "status": "planned",
+      "priority": "medium"
+    },
+    {
+      "id": "t16-005",
+      "title": "Add code generation templates",
+      "status": "planned",
+      "priority": "low"
+    }
+  ],
+  "metrics": {
+    "uptime_target": "99.9%",
+    "response_time_target": "< 500ms",
+    "success_rate_target": "> 95%"
+  },
+  "alerts": {
+    "health_check_failures": {
+      "threshold": 3,
+      "action": "restart"
+    },
+    "high_error_rate": {
+      "threshold": "5%",
+      "action": "notify"
+    },
+    "slow_response_time": {
+      "threshold": "1000ms",
+      "action": "investigate"
+    }
+  },
+  "notes": [
+    "Agent 16 requires GITHUB_TOKEN environment variable for API access",
+    "MCP server runs on port 3016 (mapped from container port 3000)",
+    "Supports hot reload in development mode",
+    "Automatic rollback via peelback.sh script on health check failures",
+    "Integrates with master orchestrator (Agent 20) for coordinated workflows"
+  ]
+}
