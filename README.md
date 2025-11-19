@@ -6,7 +6,7 @@
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io)
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue)
-![Test Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)
+![Test Coverage](https://img.shields.io/badge/coverage-67%25-brightgreen)
 ![License](https://img.shields.io/badge/license-ISC-blue)
 
 > **Local-first automation** with JWT authentication, workflow orchestration, and AI integration. Zero cloud costs. Full control. Production-ready.
@@ -35,7 +35,7 @@ Workstation is a comprehensive browser automation platform that combines:
 
 **Current Status**: 
 - ✅ **Phase 1 Complete**: Full browser automation with 7 core actions
-- ✅ **146 Tests Passing**: Production-ready code quality
+- ✅ **170 Tests Passing**: Production-ready code quality
 - 🚧 **Phase 2 Active**: Building multi-agent ecosystem
 
 ---
@@ -139,8 +139,8 @@ open docs/landing.html
 ```
 📊 Total Lines of Code:     3,367 lines (TypeScript)
 📊 Total Test Files:        36 files
-📊 Total Tests:             146 tests (100% passing)
-📊 Test Coverage:           65.66%
+📊 Total Tests:             170 tests (100% passing)
+📊 Test Coverage:           67.18% statements, 51.92% branches, 70.94% functions, 66.88% lines
 📊 Agent Directories:       17 agents
 📊 Documentation Files:     112 docs
 📊 Build Status:            ✅ Passing
@@ -282,7 +282,7 @@ npm run lint
 node scripts/coverage-scaling.js check
 ```
 
-**Test Coverage**: 65.66% statements, 48.57% branches, 67.01% functions, 65.43% lines (146 tests)
+**Test Coverage**: 67.18% statements, 51.92% branches, 70.94% functions, 66.88% lines (170 tests)
 
 **Quality Gates**:
 - ✅ Global coverage: 55%+ statements required
@@ -326,7 +326,7 @@ ISC License - see [LICENSE](LICENSE) file for details.
 **Browser Automation** (Production Ready)
 - ✅ 7 core actions: navigate, click, type, getText, screenshot, getContent, evaluate
 - ✅ Full Playwright integration with headless/headed support
-- ✅ 146 tests passing with 65.66% coverage
+- ✅ 170 tests passing with ~67% coverage
 
 **Workflow Engine** (Production Ready)
 - ✅ Complete orchestration system with retry logic

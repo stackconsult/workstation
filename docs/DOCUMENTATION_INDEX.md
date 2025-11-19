@@ -70,6 +70,9 @@ Complete timeline and development phases:
 - [COMPLETION_REPORT.md](../COMPLETION_REPORT.md) - Reorganization completion report
 - [CHANGELOG.md](archives/CHANGELOG.md) - Complete change history with dates
 
+- [CI/CD Fixes Documentation](../CI_FIXES_DOCUMENTATION.md) - Details of recent CI fixes and recommendations
+
+
 ### Visual Documentation
 - [Visual Documentation](assets/diagrams/VISUAL_DOCUMENTATION.md) - ⭐ **25+ Mermaid diagrams**:
   - Project timeline diagrams
@@ -184,6 +187,6 @@ Visual resources and examples:
 
 ---
 
-**Last Updated**: November 17, 2025  
+**Last Updated**: November 19, 2025  
 **Documentation Version**: 1.1  
 **New in 1.1**: PROJECT_TIMELINE.md, DEVELOPMENT_PHASES.md, Visual Documentation (25+ diagrams)

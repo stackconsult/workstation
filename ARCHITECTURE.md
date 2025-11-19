@@ -380,7 +380,7 @@ The architecture supports future extensions:
 ## Testing Strategy
 
 ### Current Tests
-- Automated test suite: 146 tests passing using Jest (covers core functionality and API endpoints)
+- Automated test suite: 170 tests passing using Jest (covers core functionality and API endpoints)
 - Manual test script (`test.sh`) for integration and smoke testing
 - cURL-based API testing (for manual verification and debugging)
 

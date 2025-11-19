@@ -190,6 +190,14 @@ For upgrade guides, see [CONTRIBUTING.md](docs/guides/CONTRIBUTING.md).
 - Progressive targets ensure continuous improvement
 - Each automation component has tailored approach based on its complexity
 
+## [Unreleased] - 2025-11-19
+
+### Fixed
+- **PR #83**: Minimal test fix to `tests/errorHandler.test.ts` that resolved a failing middleware assertion blocking CI. All tests now pass (170 tests) and coverage is reported at ~67%.
+
+### CI
+- **Gitleaks**: Moved to optional BYOK configuration in CI to avoid pipeline failures when an organization license is not available. TruffleHog remains enabled as the primary secret scanner.
+
 ## [Week 46] - 2025-11-17 - CI/CD Coverage Threshold Fix (CORRECTED)
 
 ### Fixed

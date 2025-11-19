@@ -15,11 +15,11 @@
 ```markdown
 Line 8:
 CURRENT: ![Test Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)
-CHANGE TO: ![Test Coverage](https://img.shields.io/badge/coverage-65.66%25-yellow)
+CHANGE TO: ![Test Coverage](https://img.shields.io/badge/coverage-67.18%25-yellow)
 
 Line 210:
 CURRENT: **Test Coverage**: 94% (753 tests)
-CHANGE TO: **Test Coverage**: 65.66% (146 tests passing, significant gaps in core automation)
+CHANGE TO: **Test Coverage**: 67.18% (170 tests passing, significant gaps in core automation)
 ```
 
 **Add Warning**:

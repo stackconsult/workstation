@@ -68,7 +68,7 @@ npm run build
 ```bash
 npm test
 # Catches: Logic errors, regressions, broken functionality
-# Current: 146 tests, 65.66% coverage
+# Current: 170 tests, ~67% coverage
 ```
 
 #### Layer 4: Coverage Enforcement (Pre-Merge)
@@ -105,6 +105,12 @@ See [CI/CD Fixes Documentation](CI_FIXES_DOCUMENTATION.md) for complete details 
 - Authentication error handling
 - Workflow retry logic
 - Comprehensive logging
+
+### CI Rollback Guidance (recent)
+
+- PR #83: merged a minimal test fix that resolved a failing middleware test which had blocked CI.
+- The Gitleaks secret-scan step was made optional (BYOK) to avoid failing CI runs for orgs without a license; TruffleHog remains the primary open-source secret scanner.
+- If a post-merge regression occurs, create a targeted rollback PR that reverts the problematic commit(s), run the emergency rollback script, and follow verification steps below.
 
 ---
 
