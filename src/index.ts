@@ -28,6 +28,7 @@ import { validateEnvironment, printEnvironmentSummary } from './utils/env';
 // Phase 1: Import automation routes and database
 import automationRoutes from './routes/automation';
 import mcpRoutes from './routes/mcp';
+import gitopsRoutes from './routes/gitops';
 import { initializeDatabase, getDatabase } from './automation/db/database';
 
 // Load environment variables
@@ -218,6 +219,9 @@ app.use('/api/v2', automationRoutes);
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);
+
+// Git operations API (protected) - low-level ops for automation agents
+app.use('/api/v2/gitops', gitopsRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
