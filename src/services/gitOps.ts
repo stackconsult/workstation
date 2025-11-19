@@ -38,9 +38,10 @@ export async function safeRun(fn: () => Promise<GitOpResult>) {
   try {
     const res = await fn();
     return { ok: true, stdout: res.stdout || '', stderr: res.stderr || '' };
-  } catch (err: any) {
-    logger.error('GitOp failed', { error: err.message });
-    return { ok: false, stdout: '', stderr: err.message || String(err) };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error('GitOp failed', { error: message });
+    return { ok: false, stdout: '', stderr: message };
   }
 }
 
