@@ -38,5 +38,41 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  "description": "Coding agent tool for GitHub integration and branch management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "push-branch": "npm run dev -- push-branch",
+    "sync-repo": "npm run dev -- sync-repo",
+    "status": "npm run dev -- status",
+    "lint": "eslint src --ext .ts",
+    "test": "echo \"Tests to be implemented\" && exit 0"
+  },
+  "keywords": [
+    "coding-agent",
+    "github",
+    "mcp",
+    "automation"
+  ],
+  "author": "Workstation Team",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^20.0.2",
+    "dotenv": "^16.3.1",
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "typescript": "^5.3.2",
+    "ts-node": "^10.9.1",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

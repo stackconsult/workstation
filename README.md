@@ -22,16 +22,10 @@ Workstation is a **production-ready** browser automation platform that combines:
 - 💾 **Data persistence** - SQLite/PostgreSQL workflow storage (✅ LIVE)
 - 🎨 **Web dashboard** - Beautiful UI for management (✅ LIVE)
 - 🐳 **Easy deployment** - Docker, Railway, or local (✅ LIVE)
-Workstation is a comprehensive browser automation platform that combines:
-- 🤖 **Playwright-based browser control** - Navigate, click, type, extract, screenshot
-- 🔐 **Enterprise JWT authentication** - Secure API with rate limiting and CORS
-- 🔄 **Workflow orchestration** - Multi-step automation with retry logic
-- 💾 **Data persistence** - SQLite/PostgreSQL workflow storage
-- 🎨 **Web dashboard** - Beautiful UI for management
-- 🐳 **Easy deployment** - Docker, Railway, or local
-- 🔌 **MCP Integration** - Model Context Protocol for GitHub Copilot and AI agents
+- 🔌 **MCP Integration** - Model Context Protocol for GitHub Copilot and AI agents (✅ LIVE)
+- 🛠️ **Coding Agent Service** - REST API for Git operations, branch management, and PR automation (✅ NEW)
 
-**Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, and AI-powered browser automation.
+**Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, AI-powered browser automation, and automated code deployment workflows.
 
 **Current Status**: 
 - ✅ **Phase 1 Complete**: Full browser automation with 7 core actions
@@ -158,6 +152,8 @@ open docs/landing.html
 | [📅 Project Timeline](PROJECT_TIMELINE.md) | Complete development history |
 | [🚀 Development Phases](DEVELOPMENT_PHASES.md) | Detailed phase documentation |
 | [📘 User Guide](docs/guides/HOW_TO_USE_BROWSER_AGENT.md) | Complete usage manual |
+| [🛠️ Coding Agent Guide](docs/guides/CODING_AGENT.md) | Git operations REST API guide |
+| [⚡ Quick Reference](docs/guides/CODING_AGENT_QUICK_REF.md) | Coding agent quick reference |
 | [🔌 API Reference](docs/api/API.md) | REST API documentation |
 | [📋 Data Schemas](docs/SCHEMAS.md) | JSON schemas for workflows & agents |
 | [🏗️ Architecture](docs/architecture/ARCHITECTURE.md) | System design overview |
@@ -470,6 +466,144 @@ docker-compose -f mcp-containers/docker-compose.mcp.yml ps
 - **GITHUB_TOKEN**: Required for Agent 16 GitHub API access
 - **Docker 20.10+**: For containerized deployment
 - **Docker Compose 2.0+**: For orchestration
+## 🤖 Coding Agent & MCP Containers
+
+Workstation provides a **live MCP container ecosystem** with 20 specialized agents, orchestrated through Docker and nginx proxy. Agent-16 (Data Processing MCP) is designated as the **MCP Container Manager**.
+
+### Overview
+
+The coding agent enables:
+- **Automated Branch Management**: Push branches and sync with GitHub
+- **Container Orchestration**: Manage 20 MCP containers via agent-16
+- **Docker Peelback Support**: Roll back container layers to previous versions
+- **Health Monitoring**: Automated health checks and recovery
+
+### MCP Container Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    nginx-proxy (Port 80)                 │
+│              Routes traffic to MCP containers            │
+└───────────────────┬─────────────────────────────────────┘
+                    │
+     ┌──────────────┼──────────────┐
+     │              │              │
+┌────▼────┐   ┌────▼────┐   ┌────▼────┐
+│ MCP-01  │   │ MCP-16  │...│ MCP-20  │
+│ Port    │   │ Port    │   │ Port    │
+│ 3001    │   │ 3016    │   │ 3020    │
+│         │   │ (Manager│   │         │
+│         │   │  Agent) │   │         │
+└─────────┘   └─────────┘   └─────────┘
+```
+
+### Running MCP Containers Locally
+
+**1. Start All Containers:**
+```bash
+cd /home/runner/work/workstation/workstation
+docker-compose -f docker-compose.mcp.yml up -d
+```
+
+**2. Check Health:**
+```bash
+# Check nginx proxy
+curl http://localhost/health
+
+# Check individual containers
+curl http://localhost:3016/health  # Agent-16 (Manager)
+```
+
+**3. View Logs:**
+```bash
+docker-compose -f docker-compose.mcp.yml logs -f mcp-16-data
+```
+
+**4. Stop Containers:**
+```bash
+docker-compose -f docker-compose.mcp.yml down
+```
+
+### Docker Peelback Support
+
+**Peelback** allows you to roll back container layers to a previous image tag:
+
+```bash
+# Roll back agent-16 to previous version
+./.docker/peelback.sh mcp-16-data v1.0.0
+
+# Roll back with safety checks
+./.docker/peelback.sh mcp-16-data v1.0.0 --verify-health
+```
+
+**How Peelback Works:**
+1. Stops the target container
+2. Pulls the specified image tag
+3. Starts container with the older image
+4. Verifies health checks
+5. Logs rollback event
+
+### Agent-16: MCP Container Manager
+
+Agent-16 (Data Processing MCP) is assigned to manage all MCP containers:
+
+**Responsibilities:**
+- Monitor container health
+- Execute peelback operations
+- Coordinate inter-container communication
+- Report container status
+
+**API Endpoint:**
+```bash
+# Get container status
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3016/api/containers/status
+
+# Trigger peelback
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3016/api/containers/peelback \
+  -d '{"container":"mcp-01-selector","tag":"v1.0.0"}'
+```
+
+See [.agents/agent-16-assignment.json](.agents/agent-16-assignment.json) for full details.
+
+### Coding Agent Tool
+
+A lightweight TypeScript/Node tool for GitHub integration:
+
+```bash
+cd tools/coding-agent
+npm install
+npm run push-branch -- --branch feature/my-feature
+```
+
+**Environment Variables:**
+```bash
+export GITHUB_TOKEN=your_github_token
+export MCP_MANAGER_AGENT=agent-16
+export NODE_ENV=development
+```
+
+⚠️ **Security**: Never commit `GITHUB_TOKEN`. Use environment variables or secret management.
+
+### Rollback Instructions
+
+For complete rollback procedures including git-based, Docker image, and database rollback:
+
+📖 **See [ROLLBACK.md](ROLLBACK.md)**
+
+Key rollback scenarios:
+- **Git Rollback**: Revert commits and reset branches
+- **Docker Image Rollback**: Pull and deploy previous container versions
+- **Database Rollback**: Restore from backups (if applicable)
+- **Container Peelback**: Roll back individual container layers
+
+### Additional Resources
+
+- [MCP Containers README](mcp-containers/README.md) - Container details and setup
+- [Architecture Documentation](ARCHITECTURE.md) - MCP topology and diagrams
+- [Getting Started Guide](GETTING_STARTED.md) - Coding agent endpoints and examples
+- [CI/CD Workflows](.github/workflows/README.md) - Container build and rollback procedures
 
 ---
 

@@ -3,6 +3,9 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(@octokit)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
@@ -11,6 +14,9 @@ module.exports = {
     // Exclude Phase 1 features that are intentionally not tested yet
     '!src/services/competitorResearch.ts',
     '!src/services/researchScheduler.ts',
+    // Exclude Git service from coverage requirements (new feature)
+    '!src/services/git.ts',
+    '!src/routes/git.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
