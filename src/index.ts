@@ -225,6 +225,7 @@ app.use('/api/v2', mcpRoutes);
 app.use('/api/v2', gitRoutes);
 
 // Git operations API (protected) - low-level ops for automation agents
+// Rate limiting is applied within the gitops router
 app.use('/api/v2/gitops', gitopsRoutes);
 
 // 404 handler - must be after all routes

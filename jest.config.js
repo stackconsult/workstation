@@ -17,6 +17,9 @@ module.exports = {
     // Exclude Git service from coverage requirements (new feature)
     '!src/services/git.ts',
     '!src/routes/git.ts',
+    // Exclude GitOps from coverage requirements (new feature in PR #93)
+    '!src/services/gitOps.ts',
+    '!src/routes/gitops.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],

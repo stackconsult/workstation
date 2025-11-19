@@ -38,4 +38,11 @@ export const schemas = {
     userId: Joi.string().required().min(1).max(255),
     role: Joi.string().optional().valid('user', 'admin', 'moderator').default('user'),
   }),
+  
+  gitOpsRequest: Joi.object({
+    branch: Joi.string().pattern(/^[a-zA-Z0-9._/-]+$/).max(100).optional(),
+    message: Joi.string().max(500).optional(),
+    createBranch: Joi.alternatives().try(Joi.boolean(), Joi.string()).optional(),
+    createPR: Joi.alternatives().try(Joi.boolean(), Joi.string().pattern(/^[a-zA-Z0-9._/-]+$/)).optional(),
+  }),
 };

@@ -797,3 +797,170 @@ Default expiration: 24 hours (configurable via `JWT_EXPIRATION` env var)
 - [Express.js Documentation](https://expressjs.com/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [Railway Documentation](https://docs.railway.app/)
+
+---
+
+## 6. GitOps Operations (NEW)
+
+Automated Git operations for workflow automation and CI/CD integration.
+
+### POST /api/v2/gitops/add-commit-push
+
+Perform automated git add, commit, push, and optionally create a pull request in a single operation.
+
+**Authentication**: Required (JWT)
+
+**Rate Limit**: 20 requests per 15 minutes (stricter than general API)
+
+**Request Body**:
+```json
+{
+  "branch": "feature-branch",       // Optional: Branch name (default: "main")
+  "message": "Automated commit",     // Optional: Commit message (default: "Automated commit")
+  "createBranch": true,              // Optional: Create new branch before operations
+  "createPR": true                   // Optional: Create PR after push (boolean or branch name)
+}
+```
+
+**Request Body Validation**:
+- `branch`: Must match pattern `/^[a-zA-Z0-9._/-]+$/`, max 100 characters
+- `message`: Max 500 characters
+- `createBranch`: Boolean or string (branch name)
+- `createPR`: Boolean (uses pushed branch) or string (custom head branch)
+
+**Example 1: Simple Add-Commit-Push**:
+```bash
+TOKEN=$(curl -s http://localhost:7042/auth/demo-token | jq -r '.token')
+
+curl -X POST http://localhost:7042/api/v2/gitops/add-commit-push \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Update documentation",
+    "branch": "main"
+  }'
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "add": {
+      "ok": true,
+      "stdout": "Changes staged",
+      "stderr": ""
+    },
+    "commit": {
+      "ok": true,
+      "stdout": "[main abc1234] Update documentation",
+      "stderr": ""
+    },
+    "push": {
+      "ok": true,
+      "stdout": "Branch 'main' updated",
+      "stderr": ""
+    },
+    "pr": null
+  }
+}
+```
+
+**Example 2: Create Branch and PR**:
+```bash
+TOKEN=$(curl -s http://localhost:7042/auth/demo-token | jq -r '.token')
+
+curl -X POST http://localhost:7042/api/v2/gitops/add-commit-push \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "branch": "feature/new-api",
+    "message": "Add new API endpoint",
+    "createBranch": true,
+    "createPR": true
+  }'
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "add": { "ok": true, "stdout": "...", "stderr": "" },
+    "commit": { "ok": true, "stdout": "...", "stderr": "" },
+    "push": { "ok": true, "stdout": "...", "stderr": "" },
+    "pr": {
+      "ok": true,
+      "stdout": "https://github.com/owner/repo/pull/123",
+      "stderr": ""
+    }
+  }
+}
+```
+
+**Error Responses**:
+
+401 Unauthorized (missing or invalid JWT):
+```json
+{
+  "error": "No token provided" | "Invalid or expired token"
+}
+```
+
+400 Bad Request (validation failure):
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    {
+      "field": "branch",
+      "message": "\"branch\" with value \"invalid branch\" fails to match the required pattern: /^[a-zA-Z0-9._/-]+$/"
+    }
+  ]
+}
+```
+
+429 Too Many Requests (rate limit exceeded):
+```json
+{
+  "message": "Too many git operations, please try again later."
+}
+```
+
+500 Internal Server Error (git operation failed):
+```json
+{
+  "success": false,
+  "error": "Failed to push: remote rejected"
+}
+```
+
+**Security Features**:
+- JWT authentication required
+- Input validation with Joi schemas
+- Branch name sanitization (alphanumeric, dots, underscores, hyphens, slashes only)
+- Commit message sanitization (dangerous characters removed, 500 char limit)
+- Rate limiting (20 req/15min)
+- Comprehensive logging of all operations
+- Error details not exposed to prevent information leakage
+
+**Use Cases**:
+1. **Automated Deployments**: Commit and push configuration changes from automation workflows
+2. **CI/CD Integration**: Create feature branches and PRs from build pipelines
+3. **Documentation Updates**: Automatically commit generated documentation
+4. **Configuration Management**: Sync infrastructure-as-code changes
+5. **Agent Operations**: Allow autonomous agents to make tracked code changes
+
+**Prerequisites**:
+- Git must be installed and configured in the environment
+- GitHub CLI (`gh`) must be installed for PR operations
+- Repository must have git credentials configured (SSH key or token)
+- User must have push permissions to the repository
+
+**Notes**:
+- Operations are atomic: if any step fails, previous changes remain in git history
+- Branch creation uses `git checkout -b`, which switches to the new branch
+- PR creation requires GitHub CLI to be authenticated (`gh auth login`)
+- The `createPR` parameter can specify a custom head branch different from the push branch
+- Branch tracking bug from original PR #93 has been fixed: now uses `actualBranch` consistently
+
