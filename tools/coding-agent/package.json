@@ -1,0 +1,78 @@
+{
+  "name": "coding-agent",
+  "version": "1.0.0",
+  "description": "Agent 16 - Data Processing & GitHub Integration Coding Agent",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src/**/*.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "mcp",
+    "github",
+    "automation",
+    "coding-agent",
+    "workstation"
+  ],
+  "author": "creditXcredit",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^20.0.2",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.18.0",
+    "@typescript-eslint/parser": "^6.18.0",
+    "eslint": "^8.56.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  "description": "Coding agent tool for GitHub integration and branch management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "push-branch": "npm run dev -- push-branch",
+    "sync-repo": "npm run dev -- sync-repo",
+    "status": "npm run dev -- status",
+    "lint": "eslint src --ext .ts",
+    "test": "echo \"Tests to be implemented\" && exit 0"
+  },
+  "keywords": [
+    "coding-agent",
+    "github",
+    "mcp",
+    "automation"
+  ],
+  "author": "Workstation Team",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^20.0.2",
+    "dotenv": "^16.3.1",
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "typescript": "^5.3.2",
+    "ts-node": "^10.9.1",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

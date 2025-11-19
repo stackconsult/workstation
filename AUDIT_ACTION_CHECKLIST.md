@@ -9,7 +9,7 @@
 
 ### Documentation Integrity
 - [ ] Fix README.md line 8: Change "94%" to "65.66%"
-- [ ] Fix README.md line 210: Change "753 tests" to "146 tests"
+- [ ] Fix README.md line 210: Change "753 tests" to "170 tests"
 - [ ] Remove/qualify "Production Ready" claims
 - **File**: README.md
 - **Time**: 15 minutes

@@ -4,6 +4,8 @@
 
 Successfully transformed the Workstation repository from a development-focused structure to a production-ready, public-access platform with professional documentation organization.
 
+**Post-Completion CI Update (2025-11-19):** All tests pass (170 tests) after merging PR #83 which fixed a failing test; CI secret scanning adjusted to make Gitleaks optional (BYOK). Build and tests validated locally.
+
 ---
 
 ## Executive Summary

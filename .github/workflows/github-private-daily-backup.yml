@@ -1,0 +1,214 @@
+name: GitHub Private Repository Daily Backup
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Backup action to perform'
+        required: true
+        default: 'sync'
+        type: choice
+        options:
+          - sync
+          - snapshot
+          - status
+          - init
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  backup-github-private:
+    name: Backup mcp-private Repository
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout workstation repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Create backup directories
+        run: |
+          mkdir -p data/github-private-backup/{immutable,snapshots,logs}
+          echo "✅ Backup directories created" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Build backup container
+        run: |
+          docker-compose -f docker-compose.github-backup.yml build
+          echo "✅ Backup container built successfully" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Start backup container
+        env:
+          GITHUB_PRIVATE_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
+        run: |
+          docker-compose -f docker-compose.github-backup.yml up -d
+          echo "✅ Backup container started" >> $GITHUB_STEP_SUMMARY
+          
+          # Wait for container to be healthy
+          echo "Waiting for container to be healthy..."
+          timeout 60 bash -c 'until docker ps | grep -q "github-private-backup.*healthy"; do sleep 2; done' || true
+      
+      - name: Initialize backup repository (first run)
+        if: github.event.inputs.action == 'init' || github.run_number == 1
+        env:
+          GITHUB_PRIVATE_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
+        run: |
+          echo "## 🔄 Initializing Backup Repository" >> $GITHUB_STEP_SUMMARY
+          
+          docker exec github-private-backup backup-manager init
+          
+          echo "✅ Repository initialized successfully" >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
+      
+      - name: Sync with mcp-private repository
+        id: sync
+        if: github.event.inputs.action == 'sync' || github.event.inputs.action == ''
+        env:
+          GITHUB_PRIVATE_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
+        run: |
+          echo "## 🔄 Syncing with mcp-private" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run sync (this will auto-create snapshot if there are updates)
+          docker exec github-private-backup backup-manager sync | tee sync-output.log
+          
+          # Extract key information
+          if grep -q "Updates detected" sync-output.log; then
+            echo "sync_updated=true" >> $GITHUB_OUTPUT
+            echo "**Status:** ✅ Updates detected and synced" >> $GITHUB_STEP_SUMMARY
+          elif grep -q "Already up-to-date" sync-output.log; then
+            echo "sync_updated=false" >> $GITHUB_OUTPUT
+            echo "**Status:** ℹ️ Already up-to-date" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "sync_updated=error" >> $GITHUB_OUTPUT
+            echo "**Status:** ⚠️ Sync completed with warnings" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
+      
+      - name: Create manual snapshot
+        if: github.event.inputs.action == 'snapshot'
+        env:
+          GITHUB_PRIVATE_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
+        run: |
+          echo "## 📸 Creating Manual Snapshot" >> $GITHUB_STEP_SUMMARY
+          
+          docker exec github-private-backup backup-manager snapshot
+          
+          echo "✅ Manual snapshot created" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Get backup status
+        id: status
+        run: |
+          echo "## 📊 Backup Status Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get status output
+          docker exec github-private-backup backup-manager status | tee status-output.log
+          
+          # Format for GitHub Actions summary
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat status-output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: List recent snapshots
+        run: |
+          echo "## 📦 Recent Snapshots" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          docker exec github-private-backup ls -lh /backup/snapshots/ | tail -10 >> $GITHUB_STEP_SUMMARY || echo "No snapshots found" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check disk usage
+        run: |
+          echo "## 💾 Disk Usage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          docker exec github-private-backup du -sh /backup/* 2>/dev/null >> $GITHUB_STEP_SUMMARY || echo "Unable to calculate disk usage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      
+      - name: Save backup logs
+        if: always()
+        run: |
+          # Export logs to artifacts
+          docker exec github-private-backup cat /backup/logs/backup-$(date +%Y%m%d).log > backup-daily.log 2>/dev/null || echo "No logs available" > backup-daily.log
+      
+      - name: Upload backup logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-logs-${{ github.run_number }}
+          path: backup-daily.log
+          retention-days: 30
+      
+      - name: Stop backup container
+        if: always()
+        run: |
+          docker-compose -f docker-compose.github-backup.yml down
+      
+      - name: Create issue on backup failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 GitHub Private Backup Failed',
+              body: `## Backup Failure Report
+              
+              The automated daily backup of \`mcp-private\` repository failed.
+              
+              **Workflow Run:** [#${{ github.run_number }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              **Time:** ${{ github.event.repository.updated_at }}
+              **Trigger:** Scheduled (Daily 2 AM UTC)
+              
+              ### Action Required
+              
+              1. Check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              2. Verify GitHub token \`GITHUB_PRIVATE_TOKEN\` is valid
+              3. Ensure \`mcp-private\` repository is accessible
+              4. Run manual backup via workflow dispatch if needed
+              
+              ### Troubleshooting
+              
+              - Verify token has \`repo\` scope
+              - Check if repository exists and is accessible
+              - Review backup container logs in artifacts
+              - Test manual sync: \`docker exec github-private-backup backup-manager sync\`
+              
+              This issue was auto-generated by the backup workflow.`,
+              labels: ['backup', 'automated', 'critical']
+            });
+            
+            console.log('Created issue:', issue.data.number);
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow:** GitHub Private Daily Backup" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Result:** Backup completed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Result:** Backup failed - check logs above" >> $GITHUB_STEP_SUMMARY
+          fi

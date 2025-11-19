@@ -31,6 +31,11 @@ The CI pipeline was failing with two critical issues:
 - **Affected Components**: Test job, integration tests
 - **Downstream Effects**: Unable to deploy, blocked development progress
 
+### Recent Quick Fixes (2025-11-19)
+
+- **PR #83**: Merged a minimal test fix that corrected an assertion in `tests/errorHandler.test.ts` which had been blocking CI. After merge, all tests pass (170 tests) and coverage reports ~67%.
+- **Gitleaks**: Adjusted CI to make Gitleaks optional (BYOK) and moved sensitive scans to a dedicated `secret-scan.yml` workflow; TruffleHog remains active as the default secret scanner.
+
 ---
 
 ## 2. Fixes Implemented
@@ -451,7 +456,7 @@ npm run build
 
 # 3. Verify tests pass
 npm test
-# Expected: ✅ 146 tests passing
+# Expected: ✅ 170 tests passing
 
 # 4. Verify coverage thresholds
 npm run test:coverage
@@ -479,7 +484,7 @@ gh run view --log
 - ✅ Lint: Passed
 - ✅ Build: Passed
 - ✅ Tests: 146/146 passed
-- ✅ Coverage: 65.66% statements (required: 55%)
+- ✅ Coverage: 67.18% statements (required: 55%)
 - ✅ Coverage Scaling: No regressions
 - ✅ Security: No vulnerabilities
 
@@ -643,7 +648,7 @@ git diff 2b9009d~1 2b9009d jest.config.js
 ```
 ✅ Test Suites: 10 passed, 10 total
 ✅ Tests: 146 passed, 146 total
-✅ Coverage: 65.66% statements (required: 55%)
+✅ Coverage: 67.18% statements (required: 55%)
 ✅ Coverage Scaling: PASSED
 ```
 

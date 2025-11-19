@@ -23,6 +23,9 @@ RUN npm run build
 # Production stage
 FROM node:18-alpine
 
+# Install git for Git operations
+RUN apk add --no-cache git
+
 # Add OCI standard labels for image metadata
 LABEL org.opencontainers.image.title="stackBrowserAgent"
 LABEL org.opencontainers.image.description="Lightweight, secure JWT-based authentication service built with Express.js and TypeScript"

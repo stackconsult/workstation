@@ -309,17 +309,35 @@ services:
 
   # Nginx reverse proxy for all MCPs
   nginx-proxy:
-    image: nginx:alpine
+    build:
+      context: .docker
+      dockerfile: nginx-proxy.Dockerfile
     container_name: mcp-proxy
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./.docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./logs/nginx:/var/log/nginx
+      - ./mcp-containers/.configs:/etc/nginx/conf.d:ro
     depends_on:
       - mcp-20-orchestrator
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 networks:
   default:
     name: workstation-mcp-network
+
+volumes:
+  mcp_data:
+    name: workstation-mcp-data
+  mcp_logs:
+    name: workstation-mcp-logs
+  mcp_cache:
+    name: workstation-mcp-cache

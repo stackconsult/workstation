@@ -1,0 +1,38 @@
+{
+  "mcp": {
+    "sourceRepo": {
+      "owner": "creditXcredit",
+      "name": "mcp-private",
+      "githubAppInstallationId": "95367223",
+      "defaultBranch": "main"
+    },
+    "localPath": ".mcp-clone",
+    "syncBranches": [
+      "main",
+      "develop",
+      "staging"
+    ],
+    "watchInterval": 300000,
+    "autoSync": true,
+    "rollback": {
+      "enabled": true,
+      "keepSnapshots": 10,
+      "snapshotPath": ".mcp-rollback"
+    },
+    "notifications": {
+      "onSync": true,
+      "onError": true,
+      "onMerge": true
+    }
+  },
+  "sync": {
+    "strategy": "hardcopy",
+    "preserveHistory": true,
+    "excludePaths": [
+      "node_modules",
+      ".git/hooks",
+      "dist",
+      "coverage"
+    ]
+  }
+}

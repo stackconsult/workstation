@@ -51,9 +51,9 @@
 - ✅ Input validation with Joi
 
 **Testing Infrastructure**
-- ✅ 146 tests passing (100% pass rate)
+- ✅ 170 tests passing (100% pass rate)
 - ✅ 36 test files across integration and unit tests
-- ✅ 65.66% code coverage
+- ✅ 67.18% code coverage
 - ✅ Automated CI/CD with GitHub Actions
 
 **Deployment Ready**
@@ -338,9 +338,9 @@ tasks:
   - `src/routes/automation.ts` - 7 endpoints
   - POST/GET/DELETE /api/v2/workflows, GET /api/v2/executions
 - [x] Simple scraping example working end-to-end ✅ **COMPLETE**
-  - Integration tests passing (146 tests)
+  - Integration tests passing (170 tests)
 - [x] Integration tests for browser automation ✅ **COMPLETE**
-  - 36 test files, 65.66% coverage
+  - 36 test files, 67.18% coverage
 - [ ] Documentation: Browser Agent Guide ⚠️ **IN PROGRESS**
   - Needs expansion and more examples
 
