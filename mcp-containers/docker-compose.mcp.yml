@@ -1,0 +1,374 @@
+# Docker Compose for MCP Containers - Enhanced Version
+# This file orchestrates all 20+ MCP containers with Agent 16 (Coding Agent)
+
+version: '3.8'
+
+services:
+  # Base MCP Server (Template)
+  mcp-00-base:
+    build: ./00-base-mcp
+    container_name: mcp-base
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=base-mcp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Agent 01: CSS Selector Builder MCP
+  mcp-01-selector:
+    build: ./01-selector-mcp
+    container_name: mcp-selector
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=selector-builder
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 02: Browser Automation Engineer MCP
+  mcp-02-browser-automation:
+    build: ./02-go-backend-browser-automation-engineer-mcp
+    container_name: mcp-browser-automation
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=browser-automation
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 03: Database Orchestration Specialist MCP
+  mcp-03-database:
+    build: ./03-database-orchestration-specialist-mcp
+    container_name: mcp-database
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=database-orchestration
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 04: Integration Specialist - Slack/Webhooks MCP
+  mcp-04-integration:
+    build: ./04-integration-specialist-slack-webhooks-mcp
+    container_name: mcp-integration
+    ports:
+      - "3004:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=slack-integration
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 05: Workflow Orchestration MCP
+  mcp-05-workflow:
+    build: ./05-workflow-mcp
+    container_name: mcp-workflow
+    ports:
+      - "3005:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=workflow-orchestration
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 06: Project Builder MCP
+  mcp-06-project-builder:
+    build: ./06-project-builder-mcp
+    container_name: mcp-project-builder
+    ports:
+      - "3006:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=project-builder
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 07: Code Quality MCP
+  mcp-07-code-quality:
+    build: ./07-code-quality-mcp
+    container_name: mcp-code-quality
+    ports:
+      - "3007:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=code-quality
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 08: Performance Monitoring MCP
+  mcp-08-performance:
+    build: ./08-performance-mcp
+    container_name: mcp-performance
+    ports:
+      - "3008:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=performance-monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 09: Error Tracker MCP
+  mcp-09-error-tracker:
+    build: ./09-error-tracker-mcp
+    container_name: mcp-error-tracker
+    ports:
+      - "3009:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=error-tracker
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 10: Security Scanner MCP
+  mcp-10-security:
+    build: ./10-security-mcp
+    container_name: mcp-security
+    ports:
+      - "3010:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=security-scanner
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 11: Accessibility Tester MCP
+  mcp-11-accessibility:
+    build: ./11-accessibility-mcp
+    container_name: mcp-accessibility
+    ports:
+      - "3011:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=accessibility-tester
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 12: Integration Tester MCP
+  mcp-12-integration:
+    build: ./12-integration-mcp
+    container_name: mcp-integration-tester
+    ports:
+      - "3012:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=integration-tester
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 13: Documentation Auditor MCP
+  mcp-13-docs-auditor:
+    build: ./13-docs-auditor-mcp
+    container_name: mcp-docs-auditor
+    ports:
+      - "3013:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=docs-auditor
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 14: Advanced Automation MCP
+  mcp-14-advanced-automation:
+    build: ./14-advanced-automation-mcp
+    container_name: mcp-advanced-automation
+    ports:
+      - "3014:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=advanced-automation
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 15: API Integration MCP
+  mcp-15-api-integration:
+    build: ./15-api-integration-mcp
+    container_name: mcp-api-integration
+    ports:
+      - "3015:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=api-integration
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 16: Data Processing & Coding Agent MCP (NEW)
+  mcp-16-data-processing:
+    build: ./16-data-processing-mcp
+    container_name: mcp-data-processing
+    ports:
+      - "3016:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=data-processing-coding-agent
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Agent 17: Learning Platform MCP
+  mcp-17-learning:
+    build: ./17-learning-platform-mcp
+    container_name: mcp-learning
+    ports:
+      - "3017:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=learning-platform
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 18: Community Hub MCP
+  mcp-18-community:
+    build: ./18-community-hub-mcp
+    container_name: mcp-community
+    ports:
+      - "3018:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=community-hub
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 19: Deployment Automation MCP
+  mcp-19-deployment:
+    build: ./19-deployment-mcp
+    container_name: mcp-deployment
+    ports:
+      - "3019:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=deployment-automation
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent 20: Master Orchestrator MCP
+  mcp-20-orchestrator:
+    build: ./20-orchestrator-mcp
+    container_name: mcp-orchestrator
+    ports:
+      - "3020:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_SERVER_NAME=master-orchestrator
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - mcp-01-selector
+      - mcp-02-browser-automation
+      - mcp-03-database
+      - mcp-04-integration
+      - mcp-05-workflow
+      - mcp-06-project-builder
+      - mcp-07-code-quality
+      - mcp-08-performance
+      - mcp-09-error-tracker
+      - mcp-10-security
+      - mcp-11-accessibility
+      - mcp-12-integration
+      - mcp-13-docs-auditor
+      - mcp-14-advanced-automation
+      - mcp-15-api-integration
+      - mcp-16-data-processing
+      - mcp-17-learning
+      - mcp-18-community
+      - mcp-19-deployment
+
+networks:
+  default:
+    name: workstation-mcp-network
+    driver: bridge
+
+volumes:
+  mcp-data:
+    name: workstation-mcp-data

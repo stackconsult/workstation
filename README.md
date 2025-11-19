@@ -380,6 +380,92 @@ Workstation implements the Model Context Protocol (MCP), enabling seamless integ
 
 ---
 
+---
+
+## 🤖 Coding Agent & MCP Containers
+
+Workstation includes a **dedicated coding agent (Agent 16)** for GitHub integration and code automation, deployed as an MCP container.
+
+### What is the Coding Agent?
+
+The Coding Agent provides:
+- **GitHub API Integration**: Full repository, PR, issue, and commit management
+- **Automated Code Reviews**: AI-powered pull request analysis and suggestions
+- **Data Processing**: ETL pipelines and data transformation capabilities
+- **MCP Server**: Standardized Model Context Protocol interface
+- **Container-First**: Deployed via Docker with health checks and auto-recovery
+
+### Quick Start
+
+1. **Configure GitHub Token:**
+   ```bash
+   cp mcp-containers/.env.example mcp-containers/.env
+   # Edit .env and add your GITHUB_TOKEN
+   ```
+
+2. **Start Coding Agent:**
+   ```bash
+   docker-compose -f mcp-containers/docker-compose.mcp.yml up -d mcp-16-data-processing
+   ```
+
+3. **Verify Health:**
+   ```bash
+   curl http://localhost:3016/health
+   ```
+
+### MCP Container Architecture
+
+All 20+ agents run as dedicated MCP containers with:
+- **Isolated Environments**: Each agent in its own container
+- **Port Mapping**: Ports 3000-3020 for agent access
+- **Health Monitoring**: Automatic health checks every 30s
+- **Auto Recovery**: Peelback script for automatic rollback
+- **Orchestration**: Master orchestrator (Agent 20) coordinates all agents
+
+### Available Endpoints
+
+Agent 16 exposes these endpoints:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Health check |
+| `GET /mcp/info` | MCP metadata |
+| `GET /api/github/repos` | List repositories |
+| `GET /api/github/pulls/:owner/:repo` | List pull requests |
+| `GET /api/github/issues/:owner/:repo` | List issues |
+| `GET /api/github/commits/:owner/:repo` | List commits |
+| `POST /api/code/analyze` | Analyze code quality |
+
+### Deployment
+
+**Start all MCP containers:**
+```bash
+docker-compose -f mcp-containers/docker-compose.mcp.yml up -d
+```
+
+**Rollback on failure:**
+```bash
+./.docker/peelback.sh
+```
+
+**Check status:**
+```bash
+docker-compose -f mcp-containers/docker-compose.mcp.yml ps
+```
+
+### Documentation
+
+- [MCP Containers README](mcp-containers/README.md) - Full container documentation
+- [Agent 16 Assignment](.agents/agent-16-assignment.json) - Agent configuration
+- [Coding Agent Source](tools/coding-agent/src/index.ts) - Implementation details
+- [Rollback Guide](ROLLBACK.md) - Quick rollback reference
+- [Architecture](ARCHITECTURE.md) - System architecture
+
+### Requirements
+
+- **GITHUB_TOKEN**: Required for Agent 16 GitHub API access
+- **Docker 20.10+**: For containerized deployment
+- **Docker Compose 2.0+**: For orchestration
 ## 🤖 Coding Agent & MCP Containers
 
 Workstation provides a **live MCP container ecosystem** with 20 specialized agents, orchestrated through Docker and nginx proxy. Agent-16 (Data Processing MCP) is designated as the **MCP Container Manager**.

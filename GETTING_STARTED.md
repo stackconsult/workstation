@@ -602,3 +602,150 @@ For more information:
 - [Architecture Documentation](ARCHITECTURE.md)
 
 Questions? Open an issue or start a discussion on GitHub!
+
+---
+
+## 🤖 Addendum: Coding Agent & MCP Containers
+
+### Overview
+
+Workstation now includes **Agent 16 (Coding Agent)** and a full MCP container infrastructure for deploying 20+ specialized agents.
+
+### What's New?
+
+1. **Coding Agent (Agent 16)**:
+   - GitHub API integration for repository management
+   - Automated pull request reviews
+   - Code analysis and quality checks
+   - Data processing pipelines
+   - Deployed as MCP container on port 3016
+
+2. **MCP Container Infrastructure**:
+   - 20+ specialized agents in isolated containers
+   - Automated health monitoring and recovery
+   - Peelback rollback script for safe deployments
+   - Master orchestrator for agent coordination
+
+### Quick Setup for Coding Agent
+
+**Step 1: Configure Environment**
+```bash
+# Copy environment template
+cp mcp-containers/.env.example mcp-containers/.env
+
+# Edit and add your GitHub token
+nano mcp-containers/.env
+# Set: GITHUB_TOKEN=ghp_your_token_here
+```
+
+**Step 2: Start Coding Agent Container**
+```bash
+# Start Agent 16
+docker-compose -f mcp-containers/docker-compose.mcp.yml up -d mcp-16-data-processing
+
+# Check health
+curl http://localhost:3016/health
+
+# View logs
+docker-compose -f mcp-containers/docker-compose.mcp.yml logs -f mcp-16-data-processing
+```
+
+**Step 3: Test GitHub Integration**
+```bash
+# List your repositories
+curl http://localhost:3016/api/github/repos
+
+# Get MCP server info
+curl http://localhost:3016/mcp/info
+```
+
+### Starting All MCP Containers
+
+To start all 20+ agent containers:
+
+```bash
+# Start all MCP containers
+docker-compose -f mcp-containers/docker-compose.mcp.yml up -d
+
+# Check status
+docker-compose -f mcp-containers/docker-compose.mcp.yml ps
+
+# View orchestrator logs (coordinates all agents)
+docker-compose -f mcp-containers/docker-compose.mcp.yml logs -f mcp-20-orchestrator
+```
+
+### Rollback and Recovery
+
+If a deployment fails or containers are unhealthy:
+
+```bash
+# Automatic rollback with peelback script
+./.docker/peelback.sh
+
+# Manual container restart
+docker-compose -f mcp-containers/docker-compose.mcp.yml restart mcp-16-data-processing
+```
+
+### Environment Variables for Agent 16
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITHUB_TOKEN` | ✅ Yes | GitHub Personal Access Token (scopes: repo, workflow, read:org) |
+| `NODE_ENV` | No | Environment (default: production) |
+| `MCP_PORT` | No | Internal port (default: 3000) |
+| `LOG_LEVEL` | No | Logging verbosity (default: info) |
+
+### Coding Agent Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/mcp/info` | MCP metadata |
+| GET | `/api/github/repos` | List repositories |
+| GET | `/api/github/repos/:owner/:repo` | Get repository details |
+| GET | `/api/github/pulls/:owner/:repo` | List pull requests |
+| GET | `/api/github/issues/:owner/:repo` | List issues |
+| GET | `/api/github/commits/:owner/:repo` | List commits |
+| POST | `/api/code/analyze` | Analyze code quality |
+
+### Port Allocation for MCP Containers
+
+| Agent | Port | Container |
+|-------|------|-----------|
+| 00 | 3000 | Base MCP |
+| 01 | 3001 | Selector |
+| ... | ... | ... |
+| 16 | 3016 | **Coding Agent (Data Processing)** |
+| ... | ... | ... |
+| 20 | 3020 | Master Orchestrator |
+
+### Additional Resources
+
+- **[MCP Containers README](mcp-containers/README.md)** - Complete MCP documentation
+- **[Agent 16 Assignment](.agents/agent-16-assignment.json)** - Agent configuration
+- **[Rollback Guide](ROLLBACK.md)** - Quick rollback procedures
+- **[Architecture](ARCHITECTURE.md)** - Updated with agent & MCP sections
+
+### Troubleshooting
+
+**Container won't start:**
+```bash
+# Check logs
+docker-compose -f mcp-containers/docker-compose.mcp.yml logs mcp-16-data-processing
+
+# Rebuild without cache
+docker-compose -f mcp-containers/docker-compose.mcp.yml build --no-cache mcp-16-data-processing
+```
+
+**GitHub token not working:**
+- Ensure token has `repo`, `workflow`, and `read:org` scopes
+- Generate at: https://github.com/settings/tokens
+- Set in `mcp-containers/.env` as `GITHUB_TOKEN=ghp_...`
+
+**Port already in use:**
+- Change host port in `docker-compose.mcp.yml`
+- Example: `"3116:3000"` maps host 3116 to container 3000
+
+---
+
+**Happy Automating! 🚀**
