@@ -29,6 +29,7 @@ Workstation is a **production-ready** browser automation platform that combines:
 - 📈 **Code Timeline Agent** - Daily code growth tracking with color-coded timeline at 7 AM UTC (✅ NEW)
 - 📚 **Wikibrarian Agent** - AI-powered wiki content management with daily updates at 6 AM UTC (✅ NEW)
 - 🎨 **Wiki-Artist Agent** - Visual design enhancement with agentic handoff at 6:46 AM UTC (✅ NEW)
+- 🎓 **EduGit-CodeAgent** - Educational content enhancement tracking GitHub updates (Monday/Saturday 5 AM UTC) (✅ NEW)
 
 **Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, AI-powered browser automation, and automated code deployment workflows.
 
@@ -36,7 +37,7 @@ Workstation is a **production-ready** browser automation platform that combines:
 - ✅ **Phase 1 Complete**: Full browser automation with 7 core actions
 - ✅ **170 Tests Passing**: Production-ready code quality
 - ✅ **753 Files**: Comprehensive codebase with 321 docs
-- ✅ **21 Agents + 22 MCP Containers**: Robust microservices ecosystem
+- ✅ **25 Agents + 23 MCP Containers**: Robust microservices ecosystem
 - ✅ **Chrome Extension MVP**: Browser integration ready
 - 🚧 **Phase 2 Active**: Building multi-agent ecosystem (40% complete)
 - 📊 **Repository Health**: 9.2/10 - EXCELLENT (see [REPOSITORY_STATS.md](REPOSITORY_STATS.md))

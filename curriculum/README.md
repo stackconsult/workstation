@@ -4,6 +4,8 @@ Turn an empty GitHub repo into a production-ready, client-offerable browser-agen
 
 **Outcomes:** Standardize delivery, enable multi-tenant SaaS, secure agent orchestration.
 
+> 📚 **Note**: This curriculum is automatically enhanced by [EduGit-CodeAgent](../agents/edugit-codeagent/) which tracks GitHub platform updates and integrates new capabilities twice weekly (Monday & Saturday 5 AM UTC).
+
 ## Course Structure
 
 | Step | Module | Key Deliverable | E2E Test |

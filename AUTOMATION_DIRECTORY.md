@@ -1,8 +1,8 @@
 # 🤖 Automation & Agent Directory
 
-**Last Updated**: 2025-11-20 17:38 UTC  
-**Total Automations**: 24 GitHub Actions workflows  
-**Total Agents**: 24 specialized agents  
+**Last Updated**: 2025-11-20 18:07 UTC  
+**Total Automations**: 25 GitHub Actions workflows  
+**Total Agents**: 25 specialized agents  
 **Status**: ✅ All operational
 
 ---
@@ -48,6 +48,7 @@ These automations run directly in the repository via GitHub Actions.
 | 22 | **Deploy to Railway** | [deploy-railway.yml](.github/workflows/deploy-railway.yml) | Production deployment | On main merge | 8 | ✅ Active |
 | 23 | **Deploy Docs** | [deploy-docs.yml](.github/workflows/deploy-docs.yml) | Documentation deployment | On docs change | 10 | ✅ Active |
 | 24 | **Backup** | [backup.yml](.github/workflows/backup.yml) | Repository backup | Daily | 30 | ✅ Active |
+| 25 | **EduGit-CodeAgent** | [edugit-codeagent.yml](.github/workflows/edugit-codeagent.yml) | Educational content enhancement | `0 5 * * 1,6` | 0 | ✅ Active |
 
 **Total Automation Runs**: 350+
 
@@ -85,6 +86,7 @@ These agents are built and deployed to automate various workflows, both within t
 | 22 | **Repo Update Agent** | Documentation | [agents/repo-update-agent/](agents/repo-update-agent/) | Daily documentation sync at 9 PM UTC | Documentation | Daily | ✅ Active |
 | 23 | **Wikibrarian** | Documentation | [agents/wikibrarian/](agents/wikibrarian/) | AI-powered wiki content management at 6 AM UTC | Documentation | Daily | ✅ Active |
 | 24 | **Wiki-Artist** | Design | [agents/wiki-artist/](agents/wiki-artist/) | Visual design enhancement via agentic handoff at 6:46 AM UTC | Design | Daily | ✅ Active |
+| 25 | **EduGit-CodeAgent** | Education | [agents/edugit-codeagent/](agents/edugit-codeagent/) | Educational content enhancement tracking GitHub updates | Education | Mon/Sat | ✅ Active |
 
 **Note**: Agents that don't run in-repo have "-" for runs count as they're designed for external workflows.
 
@@ -114,6 +116,11 @@ Generate and maintain comprehensive documentation.
 - **Repo Update Agent**: Daily Sync - Keep docs synchronized with code
 - **Wikibrarian**: AI Wiki Content - AI-powered wiki content management
 - **Wiki-Artist**: Visual Enhancement - Design and styling for wiki pages
+
+### 11. Education (1 agent)
+Maintain and enhance educational content.
+
+- **EduGit-CodeAgent**: Curriculum Enhancement - Track GitHub updates and enhance educational content
 
 ### 4. Security (1 agent)
 Monitor and improve security posture.
@@ -150,7 +157,7 @@ Visual enhancement and styling.
 
 - **Wiki-Artist**: Visual Design - Design enhancement with agentic handoff
 
-### 11. Utilities (5 agents)
+### 12. Utilities (5 agents)
 Specialized tasks and future expansion.
 
 - **Agent 13-15**: Various specialized tasks
@@ -174,6 +181,7 @@ Specialized tasks and future expansion.
 
 | Automation | Schedule | Next Run |
 |-----------|----------|----------|
+| **EduGit-CodeAgent** | Mon/Sat 5:00 AM UTC | 2025-11-25 05:00 |
 | **Wikibrarian Agent** | Daily 6:00 AM UTC | 2025-11-21 06:00 |
 | **Code Timeline Agent** | Daily 7:00 AM UTC | 2025-11-21 07:00 |
 | **Repo Update Agent** | Daily 9:00 PM UTC | 2025-11-21 21:00 |
