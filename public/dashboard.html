@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workstation Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>🖥️ Workstation</h1>
+                <span class="version">v1.2.0</span>
+            </div>
+            <div class="header-right">
+                <span id="user-info" class="user-info"></span>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <button class="nav-btn active" data-view="overview">📊 Overview</button>
+            <button class="nav-btn" data-view="workflows">⚡ Workflows</button>
+            <button class="nav-btn" data-view="agents">🤖 Agents</button>
+            <button class="nav-btn" data-view="analytics">📈 Analytics</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview View -->
+            <div id="overview-view" class="view-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Workflows</span>
+                            <span id="total-workflows" class="stat-value">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">▶️</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Executions</span>
+                            <span id="total-executions" class="stat-value">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Success Rate</span>
+                            <span id="success-rate" class="stat-value">0%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Active Agents</span>
+                            <span id="active-agents" class="stat-value">0/21</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-row">
+                    <div class="recent-executions card">
+                        <h2>Recent Executions</h2>
+                        <div id="recent-executions-list" class="execution-list"></div>
+                    </div>
+
+                    <div class="agent-status card">
+                        <h2>Agent System Status</h2>
+                        <div id="agent-system-status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflows View -->
+            <div id="workflows-view" class="view-content">
+                <div class="view-header">
+                    <h2>Workflows</h2>
+                    <div class="view-actions">
+                        <select id="workflow-category-filter" class="filter-select">
+                            <option value="">All Categories</option>
+                            <option value="search">Search</option>
+                            <option value="forms">Forms</option>
+                            <option value="capture">Capture</option>
+                            <option value="extraction">Extraction</option>
+                            <option value="authentication">Authentication</option>
+                        </select>
+                        <button id="create-workflow-btn" class="btn btn-primary">+ New Workflow</button>
+                    </div>
+                </div>
+                <div id="workflows-list" class="workflows-list"></div>
+            </div>
+
+            <!-- Agents View -->
+            <div id="agents-view" class="view-content">
+                <div class="view-header">
+                    <h2>Agent Management</h2>
+                    <button id="refresh-agents-btn" class="btn btn-secondary">🔄 Refresh</button>
+                </div>
+                <div id="agents-list" class="agents-grid"></div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="analytics-view" class="view-content">
+                <div class="view-header">
+                    <h2>Analytics</h2>
+                    <div class="date-range">
+                        <input type="date" id="analytics-start-date" class="date-input">
+                        <span>to</span>
+                        <input type="date" id="analytics-end-date" class="date-input">
+                        <button id="load-analytics-btn" class="btn btn-primary">Load</button>
+                    </div>
+                </div>
+                <div id="analytics-content" class="analytics-content"></div>
+            </div>
+        </main>
+
+        <!-- Modal for Workflow Creation/Editing -->
+        <div id="workflow-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Create Workflow</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="workflow-form">
+                        <div class="form-group">
+                            <label for="workflow-name">Name</label>
+                            <input type="text" id="workflow-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="workflow-category">Category</label>
+                            <select id="workflow-category" required>
+                                <option value="search">Search</option>
+                                <option value="forms">Forms</option>
+                                <option value="capture">Capture</option>
+                                <option value="extraction">Extraction</option>
+                                <option value="authentication">Authentication</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="workflow-description">Description (optional)</label>
+                            <textarea id="workflow-description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Actions</label>
+                            <div id="workflow-actions" class="actions-list"></div>
+                            <button type="button" id="add-action-btn" class="btn btn-secondary">+ Add Action</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary cancel-btn">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Workflow</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

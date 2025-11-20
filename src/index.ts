@@ -132,10 +132,15 @@ app.use(cors({
 app.use(express.json());
 app.use(limiter); // Apply rate limiting to all routes
 
-// Serve static files from docs directory (UI)
+// Serve static files from public directory (Dashboard UI)
+const publicPath = join(__dirname, '..', 'public');
+app.use(express.static(publicPath));
+logger.info('Serving static dashboard UI', { path: publicPath });
+
+// Serve static files from docs directory (API docs)
 const docsPath = join(__dirname, '..', 'docs');
-app.use(express.static(docsPath));
-logger.info('Serving static UI files', { path: docsPath });
+app.use('/docs', express.static(docsPath));
+logger.info('Serving static docs', { path: docsPath });
 
 // Request logging middleware - anonymize IPs for privacy
 app.use((req: Request, res: Response, next) => {
