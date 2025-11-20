@@ -2,29 +2,42 @@ import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import Redis from 'ioredis';
 
-// Initialize Redis client for rate limiting
-const redisClient = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
-  enableOfflineQueue: false,
-  retryStrategy(times) {
-    // Exponential backoff: 50ms, 100ms, 200ms, 400ms, 800ms...
-    const delay = Math.min(times * 50, 2000);
-    return delay;
-  }
-});
+// Check if we should use Redis (only in production or if explicitly enabled)
+const useRedis = process.env.REDIS_ENABLED === 'true' || process.env.NODE_ENV === 'production';
 
-redisClient.on('error', (err) => {
-  console.error('Redis rate limit client error:', err);
-});
+// Initialize Redis client for rate limiting only if enabled
+let redisClient: Redis | null = null;
 
-redisClient.on('connect', () => {
-  console.log('✅ Redis rate limit client connected');
-});
+if (useRedis) {
+  redisClient = new Redis({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    password: process.env.REDIS_PASSWORD,
+    enableOfflineQueue: false,
+    maxRetriesPerRequest: 3,
+    retryStrategy(times) {
+      // Only retry 3 times
+      if (times > 3) {
+        console.error('Redis connection failed after 3 retries, falling back to memory store');
+        return null; // Stop retrying
+      }
+      // Exponential backoff: 50ms, 100ms, 200ms
+      const delay = Math.min(times * 50, 200);
+      return delay;
+    }
+  });
+
+  redisClient.on('error', (err) => {
+    console.error('Redis rate limit client error:', err.message);
+  });
+
+  redisClient.on('connect', () => {
+    console.log('✅ Redis rate limit client connected');
+  });
+}
 
 /**
- * Create Redis-backed rate limiter
+ * Create Redis-backed rate limiter or memory-based fallback
  */
 function createRedisRateLimiter(options: {
   windowMs: number;
@@ -32,19 +45,29 @@ function createRedisRateLimiter(options: {
   message?: string;
   skipSuccessfulRequests?: boolean;
 }) {
-  return rateLimit({
+  const config: any = {
     windowMs: options.windowMs,
     max: options.max,
     message: options.message || 'Too many requests, please try again later',
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: options.skipSuccessfulRequests || false,
-    store: new RedisStore({
-      // @ts-expect-error - Redis client typing issue with rate-limit-redis
-      client: redisClient,
-      prefix: 'rl:',
-    }),
-  });
+  };
+
+  // Only use Redis store if Redis is enabled and client is available
+  if (useRedis && redisClient) {
+    try {
+      config.store = new RedisStore({
+        // @ts-expect-error - Redis client typing issue with rate-limit-redis
+        client: redisClient,
+        prefix: 'rl:',
+      });
+    } catch (error) {
+      console.warn('Failed to create Redis store for rate limiter, using memory store:', (error as Error).message);
+    }
+  }
+
+  return rateLimit(config);
 }
 
 /**
@@ -100,4 +123,4 @@ export const globalRateLimiter = createRedisRateLimiter({
   message: 'Too many requests from this IP, please try again later'
 });
 
-export { redisClient as rateLimitRedis };
+export { redisClient as rateLimitRedis, useRedis };
