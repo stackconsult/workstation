@@ -213,6 +213,7 @@ npm run test:chrome
 | Document | Description |
 |----------|-------------|
 | [📊 Repository Statistics](REPOSITORY_STATS.md) | **NEW!** Complete activity & progression stats |
+| [📅 Activity Timeline](ACTIVITY_TIMELINE.md) | **NEW!** Visual development timeline & milestones |
 | [📖 Documentation Index](docs/DOCUMENTATION_INDEX.md) | Complete navigation of all docs |
 | [🎯 START_HERE.md](START_HERE.md) | 30-second quick start |
 | [🌐 Chrome Extension Guide](chrome-extension/README.md) | Complete Chrome extension documentation |
