@@ -34,7 +34,6 @@ import { generateToken, generateDemoToken, authenticateToken, AuthenticatedReque
 import { validateRequest, schemas } from './middleware/validation';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
-import { getHealthStatus } from './utils/health';
 import { validateEnvironment, printEnvironmentSummary } from './utils/env';
 // Phase 1: Import automation routes and database
 import automationRoutes from './routes/automation';
@@ -45,12 +44,10 @@ import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import workflowsRoutes from './routes/workflows';
 import agentsRoutes from './routes/agents';
-import { initializeDatabase, getDatabase } from './automation/db/database';
+import { initializeDatabase } from './automation/db/database';
 // Phase 3: Import advanced rate limiting and monitoring
 import { 
-  apiRateLimiter, 
   authRateLimiter as advancedAuthLimiter,
-  executionRateLimiter,
   globalRateLimiter 
 } from './middleware/advanced-rate-limit';
 import { initializeMonitoring } from './services/monitoring';

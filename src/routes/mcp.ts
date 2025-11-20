@@ -6,7 +6,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../auth/jwt';
 import { logger } from '../utils/logger';
-import { apiRateLimiter } from '../middleware/advanced-rate-limit';
 
 const router = Router();
 

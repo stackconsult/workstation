@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Workflow Builder - Browser Agent</title>
+    <link rel="stylesheet" href="/css/workflow-builder.css">
+    <!-- React and React-DOM from CDN for production -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- D3.js for visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Babel Standalone for JSX transformation (dev only - in prod, pre-compile) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- Workflow Builder React Application -->
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Node types available for workflow building
+        const NODE_TYPES = {
+            START: { type: 'start', label: 'Start', color: '#4CAF50' },
+            NAVIGATE: { type: 'navigate', label: 'Navigate', color: '#2196F3' },
+            CLICK: { type: 'click', label: 'Click Element', color: '#FF9800' },
+            FILL: { type: 'fill', label: 'Fill Form', color: '#9C27B0' },
+            EXTRACT: { type: 'extract', label: 'Extract Data', color: '#00BCD4' },
+            WAIT: { type: 'wait', label: 'Wait', color: '#FFC107' },
+            CONDITION: { type: 'condition', label: 'Condition', color: '#F44336' },
+            LOOP: { type: 'loop', label: 'Loop', color: '#E91E63' },
+            END: { type: 'end', label: 'End', color: '#607D8B' }
+        };
+
+        // WorkflowNode Component
+        function WorkflowNode({ node, onSelect, onDelete, isSelected }) {
+            return (
+                <div 
+                    className={`workflow-node ${isSelected ? 'selected' : ''}`}
+                    style={{ 
+                        left: node.x, 
+                        top: node.y,
+                        backgroundColor: NODE_TYPES[node.type.toUpperCase()]?.color || '#ccc'
+                    }}
+                    onClick={() => onSelect(node)}
+                >
+                    <div className="node-header">
+                        <span className="node-label">{node.label || NODE_TYPES[node.type.toUpperCase()]?.label}</span>
+                        <button className="node-delete" onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}>×</button>
+                    </div>
+                    {node.params && (
+                        <div className="node-params">
+                            {Object.entries(node.params).map(([key, value]) => (
+                                <div key={key} className="node-param">
+                                    <small>{key}: {String(value).substring(0, 20)}</small>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    <div className="node-connectors">
+                        <div className="connector connector-input" data-node-id={node.id} data-type="input"></div>
+                        <div className="connector connector-output" data-node-id={node.id} data-type="output"></div>
+                    </div>
+                </div>
+            );
+        }
+
+        // NodeLibrary Component
+        function NodeLibrary({ onAddNode }) {
+            return (
+                <div className="node-library">
+                    <h3>Node Library</h3>
+                    <div className="node-library-items">
+                        {Object.entries(NODE_TYPES).map(([key, nodeType]) => (
+                            <button
+                                key={key}
+                                className="node-library-item"
+                                style={{ backgroundColor: nodeType.color }}
+                                onClick={() => onAddNode(nodeType.type)}
+                                title={`Add ${nodeType.label} node`}
+                            >
+                                {nodeType.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // NodeProperties Component
+        function NodeProperties({ node, onUpdate, onClose }) {
+            const [params, setParams] = useState(node?.params || {});
+
+            useEffect(() => {
+                setParams(node?.params || {});
+            }, [node]);
+
+            if (!node) {
+                return (
+                    <div className="node-properties">
+                        <div className="properties-empty">
+                            Select a node to edit its properties
+                        </div>
+                    </div>
+                );
+            }
+
+            const handleParamChange = (key, value) => {
+                const updated = { ...params, [key]: value };
+                setParams(updated);
+                onUpdate(node.id, updated);
+            };
+
+            const getParamFields = () => {
+                switch (node.type) {
+                    case 'navigate':
+                        return [
+                            { key: 'url', label: 'URL', type: 'text', placeholder: 'https://example.com' }
+                        ];
+                    case 'click':
+                        return [
+                            { key: 'selector', label: 'CSS Selector', type: 'text', placeholder: '#button' }
+                        ];
+                    case 'fill':
+                        return [
+                            { key: 'selector', label: 'CSS Selector', type: 'text', placeholder: '#input' },
+                            { key: 'value', label: 'Value', type: 'text', placeholder: 'text to fill' }
+                        ];
+                    case 'extract':
+                        return [
+                            { key: 'selector', label: 'CSS Selector', type: 'text', placeholder: '.data' },
+                            { key: 'attribute', label: 'Attribute', type: 'text', placeholder: 'textContent' }
+                        ];
+                    case 'wait':
+                        return [
+                            { key: 'duration', label: 'Duration (ms)', type: 'number', placeholder: '1000' }
+                        ];
+                    case 'condition':
+                        return [
+                            { key: 'condition', label: 'Condition', type: 'text', placeholder: 'data === "expected"' }
+                        ];
+                    default:
+                        return [];
+                }
+            };
+
+            return (
+                <div className="node-properties">
+                    <div className="properties-header">
+                        <h3>Node Properties</h3>
+                        <button className="close-btn" onClick={onClose}>×</button>
+                    </div>
+                    <div className="properties-content">
+                        <div className="property-group">
+                            <label>Node Type</label>
+                            <input type="text" value={node.type} disabled />
+                        </div>
+                        <div className="property-group">
+                            <label>Label</label>
+                            <input 
+                                type="text" 
+                                value={node.label || ''} 
+                                onChange={(e) => onUpdate(node.id, params, e.target.value)}
+                                placeholder="Node label"
+                            />
+                        </div>
+                        {getParamFields().map(field => (
+                            <div key={field.key} className="property-group">
+                                <label>{field.label}</label>
+                                <input
+                                    type={field.type}
+                                    value={params[field.key] || ''}
+                                    onChange={(e) => handleParamChange(field.key, e.target.value)}
+                                    placeholder={field.placeholder}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Canvas Component with D3 visualization
+        function Canvas({ nodes, connections, onCanvasClick, selectedNode }) {
+            const canvasRef = useRef(null);
+            const svgRef = useRef(null);
+
+            useEffect(() => {
+                if (!svgRef.current) return;
+
+                const svg = d3.select(svgRef.current);
+                svg.selectAll("*").remove();
+
+                // Draw connections
+                const g = svg.append("g");
+                
+                connections.forEach(conn => {
+                    const fromNode = nodes.find(n => n.id === conn.from);
+                    const toNode = nodes.find(n => n.id === conn.to);
+                    
+                    if (fromNode && toNode) {
+                        // Calculate connection points
+                        const x1 = fromNode.x + 100; // Node width/2
+                        const y1 = fromNode.y + 40; // Node height
+                        const x2 = toNode.x + 100;
+                        const y2 = toNode.y;
+
+                        // Draw curved path
+                        const path = `M ${x1} ${y1} C ${x1} ${y1 + 30}, ${x2} ${y2 - 30}, ${x2} ${y2}`;
+                        
+                        g.append("path")
+                            .attr("d", path)
+                            .attr("stroke", "#666")
+                            .attr("stroke-width", 2)
+                            .attr("fill", "none")
+                            .attr("marker-end", "url(#arrowhead)");
+                    }
+                });
+
+                // Arrow marker
+                svg.append("defs").append("marker")
+                    .attr("id", "arrowhead")
+                    .attr("markerWidth", 10)
+                    .attr("markerHeight", 10)
+                    .attr("refX", 5)
+                    .attr("refY", 3)
+                    .attr("orient", "auto")
+                    .append("polygon")
+                    .attr("points", "0 0, 10 3, 0 6")
+                    .attr("fill", "#666");
+
+            }, [nodes, connections]);
+
+            return (
+                <div ref={canvasRef} className="workflow-canvas" onClick={onCanvasClick}>
+                    <svg ref={svgRef} className="connections-svg" />
+                </div>
+            );
+        }
+
+        // Main WorkflowBuilder Component
+        function WorkflowBuilder() {
+            const [nodes, setNodes] = useState([]);
+            const [connections, setConnections] = useState([]);
+            const [selectedNode, setSelectedNode] = useState(null);
+            const [workflowName, setWorkflowName] = useState('Untitled Workflow');
+            const [isDragging, setIsDragging] = useState(false);
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+            const [nextNodeId, setNextNodeId] = useState(1);
+
+            const addNode = (type) => {
+                const newNode = {
+                    id: `node-${nextNodeId}`,
+                    type: type,
+                    label: NODE_TYPES[type.toUpperCase()]?.label,
+                    x: 100 + (nextNodeId * 20),
+                    y: 100 + (nextNodeId * 20),
+                    params: {}
+                };
+                setNodes([...nodes, newNode]);
+                setNextNodeId(nextNodeId + 1);
+                setSelectedNode(newNode);
+            };
+
+            const deleteNode = (nodeId) => {
+                setNodes(nodes.filter(n => n.id !== nodeId));
+                setConnections(connections.filter(c => c.from !== nodeId && c.to !== nodeId));
+                if (selectedNode?.id === nodeId) {
+                    setSelectedNode(null);
+                }
+            };
+
+            const updateNodeParams = (nodeId, params, label) => {
+                setNodes(nodes.map(node => 
+                    node.id === nodeId 
+                        ? { ...node, params, label: label !== undefined ? label : node.label }
+                        : node
+                ));
+            };
+
+            const handleCanvasClick = (e) => {
+                if (e.target.className === 'workflow-canvas' || e.target.className === 'connections-svg') {
+                    setSelectedNode(null);
+                }
+            };
+
+            const exportWorkflow = () => {
+                const workflow = {
+                    name: workflowName,
+                    version: '1.0',
+                    nodes: nodes,
+                    connections: connections,
+                    createdAt: new Date().toISOString()
+                };
+                
+                const blob = new Blob([JSON.stringify(workflow, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${workflowName.replace(/\s+/g, '-').toLowerCase()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const importWorkflow = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const workflow = JSON.parse(event.target.result);
+                        setWorkflowName(workflow.name || 'Imported Workflow');
+                        setNodes(workflow.nodes || []);
+                        setConnections(workflow.connections || []);
+                        setNextNodeId(Math.max(...(workflow.nodes?.map(n => parseInt(n.id.split('-')[1])) || [0])) + 1);
+                    } catch (error) {
+                        alert('Failed to import workflow: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const saveWorkflow = async () => {
+                const workflow = {
+                    name: workflowName,
+                    nodes: nodes,
+                    connections: connections
+                };
+
+                try {
+                    const token = localStorage.getItem('authToken');
+                    const response = await fetch('/api/workflows', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(workflow)
+                    });
+
+                    if (response.ok) {
+                        alert('Workflow saved successfully!');
+                    } else {
+                        alert('Failed to save workflow');
+                    }
+                } catch (error) {
+                    alert('Error saving workflow: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="workflow-builder">
+                    <div className="builder-header">
+                        <div className="header-left">
+                            <h1>Visual Workflow Builder</h1>
+                            <input 
+                                type="text" 
+                                className="workflow-name-input"
+                                value={workflowName}
+                                onChange={(e) => setWorkflowName(e.target.value)}
+                                placeholder="Workflow Name"
+                            />
+                        </div>
+                        <div className="header-right">
+                            <button className="btn btn-secondary" onClick={() => setNodes([])}>Clear</button>
+                            <label className="btn btn-secondary">
+                                Import
+                                <input type="file" accept=".json" onChange={importWorkflow} style={{display: 'none'}} />
+                            </label>
+                            <button className="btn btn-secondary" onClick={exportWorkflow}>Export</button>
+                            <button className="btn btn-primary" onClick={saveWorkflow}>Save</button>
+                        </div>
+                    </div>
+                    
+                    <div className="builder-main">
+                        <NodeLibrary onAddNode={addNode} />
+                        
+                        <div className="builder-workspace">
+                            <Canvas 
+                                nodes={nodes}
+                                connections={connections}
+                                onCanvasClick={handleCanvasClick}
+                                selectedNode={selectedNode}
+                            />
+                            {nodes.map(node => (
+                                <WorkflowNode
+                                    key={node.id}
+                                    node={node}
+                                    onSelect={setSelectedNode}
+                                    onDelete={deleteNode}
+                                    isSelected={selectedNode?.id === node.id}
+                                />
+                            ))}
+                        </div>
+                        
+                        <NodeProperties
+                            node={selectedNode}
+                            onUpdate={updateNodeParams}
+                            onClose={() => setSelectedNode(null)}
+                        />
+                    </div>
+
+                    <div className="builder-footer">
+                        <div className="footer-stats">
+                            <span>Nodes: {nodes.length}</span>
+                            <span>Connections: {connections.length}</span>
+                        </div>
+                        <div className="footer-actions">
+                            <button className="btn-link" onClick={() => window.location.href = '/dashboard.html'}>
+                                Back to Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app
+        ReactDOM.render(<WorkflowBuilder />, document.getElementById('root'));
+    </script>
+</body>
+</html>
