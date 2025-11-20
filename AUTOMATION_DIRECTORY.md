@@ -29,24 +29,25 @@ These automations run directly in the repository via GitHub Actions.
 | 3 | **Admin Control Panel** | [admin-control-panel.yml](.github/workflows/admin-control-panel.yml) | Administrative controls and monitoring | Manual | 5 | ✅ Active |
 | 4 | **Agent Discovery** | [agent-discovery.yml](.github/workflows/agent-discovery.yml) | Discovers and registers new agents | On push | 12 | ✅ Active |
 | 5 | **Agent Orchestrator** | [agent-orchestrator.yml](.github/workflows/agent-orchestrator.yml) | Coordinates multi-agent workflows | Manual | 8 | ✅ Active |
-| 6 | **Agent17 Weekly** | [agent17-weekly.yml](.github/workflows/agent17-weekly.yml) | Weekly project builder tasks | `0 0 * * 0` | 2 | ✅ Active |
-| 7 | **Agent17 Test** | [agent17-test.yml](.github/workflows/agent17-test.yml) | Tests Agent17 functionality | On PR | 15 | ✅ Active |
-| 8 | **Agent2 CI** | [agent2-ci.yml](.github/workflows/agent2-ci.yml) | Agent2 continuous integration | On push | 20 | ✅ Active |
-| 9 | **Agent3 CI** | [agent3-ci.yml](.github/workflows/agent3-ci.yml) | Agent3 continuous integration | On push | 18 | ✅ Active |
-| 10 | **Agent4 CI** | [agent4-ci.yml](.github/workflows/agent4-ci.yml) | Agent4 continuous integration | On push | 22 | ✅ Active |
-| 11 | **CI Pipeline** | [ci.yml](.github/workflows/ci.yml) | Main build and test pipeline | On push/PR | 45 | ✅ Active |
-| 12 | **CodeQL Analysis** | [codeql-analysis.yml](.github/workflows/codeql-analysis.yml) | Security code scanning | Weekly | 8 | ✅ Active |
-| 13 | **Dependency Review** | [dependency-review.yml](.github/workflows/dependency-review.yml) | Review dependencies on PR | On PR | 12 | ✅ Active |
-| 14 | **Docker Build** | [docker-build.yml](.github/workflows/docker-build.yml) | Multi-platform container builds | On release | 3 | ✅ Active |
-| 15 | **Lint** | [lint.yml](.github/workflows/lint.yml) | Code style enforcement | On push/PR | 50 | ✅ Active |
-| 16 | **Test Coverage** | [test-coverage.yml](.github/workflows/test-coverage.yml) | Code coverage reporting | On push | 40 | ✅ Active |
-| 17 | **Release** | [release.yml](.github/workflows/release.yml) | Automated releases | On tag | 2 | ✅ Active |
-| 18 | **Stale Issue Handler** | [stale.yml](.github/workflows/stale.yml) | Manages stale issues/PRs | Daily | 30 | ✅ Active |
-| 19 | **Security Audit** | [security-audit.yml](.github/workflows/security-audit.yml) | Weekly security checks | `0 0 * * 1` | 4 | ✅ Active |
-| 20 | **Performance Tests** | [performance.yml](.github/workflows/performance.yml) | Performance benchmarks | Weekly | 6 | ✅ Active |
-| 21 | **Deploy to Railway** | [deploy-railway.yml](.github/workflows/deploy-railway.yml) | Production deployment | On main merge | 8 | ✅ Active |
-| 22 | **Deploy Docs** | [deploy-docs.yml](.github/workflows/deploy-docs.yml) | Documentation deployment | On docs change | 10 | ✅ Active |
-| 23 | **Backup** | [backup.yml](.github/workflows/backup.yml) | Repository backup | Daily | 30 | ✅ Active |
+| 6 | **Wikibrarian Agent** | [wikibrarian-agent.yml](.github/workflows/wikibrarian-agent.yml) | AI-powered wiki content management | `0 6 * * *` | 0 | ✅ Active |
+| 7 | **Agent17 Weekly** | [agent17-weekly.yml](.github/workflows/agent17-weekly.yml) | Weekly project builder tasks | `0 0 * * 0` | 2 | ✅ Active |
+| 8 | **Agent17 Test** | [agent17-test.yml](.github/workflows/agent17-test.yml) | Tests Agent17 functionality | On PR | 15 | ✅ Active |
+| 9 | **Agent2 CI** | [agent2-ci.yml](.github/workflows/agent2-ci.yml) | Agent2 continuous integration | On push | 20 | ✅ Active |
+| 10 | **Agent3 CI** | [agent3-ci.yml](.github/workflows/agent3-ci.yml) | Agent3 continuous integration | On push | 18 | ✅ Active |
+| 11 | **Agent4 CI** | [agent4-ci.yml](.github/workflows/agent4-ci.yml) | Agent4 continuous integration | On push | 22 | ✅ Active |
+| 12 | **CI Pipeline** | [ci.yml](.github/workflows/ci.yml) | Main build and test pipeline | On push/PR | 45 | ✅ Active |
+| 13 | **CodeQL Analysis** | [codeql-analysis.yml](.github/workflows/codeql-analysis.yml) | Security code scanning | Weekly | 8 | ✅ Active |
+| 14 | **Dependency Review** | [dependency-review.yml](.github/workflows/dependency-review.yml) | Review dependencies on PR | On PR | 12 | ✅ Active |
+| 15 | **Docker Build** | [docker-build.yml](.github/workflows/docker-build.yml) | Multi-platform container builds | On release | 3 | ✅ Active |
+| 16 | **Lint** | [lint.yml](.github/workflows/lint.yml) | Code style enforcement | On push/PR | 50 | ✅ Active |
+| 17 | **Test Coverage** | [test-coverage.yml](.github/workflows/test-coverage.yml) | Code coverage reporting | On push | 40 | ✅ Active |
+| 18 | **Release** | [release.yml](.github/workflows/release.yml) | Automated releases | On tag | 2 | ✅ Active |
+| 19 | **Stale Issue Handler** | [stale.yml](.github/workflows/stale.yml) | Manages stale issues/PRs | Daily | 30 | ✅ Active |
+| 20 | **Security Audit** | [security-audit.yml](.github/workflows/security-audit.yml) | Weekly security checks | `0 0 * * 1` | 4 | ✅ Active |
+| 21 | **Performance Tests** | [performance.yml](.github/workflows/performance.yml) | Performance benchmarks | Weekly | 6 | ✅ Active |
+| 22 | **Deploy to Railway** | [deploy-railway.yml](.github/workflows/deploy-railway.yml) | Production deployment | On main merge | 8 | ✅ Active |
+| 23 | **Deploy Docs** | [deploy-docs.yml](.github/workflows/deploy-docs.yml) | Documentation deployment | On docs change | 10 | ✅ Active |
+| 24 | **Backup** | [backup.yml](.github/workflows/backup.yml) | Repository backup | Daily | 30 | ✅ Active |
 
 **Total Automation Runs**: 350+
 
@@ -82,6 +83,7 @@ These agents are built and deployed to automate various workflows, both within t
 | 20 | **Agent 20** | Orchestrator | [agents/agent20/](agents/agent20/) | Master orchestrator | Coordination | In Development | 🚧 40% |
 | 21 | **Agent 21** | Future | [agents/agent21/](agents/agent21/) | Reserved for future use | Utilities | - | 🔄 Planned |
 | 22 | **Repo Update Agent** | Documentation | [agents/repo-update-agent/](agents/repo-update-agent/) | Daily documentation sync at 9 PM UTC | Documentation | Daily | ✅ Active |
+| 23 | **Wikibrarian** | Documentation | [agents/wikibrarian/](agents/wikibrarian/) | AI-powered wiki content management at 6 AM UTC | Documentation | Daily | ✅ Active |
 
 **Note**: Agents that don't run in-repo have "-" for runs count as they're designed for external workflows.
 
@@ -164,6 +166,7 @@ Specialized tasks and future expansion.
 
 | Automation | Schedule | Next Run |
 |-----------|----------|----------|
+| **Wikibrarian Agent** | Daily 6:00 AM UTC | 2025-11-21 06:00 |
 | **Code Timeline Agent** | Daily 7:00 AM UTC | 2025-11-21 07:00 |
 | **Repo Update Agent** | Daily 9:00 PM UTC | 2025-11-21 21:00 |
 | **Agent17 Weekly** | Sundays 00:00 UTC | 2025-11-24 00:00 |
