@@ -18,12 +18,15 @@ This repository represents a **comprehensive, enterprise-grade automation platfo
 
 | Metric | Value | Details |
 |--------|-------|---------|
-| **Total Source Files** | 250 | TypeScript, JavaScript, JSON, YAML |
-| **Documentation Files** | 202 | Markdown files |
-| **Lines of Production Code** | 21,405 | Excluding tests |
-| **Lines of Test Code** | 3,475 | Test suites and specs |
-| **Total Lines** | 24,880 | Combined codebase |
-| **Code-to-Test Ratio** | 6.2:1 | Healthy ratio |
+| **Total Tracked Files** | 753 | All repository files |
+| **TypeScript Source Files** | 116 | Production code |
+| **JavaScript Files** | 34 | Build scripts, configs |
+| **Test Files** | 59 | Test suites and specs |
+| **Documentation Files** | 321 | Markdown documentation |
+| **Lines of Production Code** | 8,681 | src/ directory |
+| **Lines of Test Code** | 2,742 | tests/ directory |
+| **Total Application Code** | 11,423 | Combined TypeScript/JavaScript |
+| **Code-to-Test Ratio** | 3.2:1 | Healthy test coverage |
 | **Repository Size** | 8.5 MB | Including all assets |
 | **Source Directory Size** | 196 KB | Core application code |
 
@@ -31,12 +34,12 @@ This repository represents a **comprehensive, enterprise-grade automation platfo
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Test Suites** | 10 | ✅ All passing |
-| **Total Tests** | 146 | ✅ 100% pass rate |
+| **Test Suites** | 59 | ✅ Test files |
+| **Total Tests** | 170 | ✅ 100% pass rate |
 | **Test Pass Rate** | 100% | ✅ Excellent |
 | **Code Coverage** | 67.18% | ✅ Meets thresholds |
 | **Security Vulnerabilities** | 0 | ✅ Zero issues |
-| **Packages Scanned** | 754 | npm audit clean |
+| **Packages Scanned** | 873 | npm audit clean |
 | **Build Success Rate** | 100% | ✅ No failures |
 | **Linting Errors** | 0 | ✅ Clean |
 
@@ -44,9 +47,9 @@ This repository represents a **comprehensive, enterprise-grade automation platfo
 
 | Component | Count | Status |
 |-----------|-------|--------|
-| **GitHub Actions Workflows** | 20 | ✅ All configured |
-| **Agent Definitions** | 14 | .agent.md files |
-| **MCP Containers** | Multiple | Isolated & verified |
+| **GitHub Actions Workflows** | 22 | ✅ All configured |
+| **Agent Definitions** | 21 | Specialized agents |
+| **MCP Containers** | 22 | Isolated & verified |
 | **Production Dependencies** | 18 | Core packages |
 | **DevDependencies** | ~30 | Testing & build tools |
 | **CI/CD Pipelines** | 6 | Main, audit, security |
@@ -62,6 +65,7 @@ This repository represents a **comprehensive, enterprise-grade automation platfo
 | **Recovery Procedures** | 3 | ✅ Rollback ready |
 | **Security Documentation** | 5+ | ✅ Enterprise-grade |
 | **Integration Guides** | 10+ | ✅ Full coverage |
+| **Total Documentation** | 321 | ✅ Extensive (root + docs/) |
 | **Inline Code Comments** | Throughout | ✅ Well-documented |
 
 ---

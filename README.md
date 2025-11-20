@@ -31,8 +31,11 @@ Workstation is a **production-ready** browser automation platform that combines:
 **Current Status**: 
 - ✅ **Phase 1 Complete**: Full browser automation with 7 core actions
 - ✅ **170 Tests Passing**: Production-ready code quality
+- ✅ **753 Files**: Comprehensive codebase with 321 docs
+- ✅ **21 Agents + 22 MCP Containers**: Robust microservices ecosystem
 - ✅ **Chrome Extension MVP**: Browser integration ready
-- 🚧 **Phase 2 Active**: Building multi-agent ecosystem
+- 🚧 **Phase 2 Active**: Building multi-agent ecosystem (40% complete)
+- 📊 **Repository Health**: 9.2/10 - EXCELLENT (see [REPOSITORY_STATS.md](REPOSITORY_STATS.md))
 
 ---
 
@@ -185,15 +188,22 @@ npm run test:chrome
 ### Code Quality Metrics
 
 ```
-📊 Total Lines of Code:     3,367 lines (TypeScript)
-📊 Total Test Files:        36 files
+📊 Total Files:             753 tracked files (TypeScript, JS, Markdown, Config)
+📊 Production Code:         8,681 lines (src/)
+📊 Test Code:               2,742 lines (tests/)
+📊 TypeScript Files:        116 source files
+📊 Test Files:              59 test suites
 📊 Total Tests:             170 tests (100% passing)
 📊 Test Coverage:           67.18% statements, 51.92% branches, 70.94% functions, 66.88% lines
-📊 Agent Directories:       17 agents
-📊 Documentation Files:     112 docs
+📊 Agent Directories:       21 specialized agents
+📊 MCP Containers:          22 isolated services
+📊 Documentation Files:     321 comprehensive docs (root + docs/)
+📊 GitHub Workflows:        22 automated workflows
+📊 Curriculum Files:        37 education resources
 📊 Chrome Extension:        ✅ Built & Validated (18.46 KB)
 📊 Build Status:            ✅ Passing
 📊 Security Vulnerabilities: 0 critical/high
+📊 Repository Health:       9.2/10 - EXCELLENT
 ```
 
 ---
@@ -202,6 +212,7 @@ npm run test:chrome
 
 | Document | Description |
 |----------|-------------|
+| [📊 Repository Statistics](REPOSITORY_STATS.md) | **NEW!** Complete activity & progression stats |
 | [📖 Documentation Index](docs/DOCUMENTATION_INDEX.md) | Complete navigation of all docs |
 | [🎯 START_HERE.md](START_HERE.md) | 30-second quick start |
 | [🌐 Chrome Extension Guide](chrome-extension/README.md) | Complete Chrome extension documentation |
