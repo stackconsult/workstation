@@ -159,7 +159,7 @@ export class MachineFingerprinter {
       const { execSync } = require('child_process');
       
       const wmic = execSync('wmic cpu get Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed /format:csv').toString();
-      const lines = wmic.split('\n').filter(line => line.trim());
+      const lines = wmic.split('\n').filter((line: string) => line.trim());
       const data = lines[2]?.split(',') || [];
       
       const model = data[1] || 'Unknown';
