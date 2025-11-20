@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - GitHub Actions Docker Compose Compatibility (2025-11-20)
+
+#### Workflow Updates
+- **Updated GitHub Actions workflows** for Docker Compose V2 compatibility
+  - Fixed `github-private-daily-backup.yml` workflow failing on Ubuntu 24.04 runners
+  - Replaced deprecated `docker-compose` command with `docker compose` (V2)
+  - Updated 3 instances in backup workflow (build, up, down)
+  - Updated 2 instances in deploy-with-rollback workflow
+  - Resolves issue #145: GitHub Private Backup Failed
+
+#### Technical Details
+- Ubuntu 24.04 GitHub Actions runners use Docker Compose V2 plugin
+- Legacy `docker-compose` standalone command is no longer available
+- All workflow docker-compose commands now use the V2 syntax
+- No changes required to docker-compose.yml configuration files
+
 ### Added - Playwright-Enhanced Agentic Browser Capabilities (2025-11-19)
 
 #### Chrome Extension Playwright Integration
