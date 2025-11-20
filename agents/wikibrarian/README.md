@@ -643,6 +643,52 @@ pie title "Common Development Issues"
 
 ---
 
+## 🤝 Agentic Handoff to Wiki-Artist
+
+Upon completing content creation, the Wikibrarian automatically hands off to the **Wiki-Artist Agent** for visual enhancement.
+
+### Handoff Protocol
+
+```mermaid
+sequenceDiagram
+    participant W as Wikibrarian
+    participant MCP as MCP Container
+    participant WA as Wiki-Artist
+    
+    W->>W: Complete content generation (6:45 AM)
+    W->>MCP: Signal completion
+    MCP->>WA: Trigger handoff (6:46 AM)
+    WA->>WA: Apply visual enhancements
+    WA->>MCP: Log design decisions (6:59 AM)
+```
+
+### Handoff Signal
+
+When Wikibrarian completes work, it signals to Wiki-Artist via MCP:
+
+```json
+{
+  "event": "content_complete",
+  "timestamp": "2025-11-21T06:45:00Z",
+  "source_agent": "wikibrarian",
+  "target_agent": "wiki-artist",
+  "pages_updated": ["wiki/Quick-Start.md", "wiki/Development-Guide.md"],
+  "preserve_content": true,
+  "enhancement_priority": ["diagrams", "badges", "callouts"]
+}
+```
+
+### Division of Responsibilities
+
+| Agent | Responsibility | Focus |
+|-------|----------------|-------|
+| **Wikibrarian** | Content creation | Text, explanations, guides, educational material |
+| **Wiki-Artist** | Visual enhancement | Diagrams, badges, styling, layout |
+
+**Note**: Wiki-Artist never modifies content, only enhances visual presentation.
+
+---
+
 ## Usage
 
 ### Manual Trigger

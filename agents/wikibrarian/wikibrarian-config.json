@@ -161,5 +161,19 @@
       "after": ["backup"],
       "before": ["code-timeline-agent"]
     }
+  },
+  "agentic_handoff": {
+    "enabled": true,
+    "target_agent": "wiki-artist",
+    "handoff_time": "06:45:00Z",
+    "trigger_mechanism": "mcp-signal",
+    "signal_format": {
+      "event": "content_complete",
+      "source_agent": "wikibrarian",
+      "target_agent": "wiki-artist",
+      "preserve_content": true,
+      "enhancement_priority": ["diagrams", "badges", "callouts", "tables"]
+    },
+    "completion_notification": true
   }
 }

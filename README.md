@@ -28,6 +28,7 @@ Workstation is a **production-ready** browser automation platform that combines:
 - 📊 **Repo Update Agent** - Automated documentation sync running daily at 9 PM UTC (✅ NEW)
 - 📈 **Code Timeline Agent** - Daily code growth tracking with color-coded timeline at 7 AM UTC (✅ NEW)
 - 📚 **Wikibrarian Agent** - AI-powered wiki content management with daily updates at 6 AM UTC (✅ NEW)
+- 🎨 **Wiki-Artist Agent** - Visual design enhancement with agentic handoff at 6:46 AM UTC (✅ NEW)
 
 **Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, AI-powered browser automation, and automated code deployment workflows.
 
@@ -224,6 +225,7 @@ npm run test:chrome
 | [🛣️ Roadmap Progress](ROADMAP_PROGRESS.md) | **NEW!** Detailed phase completion tracking (15KB) |
 | [📋 Repo Update Tasks](REPO_UPDATE_TASKS.md) | **NEW!** Daily documentation sync task list (automated at 9 PM UTC) |
 | [📚 Wiki](../../wiki) | **NEW!** Self-updating knowledge library (Wikibrarian Agent, daily at 6 AM UTC) |
+| [🎨 Wiki-Artist Agent](agents/wiki-artist/README.md) | **NEW!** Visual design enhancement agent (agentic handoff at 6:46 AM UTC) |
 | [📖 Documentation Index](docs/DOCUMENTATION_INDEX.md) | Complete navigation of all docs |
 | [🎯 START_HERE.md](START_HERE.md) | 30-second quick start |
 | [🌐 Chrome Extension Guide](chrome-extension/README.md) | Complete Chrome extension documentation |

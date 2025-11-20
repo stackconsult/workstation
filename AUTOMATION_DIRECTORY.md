@@ -1,8 +1,8 @@
 # 🤖 Automation & Agent Directory
 
-**Last Updated**: 2025-11-20 16:41 UTC  
-**Total Automations**: 23 GitHub Actions workflows  
-**Total Agents**: 22 specialized agents  
+**Last Updated**: 2025-11-20 17:38 UTC  
+**Total Automations**: 24 GitHub Actions workflows  
+**Total Agents**: 24 specialized agents  
 **Status**: ✅ All operational
 
 ---
@@ -84,6 +84,7 @@ These agents are built and deployed to automate various workflows, both within t
 | 21 | **Agent 21** | Future | [agents/agent21/](agents/agent21/) | Reserved for future use | Utilities | - | 🔄 Planned |
 | 22 | **Repo Update Agent** | Documentation | [agents/repo-update-agent/](agents/repo-update-agent/) | Daily documentation sync at 9 PM UTC | Documentation | Daily | ✅ Active |
 | 23 | **Wikibrarian** | Documentation | [agents/wikibrarian/](agents/wikibrarian/) | AI-powered wiki content management at 6 AM UTC | Documentation | Daily | ✅ Active |
+| 24 | **Wiki-Artist** | Design | [agents/wiki-artist/](agents/wiki-artist/) | Visual design enhancement via agentic handoff at 6:46 AM UTC | Design | Daily | ✅ Active |
 
 **Note**: Agents that don't run in-repo have "-" for runs count as they're designed for external workflows.
 
@@ -106,11 +107,13 @@ Ensure code quality, testing, and validation.
 - **Agent 10**: Guard Rails - Validate against quality standards
 - **Agent 12**: QA Automation - Automated quality assurance processes
 
-### 3. Documentation (2 agents)
+### 3. Documentation (4 agents)
 Generate and maintain comprehensive documentation.
 
 - **Agent 4**: Documentation Generation - Auto-generate docs from code
 - **Repo Update Agent**: Daily Sync - Keep docs synchronized with code
+- **Wikibrarian**: AI Wiki Content - AI-powered wiki content management
+- **Wiki-Artist**: Visual Enhancement - Design and styling for wiki pages
 
 ### 4. Security (1 agent)
 Monitor and improve security posture.
@@ -142,7 +145,12 @@ Orchestrate multi-agent workflows.
 
 - **Agent 20**: Master Orchestrator - Coordinate complex agent interactions (40% complete)
 
-### 10. Utilities (5 agents)
+### 10. Design (1 agent)
+Visual enhancement and styling.
+
+- **Wiki-Artist**: Visual Design - Design enhancement with agentic handoff
+
+### 11. Utilities (5 agents)
 Specialized tasks and future expansion.
 
 - **Agent 13-15**: Various specialized tasks
