@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added - Playwright-Enhanced Agentic Browser Capabilities (2025-11-19)
+
+#### Chrome Extension Playwright Integration
+- **PlaywrightAutoWait Module** (315 lines): Intelligent element waiting with multi-strategy selectors
+  - Auto-waiting for element states (visible, enabled, attached)
+  - 8-strategy selector system (ARIA, data-testid, ID, name, placeholder, text, class, CSS path)
+  - Element actionability checks with coverage detection
+  - Navigation and network idle waiting
+  
+- **PlaywrightNetworkMonitor Module** (315 lines): Real-time network monitoring
+  - Fetch API and XMLHttpRequest interception
+  - Request/response tracking with performance metrics
+  - Network statistics and event listener system
+  - Wait for specific network requests completion
+  
+- **PlaywrightRetryManager Module** (299 lines): Self-healing workflow capabilities
+  - Exponential backoff with error classification
+  - Alternative selector discovery on failures
+  - Dynamic timeout adjustment for slow operations
+  - Network-aware retries with intelligent delays
+  
+- **PlaywrightExecution Module** (363 lines): Enhanced workflow execution
+  - Queue management with retry integration
+  - Step-by-step execution with auto-waiting
+  - Variable resolution and callback system
+  - Support for navigate, click, type, screenshot, wait actions
+
+#### Integration & Testing
+- Enhanced content script with multi-strategy selector recording
+- Updated background service worker with dual execution modes (local/remote)
+- Improved popup UI showing Playwright features
+- Comprehensive test script validating all 12 required files
+- Extension size: 65.75 KB (well within Chrome Web Store limits)
+
+#### Documentation
+- Created PLAYWRIGHT_FEATURES.md (15KB comprehensive guide)
+- API reference for all 4 Playwright modules
+- Usage examples and best practices
+- Troubleshooting guide and performance metrics
+
 ## [1.1.0] - 2024-11-17
 
 ### Added - MCP (Model Context Protocol) Integration

@@ -1,10 +1,21 @@
 /**
  * Workstation Chrome Extension - Background Service Worker
  * Handles JWT authentication and API communication with Workstation backend
+ * Enhanced with Playwright execution capabilities
  */
+
+// Import Playwright execution engine
+import { PlaywrightExecution } from './playwright/execution.js';
+import { PlaywrightRetryManager } from './playwright/retry.js';
 
 let workstationToken = '';
 const BACKEND_URL = 'http://localhost:3000';
+
+// Initialize Playwright execution engine
+const playwrightExecution = new PlaywrightExecution();
+const retryManager = new PlaywrightRetryManager();
+
+console.log('🚀 Workstation extension with Playwright capabilities initialized');
 
 // Initialize on extension install
 chrome.runtime.onInstalled.addListener(async () => {
@@ -23,7 +34,18 @@ chrome.runtime.onInstalled.addListener(async () => {
 // Message handler for popup and content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'executeWorkflow') {
-    executeWorkflow(request.workflow).then(sendResponse);
+    // Use Playwright execution engine for local execution
+    if (request.useLocal) {
+      const tabId = sender.tab?.id || request.tabId;
+      if (tabId) {
+        playwrightExecution.executeWorkflow(request.workflow, tabId, sendResponse);
+      } else {
+        sendResponse({ success: false, error: 'No tab ID provided' });
+      }
+    } else {
+      // Use backend API for server-side execution
+      executeWorkflow(request.workflow).then(sendResponse);
+    }
     return true; // Required for async response
   }
   
@@ -39,6 +61,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   if (request.action === 'clearRecordedActions') {
     clearRecordedActions().then(sendResponse);
+    return true;
+  }
+  
+  if (request.action === 'getExecutionStatus') {
+    const status = playwrightExecution.getExecutionStatus(request.executionId);
+    sendResponse({ success: true, status });
+    return true;
+  }
+  
+  if (request.action === 'cancelExecution') {
+    const cancelled = playwrightExecution.cancelExecution(request.executionId);
+    sendResponse({ success: cancelled });
     return true;
   }
 });

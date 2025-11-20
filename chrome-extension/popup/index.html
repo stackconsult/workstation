@@ -199,6 +199,33 @@
       color: white;
       text-decoration: underline;
     }
+
+    .playwright-features {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f0f4ff;
+      border-radius: 6px;
+      border-left: 4px solid #667eea;
+    }
+
+    .playwright-features h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #667eea;
+    }
+
+    .playwright-features ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .playwright-features li {
+      font-size: 12px;
+      padding: 4px 0;
+      color: #555;
+    }
   </style>
 </head>
 <body>
@@ -233,6 +260,17 @@
     <button id="executeBtn">
       🚀 Execute Workflow
     </button>
+    
+    <div class="playwright-features">
+      <h3>✨ Playwright Features</h3>
+      <ul>
+        <li>✅ Auto-waiting for elements</li>
+        <li>✅ Multi-strategy selectors</li>
+        <li>✅ Self-healing workflows</li>
+        <li>✅ Network monitoring</li>
+        <li>✅ Automatic retries</li>
+      </ul>
+    </div>
     
     <div class="status" id="status"></div>
     <div class="result" id="result"></div>

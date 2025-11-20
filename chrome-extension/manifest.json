@@ -28,7 +28,8 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "type": "module"
     }
   ],
   "icons": {
@@ -38,7 +39,18 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["injected-styles.css"],
+      "resources": [
+        "injected-styles.css",
+        "playwright/auto-wait.js",
+        "playwright/network.js",
+        "playwright/retry.js",
+        "playwright/execution.js",
+        "playwright/self-healing.js",
+        "playwright/form-filling.js",
+        "playwright/trace-recorder.js",
+        "playwright/agentic-network.js",
+        "playwright/context-learning.js"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

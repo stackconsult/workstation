@@ -1,46 +1,145 @@
 /**
  * Workstation Chrome Extension - Content Script
- * Runs on all pages to enable action recording
+ * Runs on all pages to enable action recording with Playwright auto-waiting
  */
+
+// Import Playwright utilities (inline for content script)
+import { PlaywrightAutoWait } from './playwright/auto-wait.js';
+import { PlaywrightNetworkMonitor } from './playwright/network.js';
+import { SelfHealingSelectors } from './playwright/self-healing.js';
+import { FormFillingAgent } from './playwright/form-filling.js';
+import { TraceRecorder } from './playwright/trace-recorder.js';
+import { AgenticNetworkMonitor } from './playwright/agentic-network.js';
+import { AgenticContextLearner } from './playwright/context-learning.js';
 
 let isRecording = false;
 let recordedActions = [];
+
+// Initialize Playwright components
+const networkMonitor = PlaywrightNetworkMonitor.getInstance();
+networkMonitor.setupInterception();
+
+const selfHealingSelectors = new SelfHealingSelectors();
+const formFillingAgent = new FormFillingAgent();
+const traceRecorder = new TraceRecorder();
+
+// Initialize agentic components
+const agenticNetworkMonitor = AgenticNetworkMonitor.getInstance();
+agenticNetworkMonitor.setupInterception();
+
+const agenticContextLearner = new AgenticContextLearner();
+agenticContextLearner.initialize().then(() => {
+  console.log('🧠 Agentic context learner initialized');
+});
+
+// Setup agentic network monitor listener
+agenticNetworkMonitor.addListener((eventType, data) => {
+  if (eventType === 'error') {
+    console.warn('🌐 Network error detected:', data);
+  }
+  if (eventType === 'info') {
+    console.log('ℹ️', data.message);
+  }
+});
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'startRecording') {
     isRecording = true;
     recordedActions = [];
+    
+    // Start trace recording
+    traceRecorder.startTrace({ name: 'User Recording' });
+    
     console.log('⏺️ Recording started');
     sendResponse({ success: true });
   }
   
   if (request.action === 'stopRecording') {
     isRecording = false;
+    
+    // Stop trace recording
+    const trace = traceRecorder.stopTrace();
+    
     console.log('⏹️ Recording stopped:', recordedActions);
     
     // Send recorded actions to background
     chrome.runtime.sendMessage({ 
       action: 'recordingComplete', 
-      actions: recordedActions 
+      actions: recordedActions,
+      trace: trace
     });
     
     sendResponse({ success: true, count: recordedActions.length });
   }
   
+  // Form detection and filling
+  if (request.action === 'detectForms') {
+    const forms = formFillingAgent.detectForms();
+    sendResponse({ success: true, forms });
+  }
+  
+  if (request.action === 'fillForm') {
+    formFillingAgent.fillForm(request.formInfo, request.data, request.options)
+      .then(result => sendResponse({ success: true, result }))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // Async response
+  }
+  
+  // Self-healing selector testing
+  if (request.action === 'findElementSelfHealing') {
+    selfHealingSelectors.findElement(request.selector, request.options)
+      .then(result => sendResponse({ success: true, result }))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // Async response
+  }
+  
+  // Trace management
+  if (request.action === 'getTraces') {
+    const traces = traceRecorder.getAllTraces();
+    sendResponse({ success: true, traces });
+  }
+  
+  if (request.action === 'analyzeTrace') {
+    const analysis = traceRecorder.analyzeTrace(request.traceId);
+    sendResponse({ success: true, analysis });
+  }
+  
   return true;
 });
 
-// Capture user interactions when recording
-document.addEventListener('click', (e) => {
+// Capture user interactions when recording with Playwright selector strategies
+document.addEventListener('click', async (e) => {
   if (isRecording) {
     const element = e.target;
-    const selector = getElementSelector(element);
+    
+    // Record in trace
+    traceRecorder.recordClick({
+      selector: selfHealingSelectors.generateSelector(element),
+      text: element.textContent?.trim().substring(0, 50) || '',
+      tagName: element.tagName,
+      coordinates: { x: e.clientX, y: e.clientY }
+    });
+    
+    // Get multiple selector strategies for robustness
+    const strategies = PlaywrightAutoWait.getSelectorStrategies(element);
+    const selector = strategies[0]; // Primary strategy
+    
+    // Also get self-healing strategies
+    const selfHealingStrategies = [
+      element.getAttribute('data-testid') ? `[data-testid="${element.getAttribute('data-testid')}"]` : null,
+      element.getAttribute('role') ? `[role="${element.getAttribute('role')}"]` : null,
+      element.id ? `#${element.id}` : null,
+      element.name ? `[name="${element.name}"]` : null
+    ].filter(Boolean);
+    
     const actionData = {
       agent_type: 'browser',
       action: 'click',
       parameters: { 
         selector,
+        alternativeSelectors: strategies.slice(1), // Fallback strategies
+        selfHealingSelectors: selfHealingStrategies,
         text: element.textContent?.trim().substring(0, 50) || ''
       },
       timestamp: Date.now()
@@ -56,18 +155,25 @@ document.addEventListener('click', (e) => {
     
     // Visual feedback
     highlightElement(element);
+    
+    console.log('🎯 Recorded click with strategies:', strategies.slice(0, 3));
   }
 }, true);
 
-document.addEventListener('input', (e) => {
+document.addEventListener('input', async (e) => {
   if (isRecording && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
     const element = e.target;
-    const selector = getElementSelector(element);
+    
+    // Get multiple selector strategies for robustness
+    const strategies = PlaywrightAutoWait.getSelectorStrategies(element);
+    const selector = strategies[0]; // Primary strategy
+    
     const actionData = {
       agent_type: 'browser',
       action: 'type',
       parameters: { 
-        selector, 
+        selector,
+        alternativeSelectors: strategies.slice(1), // Fallback strategies
         text: element.value,
         type: element.type || 'text'
       },
@@ -84,6 +190,8 @@ document.addEventListener('input', (e) => {
     
     // Visual feedback
     highlightElement(element);
+    
+    console.log('⌨️ Recorded input with strategies:', strategies.slice(0, 3));
   }
 });
 
@@ -113,43 +221,14 @@ new MutationObserver(() => {
 }).observe(document, { subtree: true, childList: true });
 
 /**
- * Get a unique selector for an element
+ * Get a unique selector for an element (legacy function, now uses Playwright strategies)
  * @param {HTMLElement} element - The element
  * @returns {string} CSS selector
  */
 function getElementSelector(element) {
-  // Try ID first
-  if (element.id) {
-    return `#${element.id}`;
-  }
-  
-  // Try name attribute
-  if (element.name) {
-    return `[name="${element.name}"]`;
-  }
-  
-  // Try data-testid or data-test
-  if (element.dataset.testid) {
-    return `[data-testid="${element.dataset.testid}"]`;
-  }
-  
-  if (element.dataset.test) {
-    return `[data-test="${element.dataset.test}"]`;
-  }
-  
-  // Try class if it's unique
-  if (element.className && typeof element.className === 'string') {
-    const classes = element.className.split(' ').filter(c => c);
-    if (classes.length > 0) {
-      const classSelector = `.${classes.join('.')}`;
-      if (document.querySelectorAll(classSelector).length === 1) {
-        return classSelector;
-      }
-    }
-  }
-  
-  // Fall back to nth-child
-  return `${element.tagName.toLowerCase()}:nth-child(${getChildIndex(element)})`;
+  // Use Playwright's multi-strategy selector system
+  const strategies = PlaywrightAutoWait.getSelectorStrategies(element);
+  return strategies[0] || `${element.tagName.toLowerCase()}:nth-child(${getChildIndex(element)})`;
 }
 
 /**
