@@ -42,14 +42,14 @@ jobs:
       
       - name: Build backup container
         run: |
-          docker-compose -f docker-compose.github-backup.yml build
+          docker compose -f docker-compose.github-backup.yml build
           echo "✅ Backup container built successfully" >> $GITHUB_STEP_SUMMARY
       
       - name: Start backup container
         env:
           GITHUB_PRIVATE_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
         run: |
-          docker-compose -f docker-compose.github-backup.yml up -d
+          docker compose -f docker-compose.github-backup.yml up -d
           echo "✅ Backup container started" >> $GITHUB_STEP_SUMMARY
           
           # Wait for container to be healthy
@@ -157,7 +157,7 @@ jobs:
       - name: Stop backup container
         if: always()
         run: |
-          docker-compose -f docker-compose.github-backup.yml down
+          docker compose -f docker-compose.github-backup.yml down
       
       - name: Create issue on backup failure
         if: failure() && github.event_name == 'schedule'

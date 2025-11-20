@@ -47,11 +47,11 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.agent }}" == "all" ]; then
             echo "Deploying all 20 agents..."
-            docker-compose -f docker-compose.mcp.yml up -d
+            docker compose -f docker-compose.mcp.yml up -d
           else
             AGENT_NUM=${{ github.event.inputs.agent }}
             echo "Deploying agent $AGENT_NUM..."
-            docker-compose -f docker-compose.mcp.yml up -d mcp-${AGENT_NUM}-*
+            docker compose -f docker-compose.mcp.yml up -d mcp-${AGENT_NUM}-*
           fi
       
       - name: Health check
