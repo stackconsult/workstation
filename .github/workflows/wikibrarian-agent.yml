@@ -35,6 +35,20 @@ jobs:
           repository: ${{ github.repository }}.wiki
           path: wiki
           token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        id: wiki_checkout
+      
+      - name: Check wiki availability
+        id: wiki_check
+        run: |
+          if [ -d "wiki/.git" ]; then
+            echo "wiki_available=true" >> $GITHUB_OUTPUT
+            echo "Wiki repository found"
+          else
+            echo "wiki_available=false" >> $GITHUB_OUTPUT
+            echo "Wiki repository not found - creating directory"
+            mkdir -p wiki
+          fi
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -57,7 +71,7 @@ jobs:
         id: scan
         run: |
           # Get recent commits (last 24 hours)
-          SINCE_TIME=$(date -u -d '24 hours ago' +'%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -v-24H +'%Y-%m-%dT%H:%M:%SZ')
+          SINCE_TIME=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)
           RECENT_COMMITS=$(git log --since="$SINCE_TIME" --oneline | wc -l)
           echo "recent_commits=$RECENT_COMMITS" >> $GITHUB_OUTPUT
           
@@ -86,13 +100,18 @@ jobs:
       
       - name: Generate wiki index
         run: |
-          cat > wiki/Home.md << 'EOF'
+          CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          TOMORROW=$(date -u -d "+1 day" +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d)
+          NEXT_UPDATE="${TOMORROW} 06:00 UTC"
+          SINCE_TIME=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)
+          
+          cat > wiki/Home.md << EOF
 # 📚 Workstation Wiki - Self-Updating Knowledge Library
 
 Welcome to the Workstation wiki - an expertly curated, self-updating library of informational, educational, and guiding material maintained by the **Wikibrarian Agent**.
 
-**Last Updated**: $(date -u +'%Y-%m-%d %H:%M UTC')  
-**Next Update**: $(date -u -d 'tomorrow 06:00' +'%Y-%m-%d 06:00 UTC' 2>/dev/null || date -u -v+1d -v6H +'%Y-%m-%d 06:00 UTC')  
+**Last Updated**: ${CURRENT_DATE}  
+**Next Update**: ${NEXT_UPDATE}  
 **Maintained by**: Wikibrarian Agent v1.0.0
 
 ---
@@ -210,7 +229,12 @@ Every wiki page follows these principles:
 
 ## 🔄 Recent Updates
 
-$(git log --since="$SINCE_TIME" --pretty=format:"- %h: %s" --max-count=5 || echo "- No recent updates")
+EOF
+
+          # Add recent commits
+          git log --since="$SINCE_TIME" --pretty=format:"- %h: %s" --max-count=5 >> wiki/Home.md || echo "- No recent updates" >> wiki/Home.md
+          
+          cat >> wiki/Home.md << EOF
 
 ---
 
@@ -234,7 +258,9 @@ EOF
       
       - name: Create/Update Quick Start tab
         run: |
-          cat > wiki/Quick-Start.md << 'EOF'
+          CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
+          cat > wiki/Quick-Start.md << EOF
 # 🎯 Quick Start
 
 **Description**: Fast-track onboarding to get new contributors productive in minutes  
@@ -410,19 +436,24 @@ After quick start, dive deeper:
 
 ---
 
-**Last Updated**: $(date -u +'%Y-%m-%d %H:%M UTC')  
+**Last Updated**: ${CURRENT_DATE}  
 **Maintained by**: Wikibrarian Agent  
 **Complexity**: ⭐ Basic
 EOF
       
       - name: Update MCP container memory
         run: |
-          cat > agents/wikibrarian/mcp-memory.json << 'EOF'
+          MEMORY_DATE=$(date -u +%Y-%m-%d)
+          MEMORY_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
+          mkdir -p agents/wikibrarian
+          
+          cat > agents/wikibrarian/mcp-memory.json << EOF
 {
   "memory": {
     "content_history": [
       {
-        "date": "$(date -u +'%Y-%m-%d')",
+        "date": "${MEMORY_DATE}",
         "tabs_updated": ["Home", "Quick-Start"],
         "quality_score": 85
       }
@@ -439,7 +470,7 @@ EOF
     },
     "work_log": [
       {
-        "timestamp": "$(date -u +'%Y-%m-%d %H:%M UTC')",
+        "timestamp": "${MEMORY_TIME}",
         "action": "initial_wiki_setup",
         "tabs_created": 2,
         "commits": ${{ steps.scan.outputs.recent_commits }},
@@ -451,8 +482,10 @@ EOF
 EOF
       
       - name: Commit wiki changes
-        if: github.event.inputs.dry_run != 'true'
+        if: github.event.inputs.dry_run != 'true' && steps.wiki_check.outputs.wiki_available == 'true'
         run: |
+          COMMIT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
           cd wiki
           git config user.name "Wikibrarian Agent"
           git config user.email "wikibrarian@workstation.github.io"
@@ -462,7 +495,7 @@ EOF
           if git diff --staged --quiet; then
             echo "No wiki changes to commit"
           else
-            git commit -m "📚 Daily wiki update - $(date -u +'%Y-%m-%d %H:%M UTC')
+            git commit -m "📚 Daily wiki update - ${COMMIT_DATE}
 
             - Updated Home index
             - Updated Quick-Start guide
@@ -479,6 +512,8 @@ EOF
       - name: Commit MCP memory
         if: github.event.inputs.dry_run != 'true'
         run: |
+          COMMIT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
           git config user.name "Wikibrarian Agent"
           git config user.email "wikibrarian@workstation.github.io"
           
@@ -487,7 +522,7 @@ EOF
           if git diff --staged --quiet; then
             echo "No memory changes to commit"
           else
-            git commit -m "🧠 Update Wikibrarian MCP memory - $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "Nothing to commit"
+            git commit -m "🧠 Update Wikibrarian MCP memory - ${COMMIT_DATE}" || echo "Nothing to commit"
             git push || echo "Nothing to push"
           fi
       
