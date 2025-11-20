@@ -3,7 +3,7 @@
  * PostgreSQL connection pool for SaaS platform
  */
 
-import { Pool, PoolClient, QueryResult } from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { logger } from '../utils/logger';
 import dotenv from 'dotenv';
 
@@ -44,7 +44,7 @@ pool.query('SELECT NOW()', (err, res) => {
 /**
  * Execute a query
  */
-export async function query<T = any>(
+export async function query<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {

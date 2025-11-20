@@ -4,7 +4,7 @@
  */
 
 import { getMessageBroker, MCPMessage, TaskMessage, StatusMessage, ResultMessage } from './message-broker';
-import { getAgentOrchestrator } from './agent-orchestrator';
+import { agentOrchestrator } from './agent-orchestrator';
 
 export interface MCPRequest {
   id: string;
@@ -34,7 +34,7 @@ export interface MCPNotification {
 
 export class MCPProtocol {
   private messageBroker = getMessageBroker();
-  private agentOrchestrator = getAgentOrchestrator();
+  private orchestrator = agentOrchestrator;
   private requestHandlers: Map<string, (params: any, context: any) => Promise<any>> = new Map();
   private notificationHandlers: Map<string, (params: any) => void> = new Map();
 
@@ -52,17 +52,17 @@ export class MCPProtocol {
       const { workflowId, actions } = params;
       
       // Create task via agent orchestrator
-      const task = await this.agentOrchestrator.createTask({
-        agentId: params.agentId || '1', // Default to agent 1
-        type: 'execute-workflow',
-        payload: { workflowId, actions },
-        priority: params.priority || 5,
-        userId: context.userId,
-      });
+      const taskId = await this.orchestrator.createTask(
+        params.agentId || '1', // Default to agent 1
+        'execute-workflow',
+        { workflowId, actions },
+        context.userId || 'system',
+        params.priority || 5
+      );
 
       return {
-        taskId: task.id,
-        status: task.status,
+        taskId,
+        status: 'queued',
         message: 'Workflow execution started',
       };
     });
@@ -70,7 +70,7 @@ export class MCPProtocol {
     // Get task status handler
     this.registerRequestHandler('get_task_status', async (params) => {
       const { taskId } = params;
-      const status = await this.agentOrchestrator.getTaskStatus(taskId);
+      const status = await this.orchestrator.getTaskStatus(taskId);
       return status;
     });
 
@@ -94,7 +94,7 @@ export class MCPProtocol {
     // Agent health check
     this.registerRequestHandler('health_check', async (params) => {
       const { agentId } = params;
-      const stats = await this.agentOrchestrator.getAgentStatistics(agentId);
+      const stats = await this.orchestrator.getAgentStatistics(agentId);
       return {
         healthy: stats.healthStatus === 'healthy',
         stats,

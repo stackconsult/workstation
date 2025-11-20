@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, Application } from 'express';
 import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
-import { getDatabase } from '../db/connection';
+import { getDatabase } from '../automation/db/database';
 import os from 'os';
 
 // Collect default metrics (CPU, memory, etc.)

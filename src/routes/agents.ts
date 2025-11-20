@@ -94,7 +94,7 @@ router.post('/:id/start', authenticateToken, async (req: AuthenticatedRequest, r
     logger.error('Agent start error:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to start agent'
+      error: (error as Error).message || 'Failed to start agent'
     });
   }
 });
@@ -120,7 +120,7 @@ router.post('/:id/stop', authenticateToken, async (req: AuthenticatedRequest, re
     logger.error('Agent stop error:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to stop agent'
+      error: (error as Error).message || 'Failed to stop agent'
     });
   }
 });
@@ -202,7 +202,7 @@ router.post('/tasks', authenticateToken, async (req: AuthenticatedRequest, res: 
     logger.error('Task creation error:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to create task'
+      error: (error as Error).message || 'Failed to create task'
     });
   }
 });
