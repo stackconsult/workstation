@@ -20,7 +20,30 @@
     "useCases": {
       "dev": true,
       "business": true
+    },
+    "contentDepth": {
+      "enabled": true,
+      "termExplanations": true,
+      "conceptIntroductions": true,
+      "whenToUse": true,
+      "whenNotToUse": true,
+      "howToImplement": true,
+      "groundingContext": true,
+      "backgroundKnowledge": true,
+      "useCaseExamples": true,
+      "linkingStrategy": "comprehensive"
     }
+  },
+  "agenticHandoff": {
+    "enabled": true,
+    "targetAgent": "wiki-artist",
+    "handoffTiming": "after-content-complete",
+    "handoffData": {
+      "updatedPages": true,
+      "enhancementType": true,
+      "preserveContent": true
+    },
+    "mcpNotification": true
   },
   "rssSources": [
     {

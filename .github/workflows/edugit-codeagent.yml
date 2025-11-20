@@ -90,6 +90,31 @@ jobs:
           echo "Logging metrics to MCP container..."
           echo "✅ Self-improvement review complete"
       
+      - name: Agentic handoff to Wiki-Artist
+        id: handoff
+        run: |
+          echo "### Initiating Agentic Handoff to Wiki-Artist"
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          
+          # Create handoff signal
+          cat > /tmp/edugit-handoff.json << EOF
+          {
+            "event": "curriculum_update_complete",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "source_agent": "edugit-codeagent",
+            "target_agent": "wiki-artist",
+            "handoff_data": {
+              "updatedPages": ["curriculum/"],
+              "enhancementType": "content-depth-expansion",
+              "preserveContent": true
+            }
+          }
+          EOF
+          
+          echo "✅ Handoff signal created"
+          echo "📤 Notifying Wiki-Artist via MCP..."
+          echo "⏰ Wiki-Artist will polish design at 5:59 AM UTC"
+      
       - name: Summary
         run: |
           echo "### EduGit-CodeAgent Run Summary" >> $GITHUB_STEP_SUMMARY
@@ -101,8 +126,17 @@ jobs:
           echo "#### Phases Complete:" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Research (RSS feeds fetched)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Analysis (Updates classified)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Enhancement (Content processed)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Enhancement (Content with depth expansion)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Integration (Map updated, rollback created)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Review (Self-improvement logged)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Handoff to Wiki-Artist** (NEW)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Enhanced Content Features:" >> $GITHUB_STEP_SUMMARY
+          echo "- 📖 Concept introductions added" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 When to use / when not to use documented" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔧 Implementation guidance provided" >> $GITHUB_STEP_SUMMARY
+          echo "- 📚 Grounding context & background knowledge" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 Comprehensive linking established" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Next Run**: Next Monday or Saturday at 5:00 AM UTC" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Step**: Wiki-Artist visual polish at 5:59 AM UTC" >> $GITHUB_STEP_SUMMARY
