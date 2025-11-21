@@ -11,11 +11,21 @@ module.exports = {
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@octokit/rest$': '<rootDir>/tests/__mocks__/@octokit/rest.ts',
   },
+  globals: {
+    'ts-jest': {
+      tsconfig: {
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        types: ['node', 'jest'],
+      },
+    },
+  },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
+        types: ['node', 'jest'],
       },
     }],
   },

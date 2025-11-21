@@ -3,23 +3,6 @@
  * Mocks external dependencies that cause ESM import issues
  */
 
-// Mock @octokit/rest to avoid ESM import issues in tests
-jest.mock('@octokit/rest', () => {
-  return {
-    Octokit: jest.fn().mockImplementation(() => ({
-      rest: {
-        pulls: {
-          list: jest.fn().mockResolvedValue({ data: [] }),
-          create: jest.fn().mockResolvedValue({ data: { number: 1 } }),
-        },
-        repos: {
-          get: jest.fn().mockResolvedValue({ data: { default_branch: 'main' } }),
-        },
-      },
-    })),
-  };
-});
-
 // Suppress console logs during tests unless they're errors
 const originalConsole = { ...console };
 global.console = {
