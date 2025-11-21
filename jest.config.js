@@ -13,10 +13,8 @@ module.exports = {
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: {
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-      },
+      tsconfig: 'tsconfig.test.json',
+      useESM: false,
     }],
   },
   extensionsToTreatAsEsm: ['.ts'],

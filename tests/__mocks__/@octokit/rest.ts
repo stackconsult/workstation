@@ -10,12 +10,10 @@ export class Octokit {
 
   rest = {
     pulls: {
-      list: jest.fn().mockResolvedValue({ 
-        data: [] 
-      }),
-      create: jest.fn().mockResolvedValue({ 
-        data: { 
-          number: 1, 
+      list: jest.fn().mockResolvedValue({ data: [] }),
+      create: jest.fn().mockResolvedValue({
+        data: {
+          number: 1,
           title: 'Test PR',
           html_url: 'https://github.com/test/test/pull/1',
           state: 'open',
@@ -24,20 +22,10 @@ export class Octokit {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           user: { login: 'testuser' }
-        } 
+        }
       }),
-      get: jest.fn().mockResolvedValue({ 
-        data: { 
-          number: 1, 
-          state: 'open' 
-        } 
-      }),
-      update: jest.fn().mockResolvedValue({ 
-        data: { 
-          number: 1, 
-          state: 'closed' 
-        } 
-      }),
+      get: jest.fn().mockResolvedValue({ data: { number: 1, state: 'open' } }),
+      update: jest.fn().mockResolvedValue({ data: { number: 1, state: 'closed' } }),
     },
     repos: {
       get: jest.fn().mockResolvedValue({
@@ -47,9 +35,7 @@ export class Octokit {
           full_name: 'creditXcredit/workstation'
         }
       }),
-      listBranches: jest.fn().mockResolvedValue({ 
-        data: [] 
-      }),
+      listBranches: jest.fn().mockResolvedValue({ data: [] }),
     },
     git: {
       getRef: jest.fn().mockResolvedValue({ 
@@ -58,7 +44,7 @@ export class Octokit {
           object: { sha: 'abc123' } 
         } 
       }),
-    },
+    }
   };
 }
 

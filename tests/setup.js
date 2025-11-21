@@ -3,6 +3,8 @@
  * Mocks external dependencies that cause ESM import issues
  */
 
+/// <reference types="jest" />
+
 // Mock @octokit/rest to avoid ESM import issues in tests
 jest.mock('@octokit/rest', () => {
   return {

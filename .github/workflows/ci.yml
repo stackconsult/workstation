@@ -30,51 +30,9 @@ jobs:
       # 📊 Install Graphviz for dependency graph generation (required by madge)
       - name: Install Graphviz
         run: sudo apt-get update && sudo apt-get install -y graphviz
-      # 🔥 Install Playwright Browsers (Full) - REQUIRED for browser automation tests
-      - name: Install Playwright Browsers (Full)
-        if: matrix.node-version == '20.x'
-        run: npx playwright install --with-deps
-      
-      # 📊 Install Graphviz for dependency graph generation
-      - name: Install Graphviz
-        run: sudo apt-get update && sudo apt-get install -y graphviz
-      # 📊 Install Graphviz for dependency graph generation (before madge)
-      - name: Install Graphviz
-        run: sudo apt-get update && sudo apt-get install -y graphviz
         continue-on-error: true
       
-      - name: Generate dependency map
-        run: |
-          npm install -g madge
-          madge --image dependency-graph.svg --extensions ts,js src
-        continue-on-error: true
-      
-      - name: Upload dependency graph
-        if: matrix.node-version == '20.x'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-graph
-          path: dependency-graph.svg
-        continue-on-error: true
-      
-      - name: Generate documentation
-        run: |
-          npm install -g typedoc
-          npx typedoc --out docs-generated src
-        continue-on-error: true
-      
-      - name: Upload generated documentation
-        if: matrix.node-version == '20.x'
-        uses: actions/upload-artifact@v4
-        with:
-          name: documentation
-          path: docs-generated
-      # 📊 Install Graphviz for dependency graph generation (required for madge)
-      - name: Install Graphviz
-        run: sudo apt-get update && sudo apt-get install -y graphviz
-        continue-on-error: true
-      
-      # 🔥 Install Playwright Browsers (Full) - REQUIRED for browser automation tests
+      # 🔥 Install Playwright Browsers - REQUIRED for browser automation tests
       - name: Install Playwright Browsers (Full)
         if: matrix.node-version == '20.x'
         run: npx playwright install --with-deps
@@ -94,15 +52,6 @@ jobs:
       
       # 📦 Component Mapping & Documentation Generation (only on Node 20.x)
       - name: Generate dependency map
-        run: |
-          npm install -g madge
-          madge --image dependency-graph.svg --extensions ts,js src
-        continue-on-error: true  # Don't fail build if madge has issues
-      
-      - name: Generate documentation
-        run: |
-          npm install -g typedoc
-          npx typedoc --out docs-generated src
         if: matrix.node-version == '20.x'
         run: |
           npm install -g madge
@@ -113,15 +62,8 @@ jobs:
         if: matrix.node-version == '20.x'
         run: |
           npm install -g typedoc
-          npx typedoc --out docs-generated src
+          npx typedoc --out docs-generated src --skipErrorChecking
         continue-on-error: true
-        run: npx madge --image dependency-graph.svg --extensions ts,js .
-        continue-on-error: true  # Don't fail build if madge has issues
-      
-      - name: Generate documentation
-        if: matrix.node-version == '20.x'
-        run: npx typedoc --out docs/api src --skipErrorChecking
-        continue-on-error: true  # Don't fail build if typedoc has issues
       
       - name: Upload dependency graph
         if: matrix.node-version == '20.x'
