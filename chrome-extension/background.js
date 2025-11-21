@@ -1,6 +1,7 @@
 /**
  * Workstation Chrome Extension - Background Service Worker
  * Handles JWT authentication and API communication with Workstation backend
+ * Enhanced with Playwright execution capabilities and auto-connect
  * Enhanced with Playwright execution capabilities and full backend integration
  */
 
@@ -43,10 +44,63 @@ agenticContextLearner.initialize().then(() => {
 
 console.log('🚀 Workstation extension with full backend integration initialized');
 
+// Auto-connect functionality
+async function autoConnectToBackend() {
+  const urlsToTry = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080'
+  ];
+  
+  for (const url of urlsToTry) {
+    try {
+      const response = await fetch(`${url}/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(3000)
+      });
+      
+      if (response.ok) {
+        console.log(`✓ Found backend at ${url}`);
+        backendUrl = url;
+        settings.backendUrl = url;
+        
+        // Save to storage
+        await chrome.storage.local.set({ settings });
+        
+        // Try to get token
+        const tokenResponse = await fetch(`${url}/auth/demo-token`);
+        if (tokenResponse.ok) {
+          const data = await tokenResponse.json();
+          workstationToken = data.token;
+          await chrome.storage.local.set({ workstationToken, authToken: data.token });
+          console.log('✅ Auto-connect successful with token');
+          
+          // Update badge
+          chrome.action.setBadgeText({ text: '✓' });
+          chrome.action.setBadgeBackgroundColor({ color: '#00AA00' });
+          
+          return true;
+        }
+      }
+    } catch (error) {
+      // Try next URL
+      continue;
+    }
+  }
+  
+  // No backend found
+  console.log('✗ No backend server detected. Run: npm start');
+  chrome.action.setBadgeText({ text: '✗' });
+  chrome.action.setBadgeBackgroundColor({ color: '#AA0000' });
+  return false;
+}
+
 // Initialize on extension install
 chrome.runtime.onInstalled.addListener(async () => {
   try {
-    console.log('🚀 Workstation extension installed, fetching JWT token...');
+    console.log('🚀 Workstation extension installed, auto-connecting...');
+    
     // Load settings
     const stored = await chrome.storage.local.get(['settings']);
     if (stored.settings) {
@@ -54,6 +108,78 @@ chrome.runtime.onInstalled.addListener(async () => {
       backendUrl = settings.backendUrl;
     }
     
+    // Try auto-connect
+    await autoConnectToBackend();
+  } catch (error) {
+    console.error('❌ Failed to auto-connect:', error);
+  }
+});
+
+// Also try auto-connect on startup
+chrome.runtime.onStartup.addListener(async () => {
+  console.log('🔄 Extension started, attempting auto-connect...');
+  await autoConnectToBackend();
+});
+
+// Monitor connection periodically - only start after initial setup
+let connectionMonitoringStarted = false;
+
+async function startConnectionMonitoring() {
+  if (connectionMonitoringStarted) return;
+  connectionMonitoringStarted = true;
+  
+  setInterval(async () => {
+    // Only monitor if we have a backend URL
+    if (!backendUrl) return;
+    
+    try {
+      const response = await fetch(`${backendUrl}/health`, {
+        signal: AbortSignal.timeout(2000)
+      });
+      
+      if (response.ok) {
+        chrome.action.setBadgeText({ text: '✓' });
+        chrome.action.setBadgeBackgroundColor({ color: '#00AA00' });
+      } else {
+        chrome.action.setBadgeText({ text: '✗' });
+        chrome.action.setBadgeBackgroundColor({ color: '#AA0000' });
+      }
+    } catch (error) {
+      chrome.action.setBadgeText({ text: '✗' });
+      chrome.action.setBadgeBackgroundColor({ color: '#AA0000' });
+    }
+  }, 10000); // Check every 10 seconds
+}
+
+// Start monitoring after successful initialization
+chrome.runtime.onInstalled.addListener(async () => {
+  try {
+    console.log('🚀 Workstation extension installed, auto-connecting...');
+    
+    // Load settings
+    const stored = await chrome.storage.local.get(['settings']);
+    if (stored.settings) {
+      settings = { ...settings, ...stored.settings };
+      backendUrl = settings.backendUrl;
+    }
+    
+    // Try auto-connect
+    await autoConnectToBackend();
+    
+    // Start connection monitoring
+    startConnectionMonitoring();
+  } catch (error) {
+    console.error('❌ Failed to auto-connect:', error);
+  }
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  console.log('🔄 Extension started, attempting auto-connect...');
+  await autoConnectToBackend();
+  
+  // Start connection monitoring
+  startConnectionMonitoring();
+});
     // Initialize API Bridge
     const response = await fetch(`${backendUrl}/auth/demo-token`);
     if (!response.ok) {

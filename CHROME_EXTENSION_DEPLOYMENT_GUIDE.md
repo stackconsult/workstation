@@ -1,6 +1,25 @@
 # Chrome Extension Deployment Guide
 
-## Quick Start
+## 🚀 RECOMMENDED: One-Click Deployment
+
+**The easiest way to deploy everything:**
+
+```bash
+./one-click-deploy.sh
+```
+
+This automatically:
+- Builds the backend
+- Builds and loads the Chrome extension
+- Starts the server
+- Opens Chrome with the workflow builder
+- Auto-connects all components
+
+See [ONE_CLICK_DEPLOYMENT.md](ONE_CLICK_DEPLOYMENT.md) for details.
+
+---
+
+## Quick Start (Manual)
 
 ### For Developers
 

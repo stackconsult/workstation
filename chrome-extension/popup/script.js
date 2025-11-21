@@ -1,8 +1,13 @@
 /**
  * Workstation Chrome Extension - Popup Script
  * Handles UI interactions and communication with background script
- * v1.1 Features: History, Save/Load, Settings, Status Polling
+ * v1.2 Features: Auto-connect, Builder integration, Connection status
  */
+
+// DOM elements - Connection Status
+const connectionStatus = document.getElementById('connectionStatus');
+const connectionIndicator = document.getElementById('connectionIndicator');
+const connectionText = document.getElementById('connectionText');
 
 // DOM elements - Execute Tab
 const recordBtn = document.getElementById('recordBtn');
@@ -47,15 +52,114 @@ let settings = {
   pollInterval: 2000,
   autoRetry: true
 };
+let isConnected = false;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+  await checkConnectionStatus();
   await loadSettings();
   await loadRecordedActions();
   await loadHistory();
   await loadTemplates();
   setupTabNavigation();
+  setupBuilderButtons();
+  
+  // Check connection periodically
+  setInterval(checkConnectionStatus, 10000);
 });
+
+/**
+ * Check backend connection status
+ */
+async function checkConnectionStatus() {
+  try {
+    const response = await fetch(`${settings.backendUrl}/health`, {
+      signal: AbortSignal.timeout(3000)
+    });
+    
+    if (response.ok) {
+      updateConnectionStatus(true, `Connected to ${settings.backendUrl}`);
+    } else {
+      updateConnectionStatus(false, 'Backend server not responding');
+    }
+  } catch (error) {
+    updateConnectionStatus(false, 'Backend server offline. Run: npm start');
+  }
+}
+
+/**
+ * Update connection status UI
+ */
+function updateConnectionStatus(connected, message) {
+  isConnected = connected;
+  
+  if (connected) {
+    connectionIndicator.style.background = '#00AA00';
+    connectionStatus.style.background = '#e8f5e9';
+    connectionStatus.style.borderLeft = '3px solid #00AA00';
+  } else {
+    connectionIndicator.style.background = '#AA0000';
+    connectionStatus.style.background = '#ffebee';
+    connectionStatus.style.borderLeft = '3px solid #AA0000';
+  }
+  
+  connectionText.textContent = message;
+}
+
+/**
+ * Setup Builder tab buttons
+ */
+function setupBuilderButtons() {
+  // Open Builder button
+  openBuilderBtn.addEventListener('click', async () => {
+    if (!isConnected) {
+      showStatus('Backend server not running. Please start the server first.', 'error');
+      return;
+    }
+    
+    const url = `${settings.backendUrl}/workflow-builder.html`;
+    chrome.tabs.create({ url });
+  });
+  
+  // New Workflow button
+  newWorkflowBtn.addEventListener('click', async () => {
+    if (!isConnected) {
+      showStatus('Backend server not running. Please start the server first.', 'error');
+      return;
+    }
+    
+    const url = `${settings.backendUrl}/workflow-builder.html?new=true`;
+    chrome.tabs.create({ url });
+  });
+  
+  // Load Workflow button
+  loadWorkflowBtn.addEventListener('click', async () => {
+    if (!isConnected) {
+      showStatus('Backend server not running. Please start the server first.', 'error');
+      return;
+    }
+    
+    try {
+      const token = await getToken();
+      const response = await fetch(`${settings.backendUrl}/api/v2/workflows`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && data.data.length > 0) {
+          const firstWorkflow = data.data[0];
+          const url = `${settings.backendUrl}/workflow-builder.html?id=${firstWorkflow.id}`;
+          chrome.tabs.create({ url });
+        } else {
+          showStatus('No saved workflows found', 'info');
+        }
+      }
+    } catch (error) {
+      showStatus('Failed to load workflows: ' + error.message, 'error');
+    }
+  });
+}
 
 /**
  * Tab Navigation

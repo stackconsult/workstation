@@ -4,7 +4,64 @@
 
 ---
 
-## 📋 Table of Contents
+## 🚀 ONE-CLICK DEPLOYMENT (RECOMMENDED)
+
+### Option 1: Enhanced Deployment (Production-Ready)
+
+**For production use with checkpoint/resume and rollback:**
+
+```bash
+# Clone the repository (if you haven't already)
+git clone https://github.com/creditXcredit/workstation.git
+cd workstation
+
+# Run the ENHANCED one-click deployment script
+./one-click-deploy-enhanced.sh
+```
+
+**Enhanced features:**
+- ✅ Checkpoint/resume capability (resume from failures)
+- ✅ Automatic retry with exponential backoff
+- ✅ Pre-deployment snapshots for rollback
+- ✅ Comprehensive health checks + smoke tests
+- ✅ Persistent logging with rotation
+- ✅ Better cross-platform support
+- ✅ Graceful error handling
+
+**Time to fully operational**: ~2-4 minutes
+
+See [ENHANCED_DEPLOYMENT_GUIDE.md](ENHANCED_DEPLOYMENT_GUIDE.md) for detailed information.
+
+### Option 2: Basic Deployment (Quick Start)
+
+**For quick testing and development:**
+
+```bash
+# Clone the repository (if you haven't already)
+git clone https://github.com/creditXcredit/workstation.git
+cd workstation
+
+# Run the basic one-click deployment script
+./one-click-deploy.sh
+```
+
+**Basic features:**
+- ✅ Install all dependencies automatically
+- ✅ Build TypeScript code
+- ✅ Build and load Chrome extension
+- ✅ Start the backend server
+- ✅ Open Chrome with workflow builder
+- ✅ Auto-connect everything
+
+**Time to fully operational**: ~2-3 minutes
+
+**Manual steps required**: 0 (after running the script)
+
+See [ONE_CLICK_DEPLOYMENT.md](ONE_CLICK_DEPLOYMENT.md) for detailed information.
+
+---
+
+## 📋 Table of Contents (Manual Setup)
 
 1. [Start the Server](#1-start-the-server)
 2. [Access the Visual Workflow Builder](#2-access-the-visual-workflow-builder)
