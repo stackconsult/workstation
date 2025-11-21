@@ -7,8 +7,26 @@ import { Router, Response } from 'express';
 import { authenticateToken, AuthenticatedRequest } from '../auth/jwt';
 import db from '../db/connection';
 import { logger } from '../utils/logger';
+import { promises as fs } from 'fs';
+import { join } from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const router = Router();
+const execAsync = promisify(exec);
+
+// Cache for repository statistics
+interface RepoStatsCache {
+  data: any;
+  timestamp: number;
+  ttl: number;
+}
+
+let repoStatsCache: RepoStatsCache = {
+  data: null,
+  timestamp: 0,
+  ttl: 5 * 60 * 1000 // 5 minutes cache
+};
 
 /**
  * Get user dashboard data
@@ -199,6 +217,196 @@ router.get('/analytics', authenticateToken, async (req: AuthenticatedRequest, re
     res.status(500).json({
       success: false,
       error: 'Failed to fetch analytics'
+    });
+  }
+});
+
+/**
+ * Get public repository statistics (no auth required)
+ * GET /api/dashboard/repo-stats
+ * Returns cached stats with auto-refresh
+ */
+router.get('/repo-stats', async (req, res: Response) => {
+  try {
+    const now = Date.now();
+    
+    // Return cached data if still valid
+    if (repoStatsCache.data && (now - repoStatsCache.timestamp < repoStatsCache.ttl)) {
+      return res.json({
+        success: true,
+        data: repoStatsCache.data,
+        cached: true,
+        cacheAge: Math.floor((now - repoStatsCache.timestamp) / 1000),
+        nextUpdate: Math.floor((repoStatsCache.ttl - (now - repoStatsCache.timestamp)) / 1000)
+      });
+    }
+
+    // Collect fresh statistics
+    const stats: any = {
+      timestamp: new Date().toISOString(),
+      repository: {
+        name: 'creditXcredit/workstation',
+        description: 'Privacy-First Browser Automation Platform'
+      }
+    };
+
+    try {
+      // Get file counts
+      const { stdout: totalFiles } = await execAsync('git ls-files | wc -l');
+      stats.files = {
+        total: parseInt(totalFiles.trim()) || 0
+      };
+
+      // Get TypeScript files
+      const { stdout: tsFiles } = await execAsync('find src -name "*.ts" 2>/dev/null | wc -l');
+      stats.files.typescript = parseInt(tsFiles.trim()) || 0;
+
+      // Get test files
+      const { stdout: testFiles } = await execAsync('find tests -name "*.test.ts" -o -name "*.spec.ts" 2>/dev/null | wc -l');
+      stats.files.tests = parseInt(testFiles.trim()) || 0;
+
+      // Get documentation files
+      const { stdout: docFiles } = await execAsync('find . -name "*.md" -not -path "./node_modules/*" 2>/dev/null | wc -l');
+      stats.files.documentation = parseInt(docFiles.trim()) || 0;
+
+      // Get lines of code
+      const { stdout: productionLoc } = await execAsync('find src -name "*.ts" -o -name "*.js" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk \'{print $1}\'');
+      stats.codeMetrics = {
+        productionLoc: parseInt(productionLoc.trim()) || 0
+      };
+
+      const { stdout: testLoc } = await execAsync('find tests -name "*.ts" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk \'{print $1}\'');
+      stats.codeMetrics.testLoc = parseInt(testLoc.trim()) || 0;
+
+      // Get agent count
+      const { stdout: agents } = await execAsync('ls -d agents/*/ 2>/dev/null | wc -l');
+      stats.infrastructure = {
+        agents: parseInt(agents.trim()) || 0
+      };
+
+      // Get MCP containers count
+      const { stdout: containers } = await execAsync('ls -d mcp-containers/*/ 2>/dev/null | wc -l');
+      stats.infrastructure.mcpContainers = parseInt(containers.trim()) || 0;
+
+      // Get workflows count
+      const { stdout: workflows } = await execAsync('ls -1 .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l');
+      stats.infrastructure.workflows = parseInt(workflows.trim()) || 0;
+
+      // Get recent commits (last 24 hours)
+      try {
+        const { stdout: recentCommits } = await execAsync('git log --since="24 hours ago" --oneline | wc -l');
+        stats.activity = {
+          commitsLast24h: parseInt(recentCommits.trim()) || 0
+        };
+      } catch (error) {
+        stats.activity = { commitsLast24h: 0 };
+      }
+
+      // Read REPO_UPDATE_TASKS.md for last update time
+      try {
+        const tasksPath = join(process.cwd(), 'REPO_UPDATE_TASKS.md');
+        const tasksContent = await fs.readFile(tasksPath, 'utf-8');
+        const lastUpdatedMatch = tasksContent.match(/\*\*Last Updated\*\*:\s*(.+)/);
+        if (lastUpdatedMatch) {
+          stats.lastAutoUpdate = lastUpdatedMatch[1].trim();
+        }
+      } catch (error) {
+        stats.lastAutoUpdate = 'Unknown';
+      }
+
+      // Add agent status
+      stats.agentSystem = {
+        totalAgents: stats.infrastructure.agents,
+        activeAgents: stats.infrastructure.agents, // Assume all active
+        status: 'operational'
+      };
+
+    } catch (error: any) {
+      logger.error('Error collecting repo statistics:', error);
+      stats.error = 'Some statistics may be incomplete';
+      stats.errorDetails = error.message;
+    }
+
+    // Update cache
+    repoStatsCache = {
+      data: stats,
+      timestamp: now,
+      ttl: repoStatsCache.ttl
+    };
+
+    res.json({
+      success: true,
+      data: stats,
+      cached: false,
+      nextUpdate: Math.floor(repoStatsCache.ttl / 1000)
+    });
+
+    logger.info('Repository statistics collected and cached');
+  } catch (error) {
+    logger.error('Repo stats fetch error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch repository statistics',
+      fallback: repoStatsCache.data || null
+    });
+  }
+});
+
+/**
+ * Get agent system status
+ * GET /api/dashboard/agent-status
+ */
+router.get('/agent-status', async (req, res: Response) => {
+  try {
+    const agents = [];
+    const agentsDir = join(process.cwd(), 'agents');
+
+    try {
+      const agentDirs = await fs.readdir(agentsDir, { withFileTypes: true });
+      
+      for (const dir of agentDirs) {
+        if (dir.isDirectory()) {
+          const readmePath = join(agentsDir, dir.name, 'README.md');
+          let description = '';
+          let status = 'active';
+
+          try {
+            const readmeContent = await fs.readFile(readmePath, 'utf-8');
+            const titleMatch = readmeContent.match(/^#\s+(.+)$/m);
+            if (titleMatch) {
+              description = titleMatch[1];
+            }
+          } catch (error) {
+            // README not found, use directory name
+            description = dir.name;
+          }
+
+          agents.push({
+            id: dir.name,
+            name: description || dir.name,
+            status,
+            lastActive: new Date().toISOString()
+          });
+        }
+      }
+    } catch (error) {
+      logger.error('Error reading agents directory:', error);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        agents,
+        totalAgents: agents.length,
+        activeAgents: agents.filter(a => a.status === 'active').length,
+        systemStatus: 'operational'
+      }
+    });
+  } catch (error) {
+    logger.error('Agent status fetch error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch agent status'
     });
   }
 });

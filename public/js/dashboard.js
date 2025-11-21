@@ -2,6 +2,12 @@
 const API_BASE = window.location.origin;
 let authToken = localStorage.getItem('authToken');
 let currentWorkflowId = null;
+let autoRefreshInterval = null;
+let repoStatsInterval = null;
+
+// Auto-refresh settings
+const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
+const REPO_STATS_INTERVAL = 60000; // 60 seconds
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async () => {
@@ -12,9 +18,123 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadUserInfo();
     await loadDashboardStats();
+    await loadRepoStats(); // Load repository statistics
     setupEventListeners();
     setupNavigation();
+    startAutoRefresh(); // Start auto-refresh
 });
+
+// Start auto-refresh for real-time updates
+function startAutoRefresh() {
+    // Refresh dashboard stats
+    autoRefreshInterval = setInterval(async () => {
+        try {
+            await loadDashboardStats();
+            updateLastRefreshTime();
+        } catch (error) {
+            console.error('Auto-refresh error:', error);
+        }
+    }, AUTO_REFRESH_INTERVAL);
+
+    // Refresh repository stats
+    repoStatsInterval = setInterval(async () => {
+        try {
+            await loadRepoStats();
+        } catch (error) {
+            console.error('Repo stats refresh error:', error);
+        }
+    }, REPO_STATS_INTERVAL);
+}
+
+// Stop auto-refresh (when user navigates away)
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+    if (repoStatsInterval) {
+        clearInterval(repoStatsInterval);
+        repoStatsInterval = null;
+    }
+}
+
+// Update last refresh time indicator
+function updateLastRefreshTime() {
+    const indicator = document.getElementById('last-refresh-time');
+    if (indicator) {
+        const now = new Date();
+        indicator.textContent = `Last updated: ${now.toLocaleTimeString()}`;
+        indicator.classList.add('refresh-pulse');
+        setTimeout(() => indicator.classList.remove('refresh-pulse'), 500);
+    }
+}
+
+// Load repository statistics (public endpoint, no auth)
+async function loadRepoStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/dashboard/repo-stats`);
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                displayRepoStats(result.data);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading repo stats:', error);
+    }
+}
+
+function displayRepoStats(stats) {
+    // Update statistics cards if they exist
+    if (stats.files) {
+        const totalFilesEl = document.getElementById('repo-total-files');
+        if (totalFilesEl) totalFilesEl.textContent = stats.files.total || 0;
+    }
+
+    if (stats.codeMetrics) {
+        const prodLocEl = document.getElementById('repo-production-loc');
+        if (prodLocEl) prodLocEl.textContent = (stats.codeMetrics.productionLoc || 0).toLocaleString();
+    }
+
+    if (stats.infrastructure) {
+        const agentsEl = document.getElementById('repo-agents-count');
+        if (agentsEl) agentsEl.textContent = stats.infrastructure.agents || 0;
+
+        const containersEl = document.getElementById('repo-containers-count');
+        if (containersEl) containersEl.textContent = stats.infrastructure.mcpContainers || 0;
+    }
+
+    if (stats.activity) {
+        const commitsEl = document.getElementById('repo-commits-24h');
+        if (commitsEl) commitsEl.textContent = stats.activity.commitsLast24h || 0;
+    }
+
+    // Update last auto-update time
+    if (stats.lastAutoUpdate) {
+        const autoUpdateEl = document.getElementById('last-auto-update');
+        if (autoUpdateEl) autoUpdateEl.textContent = stats.lastAutoUpdate;
+    }
+
+    // Update system health indicator
+    updateSystemHealth(stats);
+}
+
+function updateSystemHealth(stats) {
+    const healthIndicator = document.getElementById('system-health-indicator');
+    if (!healthIndicator) return;
+
+    const isHealthy = stats.infrastructure && 
+                      stats.infrastructure.agents > 0 && 
+                      stats.infrastructure.workflows > 0;
+
+    if (isHealthy) {
+        healthIndicator.innerHTML = '<span class="status-dot status-healthy"></span> System Healthy';
+        healthIndicator.className = 'health-indicator healthy';
+    } else {
+        healthIndicator.innerHTML = '<span class="status-dot status-warning"></span> System Degraded';
+        healthIndicator.className = 'health-indicator warning';
+    }
+}
 
 // Setup navigation
 function setupNavigation() {
@@ -49,6 +169,37 @@ function setupEventListeners() {
     document.querySelector('.cancel-btn').addEventListener('click', closeWorkflowModal);
     document.getElementById('workflow-form').addEventListener('submit', saveWorkflow);
     document.getElementById('add-action-btn').addEventListener('click', addActionField);
+    
+    // Manual refresh button
+    const manualRefreshBtn = document.getElementById('manual-refresh-btn');
+    if (manualRefreshBtn) {
+        manualRefreshBtn.addEventListener('click', async () => {
+            manualRefreshBtn.disabled = true;
+            manualRefreshBtn.textContent = '🔄 Refreshing...';
+            
+            try {
+                await Promise.all([
+                    loadDashboardStats(),
+                    loadRepoStats()
+                ]);
+                updateLastRefreshTime();
+            } catch (error) {
+                console.error('Manual refresh error:', error);
+            } finally {
+                manualRefreshBtn.disabled = false;
+                manualRefreshBtn.textContent = '🔄 Refresh';
+            }
+        });
+    }
+    
+    // Stop auto-refresh when page is hidden
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopAutoRefresh();
+        } else {
+            startAutoRefresh();
+        }
+    });
 }
 
 // Load user info
