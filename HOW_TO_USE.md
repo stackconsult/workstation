@@ -6,18 +6,46 @@
 
 ## 🚀 ONE-CLICK DEPLOYMENT (RECOMMENDED)
 
-### The Fastest Way to Get Started
+### Option 1: Enhanced Deployment (Production-Ready)
+
+**For production use with checkpoint/resume and rollback:**
 
 ```bash
 # Clone the repository (if you haven't already)
 git clone https://github.com/creditXcredit/workstation.git
 cd workstation
 
-# Run the one-click deployment script
+# Run the ENHANCED one-click deployment script
+./one-click-deploy-enhanced.sh
+```
+
+**Enhanced features:**
+- ✅ Checkpoint/resume capability (resume from failures)
+- ✅ Automatic retry with exponential backoff
+- ✅ Pre-deployment snapshots for rollback
+- ✅ Comprehensive health checks + smoke tests
+- ✅ Persistent logging with rotation
+- ✅ Better cross-platform support
+- ✅ Graceful error handling
+
+**Time to fully operational**: ~2-4 minutes
+
+See [ENHANCED_DEPLOYMENT_GUIDE.md](ENHANCED_DEPLOYMENT_GUIDE.md) for detailed information.
+
+### Option 2: Basic Deployment (Quick Start)
+
+**For quick testing and development:**
+
+```bash
+# Clone the repository (if you haven't already)
+git clone https://github.com/creditXcredit/workstation.git
+cd workstation
+
+# Run the basic one-click deployment script
 ./one-click-deploy.sh
 ```
 
-**That's it!** The script will:
+**Basic features:**
 - ✅ Install all dependencies automatically
 - ✅ Build TypeScript code
 - ✅ Build and load Chrome extension
