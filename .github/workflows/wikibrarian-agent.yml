@@ -35,6 +35,20 @@ jobs:
           repository: ${{ github.repository }}.wiki
           path: wiki
           token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        id: wiki_checkout
+      
+      - name: Check wiki availability
+        id: wiki_check
+        run: |
+          if [ -d "wiki/.git" ]; then
+            echo "wiki_available=true" >> $GITHUB_OUTPUT
+            echo "Wiki repository found"
+          else
+            echo "wiki_available=false" >> $GITHUB_OUTPUT
+            echo "Wiki repository not found - creating directory"
+            mkdir -p wiki
+          fi
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -57,7 +71,7 @@ jobs:
         id: scan
         run: |
           # Get recent commits (last 24 hours)
-          SINCE_TIME=$(date -u -d '24 hours ago' +'%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -v-24H +'%Y-%m-%dT%H:%M:%SZ')
+          SINCE_TIME=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)
           RECENT_COMMITS=$(git log --since="$SINCE_TIME" --oneline | wc -l)
           echo "recent_commits=$RECENT_COMMITS" >> $GITHUB_OUTPUT
           
@@ -86,373 +100,399 @@ jobs:
       
       - name: Generate wiki index
         run: |
-          cat > wiki/Home.md << 'EOF'
-# 📚 Workstation Wiki - Self-Updating Knowledge Library
+          CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          TOMORROW=$(date -u -d "+1 day" +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d)
+          NEXT_UPDATE="${TOMORROW} 06:00 UTC"
+          SINCE_TIME=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)
+          
+          cat > wiki/Home.md <<- 'EOFMARKER'
+          # 📚 Workstation Wiki - Self-Updating Knowledge Library
 
-Welcome to the Workstation wiki - an expertly curated, self-updating library of informational, educational, and guiding material maintained by the **Wikibrarian Agent**.
+          Welcome to the Workstation wiki - an expertly curated, self-updating library of informational, educational, and guiding material maintained by the **Wikibrarian Agent**.
 
-**Last Updated**: $(date -u +'%Y-%m-%d %H:%M UTC')  
-**Next Update**: $(date -u -d 'tomorrow 06:00' +'%Y-%m-%d 06:00 UTC' 2>/dev/null || date -u -v+1d -v6H +'%Y-%m-%d 06:00 UTC')  
-**Maintained by**: Wikibrarian Agent v1.0.0
+          **Last Updated**: CURRENT_DATE_PLACEHOLDER  
+          **Next Update**: NEXT_UPDATE_PLACEHOLDER  
+          **Maintained by**: Wikibrarian Agent v1.0.0
 
----
+          ---
 
-## 📋 Wiki Tabs (Complexity-Rated & Auto-Shuffled)
+          ## 📋 Wiki Tabs (Complexity-Rated & Auto-Shuffled)
 
-| # | Tab Name | Description | Complexity | Category | Status |
-|---|----------|-------------|------------|----------|--------|
-| 1 | [Quick Start](Quick-Start) | Fast-track onboarding for new contributors | ⭐ Basic | Onboarding | ✅ Active |
-| 2 | [Development Guide](Development-Guide) | Comprehensive development workflows and patterns | ⭐⭐ Intermediate | Dev | ✅ Active |
-| 3 | [Automation Best Practices](Automation-Best-Practices) | Automation patterns and workflow optimization | ⭐⭐ Intermediate | Automation | ✅ Active |
-| 4 | [Security Guidelines](Security-Guidelines) | Security best practices and compliance | ⭐⭐ Intermediate | Security | ✅ Active |
-| 5 | [Chrome Extension Guide](Chrome-Extension-Guide) | Complete browser automation documentation | ⭐⭐⭐ Advanced | Dev | ✅ Active |
-| 6 | [Agent Catalog](Agent-Catalog) | Complete agent documentation with usage examples | ⭐⭐ Intermediate | Automation | ✅ Active |
-| 7 | [Repository Analytics](Repository-Analytics) | Metrics and growth analytics | ⭐⭐ Intermediate | Analytics | ✅ Active |
-| 8 | [Problem Solving](Problem-Solving) | Common issues and solutions | ⭐ Basic | Support | ✅ Active |
-| 9 | [API Documentation](API-Documentation) | Complete API reference | ⭐⭐⭐ Advanced | Dev | ✅ Active |
-| 10 | [Business Processes](Business-Processes) | Business logic and operational guidelines | ⭐⭐ Intermediate | Business | ✅ Active |
+          | # | Tab Name | Description | Complexity | Category | Status |
+          |---|----------|-------------|------------|----------|--------|
+          | 1 | [Quick Start](Quick-Start) | Fast-track onboarding for new contributors | ⭐ Basic | Onboarding | ✅ Active |
+          | 2 | [Development Guide](Development-Guide) | Comprehensive development workflows and patterns | ⭐⭐ Intermediate | Dev | ✅ Active |
+          | 3 | [Automation Best Practices](Automation-Best-Practices) | Automation patterns and workflow optimization | ⭐⭐ Intermediate | Automation | ✅ Active |
+          | 4 | [Security Guidelines](Security-Guidelines) | Security best practices and compliance | ⭐⭐ Intermediate | Security | ✅ Active |
+          | 5 | [Chrome Extension Guide](Chrome-Extension-Guide) | Complete browser automation documentation | ⭐⭐⭐ Advanced | Dev | ✅ Active |
+          | 6 | [Agent Catalog](Agent-Catalog) | Complete agent documentation with usage examples | ⭐⭐ Intermediate | Automation | ✅ Active |
+          | 7 | [Repository Analytics](Repository-Analytics) | Metrics and growth analytics | ⭐⭐ Intermediate | Analytics | ✅ Active |
+          | 8 | [Problem Solving](Problem-Solving) | Common issues and solutions | ⭐ Basic | Support | ✅ Active |
+          | 9 | [API Documentation](API-Documentation) | Complete API reference | ⭐⭐⭐ Advanced | Dev | ✅ Active |
+          | 10 | [Business Processes](Business-Processes) | Business logic and operational guidelines | ⭐⭐ Intermediate | Business | ✅ Active |
 
----
+          ---
 
-## 🎯 How to Use This Wiki
+          ## 🎯 How to Use This Wiki
 
-### For Developers
-1. Start with [Quick Start](Quick-Start) for rapid onboarding
-2. Reference [Development Guide](Development-Guide) for workflow patterns
-3. Check [API Documentation](API-Documentation) when building integrations
-4. Use [Problem Solving](Problem-Solving) for troubleshooting
+          ### For Developers
+          1. Start with [Quick Start](Quick-Start) for rapid onboarding
+          2. Reference [Development Guide](Development-Guide) for workflow patterns
+          3. Check [API Documentation](API-Documentation) when building integrations
+          4. Use [Problem Solving](Problem-Solving) for troubleshooting
 
-### For Automation Engineers
-1. Review [Automation Best Practices](Automation-Best-Practices)
-2. Browse [Agent Catalog](Agent-Catalog) for reusable agents
-3. Study [Repository Analytics](Repository-Analytics) for metrics
+          ### For Automation Engineers
+          1. Review [Automation Best Practices](Automation-Best-Practices)
+          2. Browse [Agent Catalog](Agent-Catalog) for reusable agents
+          3. Study [Repository Analytics](Repository-Analytics) for metrics
 
-### For Security Teams
-1. Follow [Security Guidelines](Security-Guidelines)
-2. Implement security scans from [Automation Best Practices](Automation-Best-Practices)
+          ### For Security Teams
+          1. Follow [Security Guidelines](Security-Guidelines)
+          2. Implement security scans from [Automation Best Practices](Automation-Best-Practices)
 
-### For Business Stakeholders
-1. Understand processes in [Business Processes](Business-Processes)
-2. Track progress in [Repository Analytics](Repository-Analytics)
+          ### For Business Stakeholders
+          1. Understand processes in [Business Processes](Business-Processes)
+          2. Track progress in [Repository Analytics](Repository-Analytics)
 
----
+          ---
 
-## 🔍 Quick Links
+          ## 🔍 Quick Links
 
-**Getting Started**
-- [5-Minute Setup](Quick-Start#5-minute-setup)
-- [First Contribution](Development-Guide#first-contribution)
-- [Common Tasks](Quick-Start#common-tasks)
+          **Getting Started**
+          - [5-Minute Setup](Quick-Start#5-minute-setup)
+          - [First Contribution](Development-Guide#first-contribution)
+          - [Common Tasks](Quick-Start#common-tasks)
 
-**Development**
-- [TypeScript Patterns](Development-Guide#typescript-patterns)
-- [Testing Strategies](Development-Guide#testing-strategies)
-- [Code Review Process](Development-Guide#code-review)
+          **Development**
+          - [TypeScript Patterns](Development-Guide#typescript-patterns)
+          - [Testing Strategies](Development-Guide#testing-strategies)
+          - [Code Review Process](Development-Guide#code-review)
 
-**Automation**
-- [GitHub Actions](Automation-Best-Practices#github-actions)
-- [Agent Design](Automation-Best-Practices#agent-design)
-- [Scheduling](Automation-Best-Practices#scheduling)
+          **Automation**
+          - [GitHub Actions](Automation-Best-Practices#github-actions)
+          - [Agent Design](Automation-Best-Practices#agent-design)
+          - [Scheduling](Automation-Best-Practices#scheduling)
 
-**Security**
-- [Authentication](Security-Guidelines#authentication)
-- [Secrets Management](Security-Guidelines#secrets)
-- [Vulnerability Scanning](Security-Guidelines#scanning)
+          **Security**
+          - [Authentication](Security-Guidelines#authentication)
+          - [Secrets Management](Security-Guidelines#secrets)
+          - [Vulnerability Scanning](Security-Guidelines#scanning)
 
----
+          ---
 
-## 📊 Wiki Statistics
+          ## 📊 Wiki Statistics
 
-**Content Metrics**:
-- Total Pages: ${{ steps.gaps.outputs.existing_tabs }}
-- Target Pages: 10
-- Coverage: $((steps.gaps.outputs.existing_tabs * 100 / 10))%
+          **Content Metrics**:
+          - Total Pages: ${{ steps.gaps.outputs.existing_tabs }}
+          - Target Pages: 10
+          - Coverage: $((steps.gaps.outputs.existing_tabs * 100 / 10))%
 
-**Update Frequency**:
-- Daily at 6:00 AM UTC
-- Auto-generated content
-- AI-powered improvements
+          **Update Frequency**:
+          - Daily at 6:00 AM UTC
+          - Auto-generated content
+          - AI-powered improvements
 
-**Quality Standards**:
-- Journalistic article flow
-- Visual aids (diagrams, charts, tables)
-- Complexity-rated segments
-- Cross-referenced links
+          **Quality Standards**:
+          - Journalistic article flow
+          - Visual aids (diagrams, charts, tables)
+          - Complexity-rated segments
+          - Cross-referenced links
 
----
+          ---
 
-## 🤖 About the Wikibrarian
+          ## 🤖 About the Wikibrarian
 
-The Wikibrarian is an autonomous AI agent that:
+          The Wikibrarian is an autonomous AI agent that:
 
-- ✅ **Generates Content** - Using GPT-4.1/GPT-5.1 Mini for extrapolation
-- ✅ **Maintains Quality** - Journalistic standards and article structure
-- ✅ **Adds Visual Aids** - Diagrams, charts, and tables
-- ✅ **Updates Daily** - 6:00 AM UTC automated runs
-- ✅ **Learns Continuously** - Improves based on repository changes
-- ✅ **Ensures Consistency** - MCP container for persistent memory
+          - ✅ **Generates Content** - Using GPT-4.1/GPT-5.1 Mini for extrapolation
+          - ✅ **Maintains Quality** - Journalistic standards and article structure
+          - ✅ **Adds Visual Aids** - Diagrams, charts, and tables
+          - ✅ **Updates Daily** - 6:00 AM UTC automated runs
+          - ✅ **Learns Continuously** - Improves based on repository changes
+          - ✅ **Ensures Consistency** - MCP container for persistent memory
 
-See: [Wikibrarian Agent Documentation](../agents/wikibrarian/README.md)
+          See: [Wikibrarian Agent Documentation](../agents/wikibrarian/README.md)
 
----
+          ---
 
-## 📚 Content Philosophy
+          ## 📚 Content Philosophy
 
-Every wiki page follows these principles:
+          Every wiki page follows these principles:
 
-1. **Educate** - Bridge understanding gaps
-2. **Guide** - Provide actionable steps
-3. **Engage** - Enjoyable to read
-4. **Visualize** - Diagrams and charts
-5. **Update** - Self-maintaining content
+          1. **Educate** - Bridge understanding gaps
+          2. **Guide** - Provide actionable steps
+          3. **Engage** - Enjoyable to read
+          4. **Visualize** - Diagrams and charts
+          5. **Update** - Self-maintaining content
 
----
+          ---
 
-## 🔄 Recent Updates
+          ## 🔄 Recent Updates
 
-$(git log --since="$SINCE_TIME" --pretty=format:"- %h: %s" --max-count=5 || echo "- No recent updates")
+          EOFMARKER
 
----
+          # Replace placeholders with actual values
+          sed -i "s/CURRENT_DATE_PLACEHOLDER/$CURRENT_DATE/g" wiki/Home.md
+          sed -i "s/NEXT_UPDATE_PLACEHOLDER/$NEXT_UPDATE/g" wiki/Home.md
+          
+          # Add recent commits
+          git log --since="$SINCE_TIME" --pretty=format:"- %h: %s" --max-count=5 >> wiki/Home.md || echo "- No recent updates" >> wiki/Home.md
+          
+          cat >> wiki/Home.md <<- 'EOFMARKER2'
 
-## 📞 Support
+          ---
 
-**Questions or Suggestions?**
-- Open an [Issue](https://github.com/creditXcredit/workstation/issues)
-- Start a [Discussion](https://github.com/creditXcredit/workstation/discussions)
-- Reference [Problem Solving](Problem-Solving) wiki
+          ## 📞 Support
 
----
+          **Questions or Suggestions?**
+          - Open an [Issue](https://github.com/creditXcredit/workstation/issues)
+          - Start a [Discussion](https://github.com/creditXcredit/workstation/discussions)
+          - Reference [Problem Solving](Problem-Solving) wiki
 
-**Managed by**: Wikibrarian Agent v1.0.0  
-**Schedule**: Daily at 6:00 AM UTC  
-**Status**: ✅ Operational
+          ---
 
----
+          **Managed by**: Wikibrarian Agent v1.0.0  
+          **Schedule**: Daily at 6:00 AM UTC  
+          **Status**: ✅ Operational
 
-*This wiki is a living, self-updating library maintained by AI. Content is generated and improved daily based on repository activity and best practices.*
-EOF
+          ---
+
+          *This wiki is a living, self-updating library maintained by AI. Content is generated and improved daily based on repository activity and best practices.*
+          EOFMARKER2
       
-      - name: Create/Update Quick Start tab
-        run: |
-          cat > wiki/Quick-Start.md << 'EOF'
-# 🎯 Quick Start
+                - name: Create/Update Quick Start tab
+                  run: |
+          CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
+          cat > wiki/Quick-Start.md <<- 'EOFQUICKSTART'
+          # 🎯 Quick Start
 
-**Description**: Fast-track onboarding to get new contributors productive in minutes  
-**Purpose**: Enable rapid contribution without extensive documentation reading  
-**Use Case**: First stop for anyone new to the repository
+          **Description**: Fast-track onboarding to get new contributors productive in minutes  
+          **Purpose**: Enable rapid contribution without extensive documentation reading  
+          **Use Case**: First stop for anyone new to the repository
 
----
+          ---
 
-## 📋 Content Index
+          ## 📋 Content Index
 
-| # | Topic | Complexity | Est. Time |
-|---|-------|------------|-----------|
-| 1 | 5-Minute Setup | ⭐ Basic | 5 min |
-| 2 | Common Tasks | ⭐ Basic | 10 min |
-| 3 | First Contribution | ⭐⭐ Intermediate | 20 min |
+          | # | Topic | Complexity | Est. Time |
+          |---|-------|------------|-----------|
+          | 1 | 5-Minute Setup | ⭐ Basic | 5 min |
+          | 2 | Common Tasks | ⭐ Basic | 10 min |
+          | 3 | First Contribution | ⭐⭐ Intermediate | 20 min |
 
----
+          ---
 
-## 1. 5-Minute Setup (⭐ Basic)
+          ## 1. 5-Minute Setup (⭐ Basic)
 
-Get the repository running locally in 5 minutes or less.
+          Get the repository running locally in 5 minutes or less.
 
-### Prerequisites
+          ### Prerequisites
 
-\`\`\`mermaid
-graph LR
-    A[Node.js 18+] --> D[Ready]
-    B[Git] --> D
-    C[GitHub Account] --> D
+          \`\`\`mermaid
+          graph LR
+              A[Node.js 18+] --> D[Ready]
+              B[Git] --> D
+              C[GitHub Account] --> D
     
-    style D fill:#90EE90
-\`\`\`
+              style D fill:#90EE90
+          \`\`\`
 
-### Quick Setup Commands
+          ### Quick Setup Commands
 
-\`\`\`bash
-# Clone repository
-git clone https://github.com/creditXcredit/workstation.git
-cd workstation
+          \`\`\`bash
+          # Clone repository
+          git clone https://github.com/creditXcredit/workstation.git
+          cd workstation
 
-# Install dependencies
-npm install
+          # Install dependencies
+          npm install
 
-# Setup environment
-cp .env.example .env
+          # Setup environment
+          cp .env.example .env
 
-# Run tests
-npm test
+          # Run tests
+          npm test
 
-# Start development server
-npm run dev
-\`\`\`
+          # Start development server
+          npm run dev
+          \`\`\`
 
-### Verification
+          ### Verification
 
-| Check | Command | Expected Result |
-|-------|---------|-----------------|
-| Dependencies | \`npm list\` | No errors |
-| Tests | \`npm test\` | All passing |
-| Build | \`npm run build\` | Success |
-| Server | \`npm run dev\` | Running on port 3000 |
+          | Check | Command | Expected Result |
+          |-------|---------|-----------------|
+          | Dependencies | \`npm list\` | No errors |
+          | Tests | \`npm test\` | All passing |
+          | Build | \`npm run build\` | Success |
+          | Server | \`npm run dev\` | Running on port 3000 |
 
----
+          ---
 
-## 2. Common Tasks (⭐ Basic)
+          ## 2. Common Tasks (⭐ Basic)
 
-Quick reference for frequent operations.
+          Quick reference for frequent operations.
 
-### Task Matrix
+          ### Task Matrix
 
-| Task | Command | When to Use |
-|------|---------|-------------|
-| **Run tests** | \`npm test\` | Before committing |
-| **Lint code** | \`npm run lint\` | Before PR |
-| **Build** | \`npm run build\` | Before deployment |
-| **View logs** | \`npm run dev\` | Debugging |
-| **Format code** | \`npm run format\` | Cleanup |
+          | Task | Command | When to Use |
+          |------|---------|-------------|
+          | **Run tests** | \`npm test\` | Before committing |
+          | **Lint code** | \`npm run lint\` | Before PR |
+          | **Build** | \`npm run build\` | Before deployment |
+          | **View logs** | \`npm run dev\` | Debugging |
+          | **Format code** | \`npm run format\` | Cleanup |
 
-### Quick Commands
+          ### Quick Commands
 
-\`\`\`bash
-# Development workflow
-npm run dev          # Start with hot reload
-npm test            # Run all tests
-npm run lint        # Check code style
-npm run build       # Production build
+          \`\`\`bash
+          # Development workflow
+          npm run dev          # Start with hot reload
+          npm test            # Run all tests
+          npm run lint        # Check code style
+          npm run build       # Production build
 
-# Git workflow
-git checkout -b feature/my-feature  # New branch
-git add .                          # Stage changes
-git commit -m "feat: description"  # Commit
-git push origin feature/my-feature # Push
-\`\`\`
+          # Git workflow
+          git checkout -b feature/my-feature  # New branch
+          git add .                          # Stage changes
+          git commit -m "feat: description"  # Commit
+          git push origin feature/my-feature # Push
+          \`\`\`
 
----
+          ---
 
-## 3. First Contribution (⭐⭐ Intermediate)
+          ## 3. First Contribution (⭐⭐ Intermediate)
 
-Make your first meaningful contribution.
+          Make your first meaningful contribution.
 
-### Contribution Flow
+          ### Contribution Flow
 
-\`\`\`mermaid
-graph TD
-    A[Find Issue] --> B[Comment Intent]
-    B --> C[Create Branch]
-    C --> D[Make Changes]
-    D --> E[Write Tests]
-    E --> F[Run Tests]
-    F --> G{Pass?}
-    G -->|No| D
-    G -->|Yes| H[Commit]
-    H --> I[Push Branch]
-    I --> J[Open PR]
-    J --> K[Address Review]
-    K --> L[Merge]
+          \`\`\`mermaid
+          graph TD
+              A[Find Issue] --> B[Comment Intent]
+              B --> C[Create Branch]
+              C --> D[Make Changes]
+              D --> E[Write Tests]
+              E --> F[Run Tests]
+              F --> G{Pass?}
+              G -->|No| D
+              G -->|Yes| H[Commit]
+              H --> I[Push Branch]
+              I --> J[Open PR]
+              J --> K[Address Review]
+              K --> L[Merge]
     
-    style L fill:#90EE90
-\`\`\`
+              style L fill:#90EE90
+          \`\`\`
 
-### Step-by-Step Guide
+          ### Step-by-Step Guide
 
-#### Step 1: Find a Good First Issue
+          #### Step 1: Find a Good First Issue
 
-Browse [good first issues](https://github.com/creditXcredit/workstation/labels/good%20first%20issue)
+          Browse [good first issues](https://github.com/creditXcredit/workstation/labels/good%20first%20issue)
 
-#### Step 2: Set Up Your Branch
+          #### Step 2: Set Up Your Branch
 
-\`\`\`bash
-git checkout main
-git pull origin main
-git checkout -b feature/issue-123-description
-\`\`\`
+          \`\`\`bash
+          git checkout main
+          git pull origin main
+          git checkout -b feature/issue-123-description
+          \`\`\`
 
-#### Step 3: Make Your Changes
+          #### Step 3: Make Your Changes
 
-Follow patterns in existing code. Reference:
-- [Development Guide](Development-Guide) for patterns
-- [TypeScript Guide](Development-Guide#typescript-patterns) for style
+          Follow patterns in existing code. Reference:
+          - [Development Guide](Development-Guide) for patterns
+          - [TypeScript Guide](Development-Guide#typescript-patterns) for style
 
-#### Step 4: Test Your Changes
+          #### Step 4: Test Your Changes
 
-\`\`\`bash
-npm test                    # Run all tests
-npm run lint               # Check style
-npm run build              # Verify build
-\`\`\`
+          \`\`\`bash
+          npm test                    # Run all tests
+          npm run lint               # Check style
+          npm run build              # Verify build
+          \`\`\`
 
-#### Step 5: Commit and Push
+          #### Step 5: Commit and Push
 
-\`\`\`bash
-git add .
-git commit -m "feat: add feature description"
-git push origin feature/issue-123-description
-\`\`\`
+          \`\`\`bash
+          git add .
+          git commit -m "feat: add feature description"
+          git push origin feature/issue-123-description
+          \`\`\`
 
-#### Step 6: Open Pull Request
+          #### Step 6: Open Pull Request
 
-Visit GitHub and click "Create Pull Request"
+          Visit GitHub and click "Create Pull Request"
 
----
+          ---
 
-## 🔗 Next Steps
+          ## 🔗 Next Steps
 
-After quick start, dive deeper:
+          After quick start, dive deeper:
 
-| Resource | When to Use |
-|----------|-------------|
-| [Development Guide](Development-Guide) | Learn development patterns |
-| [Automation Guide](Automation-Best-Practices) | Build automations |
-| [API Documentation](API-Documentation) | Use APIs |
-| [Problem Solving](Problem-Solving) | Troubleshoot issues |
+          | Resource | When to Use |
+          |----------|-------------|
+          | [Development Guide](Development-Guide) | Learn development patterns |
+          | [Automation Guide](Automation-Best-Practices) | Build automations |
+          | [API Documentation](API-Documentation) | Use APIs |
+          | [Problem Solving](Problem-Solving) | Troubleshoot issues |
 
----
+          ---
 
-**Last Updated**: $(date -u +'%Y-%m-%d %H:%M UTC')  
-**Maintained by**: Wikibrarian Agent  
-**Complexity**: ⭐ Basic
-EOF
+          **Last Updated**: CURRENT_DATE_PLACEHOLDER2  
+          **Maintained by**: Wikibrarian Agent  
+          **Complexity**: ⭐ Basic
+          EOFQUICKSTART
+
+          # Replace placeholder with actual date
+          sed -i "s/CURRENT_DATE_PLACEHOLDER2/$CURRENT_DATE/g" wiki/Quick-Start.md
       
       - name: Update MCP container memory
         run: |
-          cat > agents/wikibrarian/mcp-memory.json << 'EOF'
-{
-  "memory": {
-    "content_history": [
-      {
-        "date": "$(date -u +'%Y-%m-%d')",
-        "tabs_updated": ["Home", "Quick-Start"],
-        "quality_score": 85
-      }
-    ],
-    "quality_scores": {
-      "Home": 90,
-      "Quick-Start": 85
-    },
-    "improvement_suggestions": [],
-    "branding_guidelines": {
-      "tone": "professional yet approachable",
-      "style": "journalistic",
-      "voice": "helpful expert"
-    },
-    "work_log": [
-      {
-        "timestamp": "$(date -u +'%Y-%m-%d %H:%M UTC')",
-        "action": "initial_wiki_setup",
-        "tabs_created": 2,
-        "commits": ${{ steps.scan.outputs.recent_commits }},
-        "doc_changes": ${{ steps.scan.outputs.doc_changes }}
-      }
-    ]
-  }
-}
-EOF
+          MEMORY_DATE=$(date -u +%Y-%m-%d)
+          MEMORY_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
+          mkdir -p agents/wikibrarian
+          
+          cat > agents/wikibrarian/mcp-memory.json <<- EOF
+          {
+            "memory": {
+              "content_history": [
+                {
+                  "date": "${MEMORY_DATE}",
+                  "tabs_updated": ["Home", "Quick-Start"],
+                  "quality_score": 85
+                }
+              ],
+              "quality_scores": {
+                "Home": 90,
+                "Quick-Start": 85
+              },
+              "improvement_suggestions": [],
+              "branding_guidelines": {
+                "tone": "professional yet approachable",
+                "style": "journalistic",
+                "voice": "helpful expert"
+              },
+              "work_log": [
+                {
+                  "timestamp": "${MEMORY_TIME}",
+                  "action": "initial_wiki_setup",
+                  "tabs_created": 2,
+                  "commits": ${{ steps.scan.outputs.recent_commits }},
+                  "doc_changes": ${{ steps.scan.outputs.doc_changes }}
+                }
+              ]
+            }
+          }
+          EOF
       
       - name: Commit wiki changes
-        if: github.event.inputs.dry_run != 'true'
+        if: github.event.inputs.dry_run != 'true' && steps.wiki_check.outputs.wiki_available == 'true'
         run: |
+          COMMIT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
           cd wiki
           git config user.name "Wikibrarian Agent"
           git config user.email "wikibrarian@workstation.github.io"
@@ -462,7 +502,7 @@ EOF
           if git diff --staged --quiet; then
             echo "No wiki changes to commit"
           else
-            git commit -m "📚 Daily wiki update - $(date -u +'%Y-%m-%d %H:%M UTC')
+            git commit -m "📚 Daily wiki update - ${COMMIT_DATE}
 
             - Updated Home index
             - Updated Quick-Start guide
@@ -479,6 +519,8 @@ EOF
       - name: Commit MCP memory
         if: github.event.inputs.dry_run != 'true'
         run: |
+          COMMIT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          
           git config user.name "Wikibrarian Agent"
           git config user.email "wikibrarian@workstation.github.io"
           
@@ -487,7 +529,7 @@ EOF
           if git diff --staged --quiet; then
             echo "No memory changes to commit"
           else
-            git commit -m "🧠 Update Wikibrarian MCP memory - $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "Nothing to commit"
+            git commit -m "🧠 Update Wikibrarian MCP memory - ${COMMIT_DATE}" || echo "Nothing to commit"
             git push || echo "Nothing to push"
           fi
       

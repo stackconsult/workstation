@@ -58,7 +58,8 @@ jobs:
       - name: Get recent commits (last 24 hours)
         id: commits
         run: |
-          SINCE_TIME=$(date -u -d '24 hours ago' +'%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -v-24H +'%Y-%m-%dT%H:%M:%SZ')
+          # Calculate 24 hours ago timestamp
+          SINCE_TIME=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)
           COMMIT_COUNT=$(git log --since="$SINCE_TIME" --oneline | wc -l)
           echo "recent_commits=$COMMIT_COUNT" >> $GITHUB_OUTPUT
           
@@ -67,146 +68,167 @@ jobs:
       
       - name: Create rollback directory
         run: |
-          ROLLBACK_DIR="rollbacks/$(date -u +'%Y-%m-%d')"
+          ROLLBACK_DATE=$(date -u +%Y-%m-%d)
+          ROLLBACK_DIR="rollbacks/${ROLLBACK_DATE}"
           mkdir -p "$ROLLBACK_DIR"
           
           # Backup current documentation
-          cp README.md "$ROLLBACK_DIR/README.md.bak" 2>/dev/null || true
-          cp REPOSITORY_STATS.md "$ROLLBACK_DIR/REPOSITORY_STATS.md.bak" 2>/dev/null || true
-          cp STATS_OVERVIEW.md "$ROLLBACK_DIR/STATS_OVERVIEW.md.bak" 2>/dev/null || true
-          cp BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md "$ROLLBACK_DIR/BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md.bak" 2>/dev/null || true
-          cp ACTIVITY_TIMELINE.md "$ROLLBACK_DIR/ACTIVITY_TIMELINE.md.bak" 2>/dev/null || true
-          cp ROADMAP_PROGRESS.md "$ROLLBACK_DIR/ROADMAP_PROGRESS.md.bak" 2>/dev/null || true
+          cp README.md "$ROLLBACK_DIR/README.md.bak" 2>/dev/null || echo "README.md not found"
+          cp REPOSITORY_STATS.md "$ROLLBACK_DIR/REPOSITORY_STATS.md.bak" 2>/dev/null || echo "REPOSITORY_STATS.md not found"
+          cp STATS_OVERVIEW.md "$ROLLBACK_DIR/STATS_OVERVIEW.md.bak" 2>/dev/null || echo "STATS_OVERVIEW.md not found"
+          cp BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md "$ROLLBACK_DIR/BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md.bak" 2>/dev/null || echo "BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md not found"
+          cp ACTIVITY_TIMELINE.md "$ROLLBACK_DIR/ACTIVITY_TIMELINE.md.bak" 2>/dev/null || echo "ACTIVITY_TIMELINE.md not found"
+          cp ROADMAP_PROGRESS.md "$ROLLBACK_DIR/ROADMAP_PROGRESS.md.bak" 2>/dev/null || echo "ROADMAP_PROGRESS.md not found"
           
           echo "Rollback created in $ROLLBACK_DIR"
       
       - name: Update REPO_UPDATE_TASKS.md
         run: |
           CURRENT_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          NEXT_UPDATE=$(date -u -d 'tomorrow 21:00' +'%Y-%m-%d 21:00 UTC' 2>/dev/null || date -u -v+1d -v21H -v0M +'%Y-%m-%d 21:00 UTC')
+          TOMORROW=$(date -u -d "+1 day" +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d)
+          NEXT_UPDATE="${TOMORROW} 21:00 UTC"
+          CURRENT_DATE_ONLY=$(date -u +%Y-%m-%d)
           
           # Update the task list with latest stats
-          cat > REPO_UPDATE_TASKS_TEMP.md << 'EOF'
-# 📋 Repository Update Tasks
+          cat > REPO_UPDATE_TASKS_TEMP.md <<- 'EOFREPO'
+          # 📋 Repository Update Tasks
 
-**Last Updated**: $CURRENT_TIME  
-**Next Update**: $NEXT_UPDATE  
-**Agent**: Repo Update Agent v1.0.0
+          **Last Updated**: CURRENT_TIME_PLACEHOLDER  
+          **Next Update**: NEXT_UPDATE_PLACEHOLDER  
+          **Agent**: Repo Update Agent v1.0.0
 
----
+          ---
 
-## ⏰ Next Scheduled Update
+          ## ⏰ Next Scheduled Update
 
-\`\`\`
-┌─────────────────────────────────────────────┐
-│  NEXT DOCUMENTATION UPDATE                  │
-├─────────────────────────────────────────────┤
-│  📅 Date: $NEXT_UPDATE_DATE                 │
-│  🕐 Time: 21:00 UTC (9:00 PM)              │
-│                                             │
-│  Timezone Conversions:                      │
-│  • 4:00 PM EST (US East)                   │
-│  • 1:00 PM PST (US West)                   │
-│  • 10:00 PM CET (Europe)                   │
-│  • 6:00 AM JST (Japan, next day)           │
-└─────────────────────────────────────────────┘
-\`\`\`
+          \`\`\`
+          ┌─────────────────────────────────────────────┐
+          │  NEXT DOCUMENTATION UPDATE                  │
+          ├─────────────────────────────────────────────┤
+          │  📅 Date: NEXT_UPDATE_PLACEHOLDER           │
+          │  🕐 Time: 21:00 UTC (9:00 PM)              │
+          │                                             │
+          │  Timezone Conversions:                      │
+          │  • 4:00 PM EST (US East)                   │
+          │  • 1:00 PM PST (US West)                   │
+          │  • 10:00 PM CET (Europe)                   │
+          │  • 6:00 AM JST (Japan, next day)           │
+          └─────────────────────────────────────────────┘
+          \`\`\`
 
----
+          ---
 
-## ✅ Completed Items (Last 24 Hours)
+          ## ✅ Completed Items (Last 24 Hours)
 
-### $(date -u +'%Y-%m-%d')
+          ### CURRENT_DATE_ONLY_PLACEHOLDER
 
-| Time (UTC) | Type | Change Description | Files Updated | Commits |
-|------------|------|-------------------|---------------|---------|
-EOF
+          | Time (UTC) | Type | Change Description | Files Updated | Commits |
+          |------------|------|-------------------|---------------|---------|
+          EOFREPO
           
           # Add recent commit info
           if [ -s recent_commits.txt ]; then
+            CURRENT_HOUR=$(date -u +%H:%M)
             while IFS= read -r line; do
-              echo "| $(date -u +'%H:%M') | Auto | Daily documentation sync | ✅ All targets | $line |" >> REPO_UPDATE_TASKS_TEMP.md
+              echo "| ${CURRENT_HOUR} | Auto | Daily documentation sync | ✅ All targets | $line |" >> REPO_UPDATE_TASKS_TEMP.md
             done < recent_commits.txt
           else
             echo "| - | - | No changes in last 24 hours | - | - |" >> REPO_UPDATE_TASKS_TEMP.md
           fi
           
-          cat >> REPO_UPDATE_TASKS_TEMP.md << 'EOF'
+          cat >> REPO_UPDATE_TASKS_TEMP.md <<- 'EOFREPO2'
 
-**Total Updates Today**: ${{ steps.commits.outputs.recent_commits }} commits  
-**Agent Status**: ✅ Operational
+          **Total Updates Today**: ${{ steps.commits.outputs.recent_commits }} commits  
+          **Agent Status**: ✅ Operational
 
----
+          ---
 
-## 📊 Current Repository Statistics
+          ## 📊 Current Repository Statistics
 
-| Metric | Count | Status |
-|--------|-------|--------|
-| **Total Files** | ${{ steps.stats.outputs.total_files }} | ✅ Tracked |
-| **TypeScript Files** | ${{ steps.stats.outputs.ts_files }} | ✅ Active |
-| **Test Files** | ${{ steps.stats.outputs.test_files }} | ✅ Passing |
-| **Documentation Files** | ${{ steps.stats.outputs.doc_files }} | ✅ Comprehensive |
-| **Chrome Extension JS** | ${{ steps.stats.outputs.chrome_js }} | ✅ Production |
-| **Agents** | ${{ steps.stats.outputs.agents }} | ✅ Operational |
-| **MCP Containers** | ${{ steps.stats.outputs.containers }} | ✅ Deployed |
-| **GitHub Workflows** | ${{ steps.stats.outputs.workflows }} | ✅ Active |
+          | Metric | Count | Status |
+          |--------|-------|--------|
+          | **Total Files** | ${{ steps.stats.outputs.total_files }} | ✅ Tracked |
+          | **TypeScript Files** | ${{ steps.stats.outputs.ts_files }} | ✅ Active |
+          | **Test Files** | ${{ steps.stats.outputs.test_files }} | ✅ Passing |
+          | **Documentation Files** | ${{ steps.stats.outputs.doc_files }} | ✅ Comprehensive |
+          | **Chrome Extension JS** | ${{ steps.stats.outputs.chrome_js }} | ✅ Production |
+          | **Agents** | ${{ steps.stats.outputs.agents }} | ✅ Operational |
+          | **MCP Containers** | ${{ steps.stats.outputs.containers }} | ✅ Deployed |
+          | **GitHub Workflows** | ${{ steps.stats.outputs.workflows }} | ✅ Active |
 
-### Code Metrics
+          ### Code Metrics
 
-| Metric | Lines | Status |
-|--------|-------|--------|
-| **Production Code** | ${{ steps.stats.outputs.production_loc }} | ✅ src/ |
-| **Chrome Extension** | ${{ steps.stats.outputs.chrome_loc }} | ✅ chrome-extension/ |
-| **Test Code** | ${{ steps.stats.outputs.test_loc }} | ✅ tests/ |
+          | Metric | Lines | Status |
+          |--------|-------|--------|
+          | **Production Code** | ${{ steps.stats.outputs.production_loc }} | ✅ src/ |
+          | **Chrome Extension** | ${{ steps.stats.outputs.chrome_loc }} | ✅ chrome-extension/ |
+          | **Test Code** | ${{ steps.stats.outputs.test_loc }} | ✅ tests/ |
 
----
+          ---
 
-## 🔄 Rollback Files
+          ## 🔄 Rollback Files
 
-**Latest Backup**: $(date -u +'%Y-%m-%d')  
-**Location**: \`rollbacks/$(date -u +'%Y-%m-%d')/\`  
-**Status**: ✅ Available
+          **Latest Backup**: CURRENT_DATE_ONLY_PLACEHOLDER  
+          **Location**: \`rollbacks/CURRENT_DATE_ONLY_PLACEHOLDER/\`  
+          **Status**: ✅ Available
 
----
+          ---
 
-**Managed by**: Repo Update Agent v1.0.0  
-**Next Run**: $NEXT_UPDATE
-EOF
+          **Managed by**: Repo Update Agent v1.0.0  
+          **Next Run**: NEXT_UPDATE_PLACEHOLDER
+          EOFREPO2
+          
+          # Replace placeholders
+          sed -i "s/CURRENT_TIME_PLACEHOLDER/$CURRENT_TIME/g" REPO_UPDATE_TASKS_TEMP.md
+          sed -i "s/NEXT_UPDATE_PLACEHOLDER/$NEXT_UPDATE/g" REPO_UPDATE_TASKS_TEMP.md
+          sed -i "s/CURRENT_DATE_ONLY_PLACEHOLDER/$CURRENT_DATE_ONLY/g" REPO_UPDATE_TASKS_TEMP.md
           
           mv REPO_UPDATE_TASKS_TEMP.md REPO_UPDATE_TASKS.md
       
-      - name: Generate update summary
-        run: |
-          cat > repo-update-summary-$(date -u +'%Y-%m-%d').md << EOF
-# Repo Update Summary - $(date -u +'%Y-%m-%d %H:%M UTC')
+                - name: Generate update summary
+                  run: |
+          SUMMARY_DATE=$(date -u +'%Y-%m-%d')
+          SUMMARY_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
+          SUMMARY_FILE="repo-update-summary-${SUMMARY_DATE}.md"
+          
+          cat > "$SUMMARY_FILE" <<- 'EOFSUMMARY'
+          # Repo Update Summary - SUMMARY_TIME_PLACEHOLDER
 
-## Repository Statistics
-- Total Files: ${{ steps.stats.outputs.total_files }}
-- TypeScript Files: ${{ steps.stats.outputs.ts_files }}
-- Test Files: ${{ steps.stats.outputs.test_files }}
-- Documentation: ${{ steps.stats.outputs.doc_files }}
-- Chrome Extension JS: ${{ steps.stats.outputs.chrome_js }}
+          ## Repository Statistics
+          - Total Files: ${{ steps.stats.outputs.total_files }}
+          - TypeScript Files: ${{ steps.stats.outputs.ts_files }}
+          - Test Files: ${{ steps.stats.outputs.test_files }}
+          - Documentation: ${{ steps.stats.outputs.doc_files }}
+          - Chrome Extension JS: ${{ steps.stats.outputs.chrome_js }}
 
-## Code Metrics
-- Production LOC: ${{ steps.stats.outputs.production_loc }}
-- Chrome Extension LOC: ${{ steps.stats.outputs.chrome_loc }}
-- Test LOC: ${{ steps.stats.outputs.test_loc }}
+          ## Code Metrics
+          - Production LOC: ${{ steps.stats.outputs.production_loc }}
+          - Chrome Extension LOC: ${{ steps.stats.outputs.chrome_loc }}
+          - Test LOC: ${{ steps.stats.outputs.test_loc }}
 
-## Infrastructure
-- Agents: ${{ steps.stats.outputs.agents }}
-- MCP Containers: ${{ steps.stats.outputs.containers }}
-- GitHub Workflows: ${{ steps.stats.outputs.workflows }}
+          ## Infrastructure
+          - Agents: ${{ steps.stats.outputs.agents }}
+          - MCP Containers: ${{ steps.stats.outputs.containers }}
+          - GitHub Workflows: ${{ steps.stats.outputs.workflows }}
 
-## Recent Activity
-- Commits (24h): ${{ steps.commits.outputs.recent_commits }}
+          ## Recent Activity
+          - Commits (24h): ${{ steps.commits.outputs.recent_commits }}
 
-## Updates Applied
-✅ REPO_UPDATE_TASKS.md - Updated with current statistics
-✅ Rollback created in rollbacks/$(date -u +'%Y-%m-%d')/
+          ## Updates Applied
+          ✅ REPO_UPDATE_TASKS.md - Updated with current statistics
+          ✅ Rollback created in rollbacks/SUMMARY_DATE_PLACEHOLDER/
 
-## Next Run
-⏰ $(date -u -d 'tomorrow 21:00' +'%Y-%m-%d 21:00 UTC' 2>/dev/null || date -u -v+1d -v21H +'%Y-%m-%d 21:00 UTC')
-EOF
+          ## Next Run
+          ⏰ NEXT_RUN_PLACEHOLDER
+          EOFSUMMARY
+
+          # Pre-calculate next run time
+          NEXT_RUN=$(date -u -d 'tomorrow 21:00' +'%Y-%m-%d 21:00 UTC' 2>/dev/null || date -u -v+1d -v21H +'%Y-%m-%d 21:00 UTC')
+          
+          # Replace placeholders
+          sed -i "s/SUMMARY_TIME_PLACEHOLDER/$SUMMARY_TIME/g" "$SUMMARY_FILE"
+          sed -i "s/SUMMARY_DATE_PLACEHOLDER/$SUMMARY_DATE/g" "$SUMMARY_FILE"
+          sed -i "s/NEXT_RUN_PLACEHOLDER/$NEXT_RUN/g" "$SUMMARY_FILE"
       
       - name: Commit changes
         if: github.event.inputs.dry_run != 'true'
@@ -223,10 +245,13 @@ EOF
             exit 0
           fi
           
-          git commit -m "📊 Daily documentation update - $(date -u +'%Y-%m-%d %H:%M UTC')
+          COMMIT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          ROLLBACK_DATE=$(date -u +%Y-%m-%d)
+          
+          git commit -m "📊 Daily documentation update - ${COMMIT_DATE}
 
           - Updated REPO_UPDATE_TASKS.md with current statistics
-          - Created rollback for $(date -u +'%Y-%m-%d')
+          - Created rollback for ${ROLLBACK_DATE}
           - Total files: ${{ steps.stats.outputs.total_files }}
           - Production LOC: ${{ steps.stats.outputs.production_loc }}
           - Chrome Extension LOC: ${{ steps.stats.outputs.chrome_loc }}

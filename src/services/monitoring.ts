@@ -143,7 +143,7 @@ export async function getHealthStatus(): Promise<HealthStatus> {
  */
 async function checkDiskSpace(): Promise<{ availableGB: number }> {
   // Simple implementation - in production use proper disk monitoring
-  const total = os.totalmem();
+  const _total = os.totalmem(); // Reserved for future use
   const free = os.freemem();
   const availableGB = free / 1024 / 1024 / 1024;
   return { availableGB };

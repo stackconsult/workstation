@@ -73,86 +73,100 @@ jobs:
       - name: Update CODE_TIMELINE.md
         run: |
           CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
-          NEXT_UPDATE=$(date -u -d 'tomorrow 07:00' +'%Y-%m-%d 07:00 UTC' 2>/dev/null || date -u -v+1d -v7H -v0M +'%Y-%m-%d 07:00 UTC')
+          # Calculate next update date (tomorrow at 07:00 UTC)
+          TOMORROW=$(date -u -d "+1 day" +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d)
+          NEXT_UPDATE="${TOMORROW} 07:00 UTC"
           
           # Update the timeline (this is a simplified version - full implementation would be more complex)
-          cat > CODE_TIMELINE_TEMP.md << 'EOF'
-# 📊 Repository Code Timeline & Growth Tracker
+          cat > CODE_TIMELINE_TEMP.md <<- 'EOFTIMELINE'
+          # 📊 Repository Code Timeline & Growth Tracker
 
-**Last Updated**: $CURRENT_DATE  
-**Next Update**: $NEXT_UPDATE  
-**Tracking Agent**: Code Timeline Agent v1.0.0
+          **Last Updated**: CURRENT_DATE_PLACEHOLDER  
+          **Next Update**: NEXT_UPDATE_PLACEHOLDER  
+          **Tracking Agent**: Code Timeline Agent v1.0.0
 
----
+          ---
 
-## 📈 Code Growth Timeline
+          ## 📈 Code Growth Timeline
 
-### Current Statistics
+          ### Current Statistics
 
-**Total Lines of Code**: ${{ steps.stats.outputs.total_loc }}
+          **Total Lines of Code**: ${{ steps.stats.outputs.total_loc }}
 
-- Production Code (src/): ${{ steps.stats.outputs.prod_loc }} LOC
-- Chrome Extension: ${{ steps.stats.outputs.chrome_loc }} LOC
-- Test Code (tests/): ${{ steps.stats.outputs.test_loc }} LOC
+          - Production Code (src/): ${{ steps.stats.outputs.prod_loc }} LOC
+          - Chrome Extension: ${{ steps.stats.outputs.chrome_loc }} LOC
+          - Test Code (tests/): ${{ steps.stats.outputs.test_loc }} LOC
 
-**Repository Metrics**:
-- Total Files: ${{ steps.stats.outputs.total_files }}
-- TypeScript Files: ${{ steps.stats.outputs.ts_files }}
-- Test Files: ${{ steps.stats.outputs.test_files }}
-- GitHub Workflows: ${{ steps.stats.outputs.workflows }}
-- Agents: ${{ steps.stats.outputs.agents }}
+          **Repository Metrics**:
+          - Total Files: ${{ steps.stats.outputs.total_files }}
+          - TypeScript Files: ${{ steps.stats.outputs.ts_files }}
+          - Test Files: ${{ steps.stats.outputs.test_files }}
+          - GitHub Workflows: ${{ steps.stats.outputs.workflows }}
+          - Agents: ${{ steps.stats.outputs.agents }}
 
-**Repository Age**: ${{ steps.age.outputs.age_days }} days  
-**Average Daily Growth**: ${{ steps.age.outputs.avg_daily }} LOC/day
+          **Repository Age**: ${{ steps.age.outputs.age_days }} days  
+          **Average Daily Growth**: ${{ steps.age.outputs.avg_daily }} LOC/day
 
----
+          ---
 
-## 📊 Current Code Composition
+          ## 📊 Current Code Composition
 
-\`\`\`
-┌─────────────────────────────────────────────────────────────┐
-│  CODE DISTRIBUTION (as of $(date -u +'%Y-%m-%d'))           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Production Code (src/)          ████████████░░  ${{ steps.stats.outputs.prod_loc }} LOC │
-│  Chrome Extension                ██████░░░░░░░░  ${{ steps.stats.outputs.chrome_loc }} LOC │
-│  Test Code (tests/)              ████░░░░░░░░░░  ${{ steps.stats.outputs.test_loc }} LOC │
-│                                                             │
-│  Total Application Code:                        ${{ steps.stats.outputs.total_loc }} LOC │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-\`\`\`
+          \`\`\`
+          ┌─────────────────────────────────────────────────────────────┐
+          │  CODE DISTRIBUTION (as of CURRENT_DATE_PLACEHOLDER)         │
+          ├─────────────────────────────────────────────────────────────┤
+          │                                                             │
+          │  Production Code (src/)          ████████████░░  ${{ steps.stats.outputs.prod_loc }} LOC │
+          │  Chrome Extension                ██████░░░░░░░░  ${{ steps.stats.outputs.chrome_loc }} LOC │
+          │  Test Code (tests/)              ████░░░░░░░░░░  ${{ steps.stats.outputs.test_loc }} LOC │
+          │                                                             │
+          │  Total Application Code:                        ${{ steps.stats.outputs.total_loc }} LOC │
+          │                                                             │
+          └─────────────────────────────────────────────────────────────┘
+          \`\`\`
 
----
+          ---
 
-## 🔄 Update Schedule
+          ## 🔄 Update Schedule
 
-**Agent**: Code Timeline Agent  
-**Frequency**: Daily at 7:00 AM UTC  
-**Next Update**: $NEXT_UPDATE
+          **Agent**: Code Timeline Agent  
+          **Frequency**: Daily at 7:00 AM UTC  
+          **Next Update**: $NEXT_UPDATE
 
----
+          ---
 
-**Managed by**: Code Timeline Agent v1.0.0  
-**Last Updated**: $CURRENT_DATE  
-**Next Update**: $NEXT_UPDATE
-EOF
+          **Managed by**: Code Timeline Agent v1.0.0  
+          **Last Updated**: CURRENT_DATE_PLACEHOLDER  
+          **Next Update**: NEXT_UPDATE_PLACEHOLDER
+          EOFTIMELINE
+          
+          # Replace placeholders with actual values
+          sed -i "s/CURRENT_DATE_PLACEHOLDER/$CURRENT_DATE/g" CODE_TIMELINE_TEMP.md
+          sed -i "s/NEXT_UPDATE_PLACEHOLDER/$NEXT_UPDATE/g" CODE_TIMELINE_TEMP.md
           
           # Replace file (keeping the full template from the original)
           if [ -f CODE_TIMELINE.md ]; then
-            # Update specific sections while keeping the template structure
-            # For now, just update the header stats
-            echo "Timeline updated"
+            mv CODE_TIMELINE_TEMP.md CODE_TIMELINE.md
+            echo "Timeline updated successfully"
+          else
+            mv CODE_TIMELINE_TEMP.md CODE_TIMELINE.md
+            echo "Timeline created successfully"
           fi
       
       - name: Update AUTOMATION_DIRECTORY.md
         run: |
           # Count automation runs (this would need to be tracked in a database)
           # For now, just update the timestamp
+          CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          TOMORROW=$(date -u -d "+1 day" +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d)
+          NEXT_UPDATE="${TOMORROW} 07:00 UTC"
           
           if [ -f AUTOMATION_DIRECTORY.md ]; then
-            sed -i "s/Last Updated\*\*: .*/Last Updated**: $(date -u +'%Y-%m-%d %H:%M UTC')/" AUTOMATION_DIRECTORY.md || true
-            sed -i "s/Next Update\*\*: .*/Next Update**: $(date -u -d 'tomorrow 07:00' +'%Y-%m-%d 07:00 UTC' 2>/dev/null || date -u -v+1d -v7H +'%Y-%m-%d 07:00 UTC')/" AUTOMATION_DIRECTORY.md || true
+            sed -i "s/Last Updated\*\*: .*/Last Updated**: ${CURRENT_DATE}/" AUTOMATION_DIRECTORY.md || true
+            sed -i "s/Next Update\*\*: .*/Next Update**: ${NEXT_UPDATE}/" AUTOMATION_DIRECTORY.md || true
+            echo "AUTOMATION_DIRECTORY.md updated"
+          else
+            echo "AUTOMATION_DIRECTORY.md not found, skipping update"
           fi
       
       - name: Commit changes
