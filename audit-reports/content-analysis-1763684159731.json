@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-11-21T00:15:59.731Z",
+  "contentLength": 70153,
+  "containsLogin": true,
+  "containsOrganization": true,
+  "containsDashboard": true,
+  "links": [
+    "/signup?return_to=https%3A%2F%2Fgithub.com%2Forgs%2FcreditXcredit%2Fdashboard&amp;source=login"
+  ],
+  "forms": [
+    {
+      "html": "<form data-turbo=\"false\" action=\"/session\" accept-charset=\"UTF-8\" method=\"post\"><input type=\"hidden\" data-csrf=\"true\" name=\"authenticity_token\" value=\"gxUne4bODbtJLPbrA2WYb8kKtkhan5/WV7aki6M1PxA3sbjTQ...",
+      "hasPassword": true,
+      "hasSubmit": true
+    },
+    {
+      "html": "<form hidden=\"hidden\" class=\"js-conditional-webauthn-placeholder\" data-webauthn-sign-request=\"{&quot;publicKey&quot;:{&quot;userVerification&quot;:&quot;required&quot;,&quot;timeout&quot;:60000,&quot;...",
+      "hasPassword": false,
+      "hasSubmit": false
+    },
+    {
+      "html": "<form class=\"js-webauthn-form\" data-turbo=\"false\" action=\"/session\" accept-charset=\"UTF-8\" method=\"post\"><input type=\"hidden\" name=\"authenticity_token\" value=\"ii0Lbg2_Enaq5uctB-7cmE9OznOHS1xIU9Ru9eLtm...",
+      "hasPassword": false,
+      "hasSubmit": false
+    },
+    {
+      "html": "<form data-turbo=\"false\" action=\"/sessions/social/google/initiate\" accept-charset=\"UTF-8\" method=\"get\">\n    <input type=\"hidden\" name=\"return_to\" value=\"https://github.com/orgs/creditXcredit/dashboard...",
+      "hasPassword": false,
+      "hasSubmit": true
+    },
+    {
+      "html": "<form data-turbo=\"false\" action=\"/sessions/social/apple/initiate\" accept-charset=\"UTF-8\" method=\"get\">\n      <input type=\"hidden\" name=\"return_to\" value=\"https://github.com/orgs/creditXcredit/dashboar...",
+      "hasPassword": false,
+      "hasSubmit": true
+    }
+  ]
+}

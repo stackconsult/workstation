@@ -6,7 +6,7 @@
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io)
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue)
-![Test Coverage](https://img.shields.io/badge/coverage-67%25-brightgreen)
+![Test Coverage](https://img.shields.io/badge/coverage-20%25-yellow)
 ![License](https://img.shields.io/badge/license-ISC-blue)
 
 > **Local-first automation** with JWT authentication, workflow orchestration, and AI integration. Zero cloud costs. Full control. Production-ready.
@@ -35,7 +35,7 @@ Workstation is a **production-ready** browser automation platform that combines:
 
 **Current Status**: 
 - ✅ **Phase 1 Complete**: Full browser automation with 7 core actions
-- ✅ **170 Tests Passing**: Production-ready code quality
+- ⚠️ **189 Tests Passing (2 Failing)**: Active development, improving coverage
 - ✅ **753 Files**: Comprehensive codebase with 321 docs
 - ✅ **25 Agents + 23 MCP Containers**: Robust microservices ecosystem
 - ✅ **Chrome Extension MVP**: Browser integration ready
@@ -203,8 +203,9 @@ npm run test:chrome
 📊 Test Code:               2,742 lines (tests/)
 📊 TypeScript Files:        116 source files
 📊 Test Files:              59 test suites
-📊 Total Tests:             170 tests (100% passing)
-📊 Test Coverage:           67.18% statements, 51.92% branches, 70.94% functions, 66.88% lines
+📊 Total Tests:             191 tests (189 passing, 2 failing - being fixed)
+📊 Test Coverage:           19.64% statements, 10.34% branches, 13.07% functions, 19.83% lines
+📊 Coverage Status:         ⚠️ BELOW TARGET - Active improvement in progress
 📊 Agent Directories:       21 specialized agents
 📊 MCP Containers:          22 isolated services
 📊 Documentation Files:     321 comprehensive docs (root + docs/)
@@ -409,7 +410,7 @@ npm run lint
 node scripts/coverage-scaling.js check
 ```
 
-**Test Coverage**: 67.18% statements, 51.92% branches, 70.94% functions, 66.88% lines (170 tests)
+**Test Coverage**: 19.64% statements, 10.34% branches, 13.07% functions, 19.83% lines (191 tests)
 
 **Quality Gates**:
 - ✅ Global coverage: 55%+ statements required

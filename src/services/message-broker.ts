@@ -52,7 +52,7 @@ class MessageBroker extends EventEmitter {
   private redisPublisher: Redis;
   private redisSubscriber: Redis;
   private isConnected: boolean = false;
-  private channels: Map<string, Set<Function>> = new Map();
+  private channels: Map<string, Set<(...args: any[]) => void>> = new Map();
 
   constructor() {
     super();

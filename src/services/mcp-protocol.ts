@@ -272,12 +272,12 @@ export class MCPProtocol {
     });
 
     // Context management
-    this.registerRequestHandler('save_context', async (params, context) => {
+    this.registerRequestHandler('save_context', async (params, _context) => {
       // Save context for task recall
       return { success: true, contextId: params.contextId };
     });
 
-    this.registerRequestHandler('get_context', async (params) => {
+    this.registerRequestHandler('get_context', async (_params) => {
       // Retrieve saved context
       return { context: {} };
     });
@@ -402,7 +402,8 @@ export class MCPProtocol {
    * Send a notification to an agent
    */
   async sendNotification(agentId: string, method: string, params: any = {}): Promise<void> {
-    const notification: MCPNotification = {
+    // Notification structure for future use
+    const _notification: MCPNotification = {
       method,
       params,
     };
