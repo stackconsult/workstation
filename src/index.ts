@@ -44,6 +44,7 @@ import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import workflowsRoutes from './routes/workflows';
 import agentsRoutes from './routes/agents';
+import llmRoutes from './routes/llm';
 import { initializeDatabase } from './automation/db/database';
 // Phase 3: Import advanced rate limiting and monitoring
 import { 
@@ -258,6 +259,9 @@ app.use('/api/workflows', workflowsRoutes);
 
 // Agents management routes
 app.use('/api/agents', agentsRoutes);
+
+// LLM AI-powered workflow routes
+app.use('/api/llm', llmRoutes);
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);
