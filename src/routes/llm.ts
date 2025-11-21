@@ -13,9 +13,10 @@ import rateLimit from 'express-rate-limit';
 const router = Router();
 
 // Rate limiter for LLM endpoints (more restrictive due to API costs)
+// Configurable via LLM_RATE_LIMIT env var for development
 const llmLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit to 20 LLM calls per 15 minutes
+  max: parseInt(process.env.LLM_RATE_LIMIT || '20'), // Default: 20 LLM calls per 15 minutes
   message: 'Too many LLM requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,

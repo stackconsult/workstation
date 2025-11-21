@@ -146,18 +146,20 @@ if [ ! -f .env ]; then
             2)
                 read -p "Enter your Anthropic API key: " anthropic_key
                 if [ -n "$anthropic_key" ]; then
+                    # Note: Using latest stable Claude model - update .env manually for specific versions
+                    CLAUDE_MODEL="${CLAUDE_MODEL:-claude-3-opus-20240229}"
                     if [[ "$OSTYPE" == "darwin"* ]]; then
                         sed -i '' "s/LLM_PROVIDER=openai/LLM_PROVIDER=anthropic/" .env
                         sed -i '' "s/your-openai-api-key-here/$anthropic_key/" .env
-                        sed -i '' "s/LLM_MODEL=gpt-4/LLM_MODEL=claude-3-opus-20240229/" .env
+                        sed -i '' "s/LLM_MODEL=gpt-4/LLM_MODEL=$CLAUDE_MODEL/" .env
                         sed -i '' "s/LLM_ENABLED=true/LLM_ENABLED=true/" .env
                     else
                         sed -i "s/LLM_PROVIDER=openai/LLM_PROVIDER=anthropic/" .env
                         sed -i "s/your-openai-api-key-here/$anthropic_key/" .env
-                        sed -i "s/LLM_MODEL=gpt-4/LLM_MODEL=claude-3-opus-20240229/" .env
+                        sed -i "s/LLM_MODEL=gpt-4/LLM_MODEL=$CLAUDE_MODEL/" .env
                         sed -i "s/LLM_ENABLED=true/LLM_ENABLED=true/" .env
                     fi
-                    success "Anthropic API key configured"
+                    success "Anthropic API key configured (model: $CLAUDE_MODEL)"
                 fi
                 ;;
             3|*)
@@ -269,12 +271,27 @@ log "Step 6/8: Verifying LLM integration..."
 if [ "$LLM_ENABLED" = "true" ]; then
     info "Checking LLM service availability..."
     sleep 2
-    LLM_STATUS=$(curl -sf http://localhost:3000/api/llm/available -H "Authorization: Bearer $(curl -sf http://localhost:3000/auth/demo-token | grep -o '"token":"[^"]*"' | cut -d'"' -f4)" | grep -o '"available":[^,}]*' | cut -d':' -f2)
     
-    if [ "$LLM_STATUS" = "true" ]; then
-        success "LLM service is available and configured"
+    # Get demo token
+    DEMO_TOKEN_RESPONSE=$(curl -sf http://localhost:3000/auth/demo-token)
+    if [ $? -ne 0 ]; then
+        warning "Failed to get demo token for LLM verification"
     else
-        warning "LLM service configured but not available (check API key)"
+        DEMO_TOKEN=$(echo "$DEMO_TOKEN_RESPONSE" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+        
+        if [ -n "$DEMO_TOKEN" ]; then
+            # Check LLM availability
+            LLM_RESPONSE=$(curl -sf http://localhost:3000/api/llm/available -H "Authorization: Bearer $DEMO_TOKEN")
+            LLM_STATUS=$(echo "$LLM_RESPONSE" | grep -o '"available":[^,}]*' | cut -d':' -f2)
+            
+            if [ "$LLM_STATUS" = "true" ]; then
+                success "LLM service is available and configured"
+            else
+                warning "LLM service configured but not available (check API key)"
+            fi
+        else
+            warning "Could not extract token for LLM verification"
+        fi
     fi
 else
     info "LLM integration disabled (enable in .env for AI features)"

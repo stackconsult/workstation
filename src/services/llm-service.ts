@@ -204,6 +204,9 @@ export class LLMService {
 
   /**
    * Local/Ollama API completion
+   * Note: Local models often don't provide token usage metrics,
+   * so we return zero values. Actual token counting would require
+   * implementing a tokenizer for the specific model being used.
    */
   private async localCompletion(request: LLMCompletionRequest): Promise<LLMCompletionResponse> {
     const response = await this.client.post('/chat/completions', {
@@ -216,6 +219,8 @@ export class LLMService {
     return {
       content: response.data.choices[0].message.content,
       usage: {
+        // Local models typically don't return token counts
+        // TODO: Implement tokenizer for accurate counting if needed
         promptTokens: 0,
         completionTokens: 0,
         totalTokens: 0
