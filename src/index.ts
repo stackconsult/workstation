@@ -43,6 +43,7 @@ import gitopsRoutes from './routes/gitops';
 import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import workflowsRoutes from './routes/workflows';
+import workflowTemplatesRoutes from './routes/workflow-templates';
 import agentsRoutes from './routes/agents';
 import { initializeDatabase } from './automation/db/database';
 // Phase 3: Import advanced rate limiting and monitoring
@@ -255,6 +256,9 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Workflows routes
 app.use('/api/workflows', workflowsRoutes);
+
+// Workflow templates routes
+app.use('/api/workflow-templates', workflowTemplatesRoutes);
 
 // Agents management routes
 app.use('/api/agents', agentsRoutes);

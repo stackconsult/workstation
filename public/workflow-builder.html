@@ -147,6 +147,124 @@
             );
         }
 
+        // TemplateGallery Component
+        function TemplateGallery({ onLoadTemplate }) {
+            const [templates, setTemplates] = useState([]);
+            const [categories, setCategories] = useState([]);
+            const [selectedCategory, setSelectedCategory] = useState('all');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetchTemplates();
+            }, []);
+
+            const fetchTemplates = async () => {
+                try {
+                    const response = await fetch('/api/workflow-templates');
+                    const result = await response.json();
+                    if (result.success) {
+                        setTemplates(result.data.templates);
+                        setCategories(result.data.categories);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch templates:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const filteredTemplates = templates.filter(template => {
+                const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
+                const matchesSearch = !searchQuery || 
+                    template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+                return matchesCategory && matchesSearch;
+            });
+
+            const getComplexityColor = (complexity) => {
+                switch(complexity) {
+                    case 'beginner': return '#4CAF50';
+                    case 'intermediate': return '#FF9800';
+                    case 'advanced': return '#F44336';
+                    default: return '#9E9E9E';
+                }
+            };
+
+            return (
+                <div className="template-gallery">
+                    <div className="template-header">
+                        <h3>📚 Workflow Templates</h3>
+                        <input 
+                            type="text"
+                            className="template-search"
+                            placeholder="Search templates..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="template-categories">
+                        <button
+                            className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+                            onClick={() => setSelectedCategory('all')}
+                        >
+                            All Templates ({templates.length})
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                className={`category-btn ${selectedCategory === cat.id ? 'active' : ''}`}
+                                onClick={() => setSelectedCategory(cat.id)}
+                            >
+                                {cat.icon} {cat.name} ({cat.templateCount})
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="template-list">
+                        {loading ? (
+                            <div className="template-loading">Loading templates...</div>
+                        ) : filteredTemplates.length === 0 ? (
+                            <div className="template-empty">No templates found</div>
+                        ) : (
+                            filteredTemplates.map(template => (
+                                <div key={template.id} className="template-card">
+                                    <div className="template-card-header">
+                                        <span className="template-icon">{template.icon}</span>
+                                        <h4 className="template-name">{template.name}</h4>
+                                        <span 
+                                            className="template-complexity"
+                                            style={{ backgroundColor: getComplexityColor(template.complexity) }}
+                                        >
+                                            {template.complexity}
+                                        </span>
+                                    </div>
+                                    <p className="template-description">{template.description}</p>
+                                    <div className="template-meta">
+                                        <span className="template-duration">⏱️ {template.estimatedDuration}</span>
+                                        <span className="template-nodes">📦 {template.nodes.length} nodes</span>
+                                    </div>
+                                    <div className="template-tags">
+                                        {template.tags.map(tag => (
+                                            <span key={tag} className="template-tag">{tag}</span>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        className="btn btn-primary template-use-btn"
+                                        onClick={() => onLoadTemplate(template)}
+                                    >
+                                        Use Template
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
         // NodeProperties Component
         function NodeProperties({ node, onUpdate, onClose }) {
             const [params, setParams] = useState(node?.params || {});
@@ -312,6 +430,7 @@
             const [executionStatus, setExecutionStatus] = useState(null);
             const [executionHistory, setExecutionHistory] = useState([]);
             const [showHistory, setShowHistory] = useState(false);
+            const [activeTab, setActiveTab] = useState('builder'); // 'builder' or 'templates'
 
             const addNode = (type) => {
                 const newNode = {
@@ -635,6 +754,27 @@
                 reader.readAsText(file);
             };
 
+            const loadTemplate = (template) => {
+                if (nodes.length > 0) {
+                    if (!confirm('Loading a template will replace your current workflow. Continue?')) {
+                        return;
+                    }
+                }
+                
+                setWorkflowName(template.name);
+                setNodes(template.nodes || []);
+                setConnections(template.connections || []);
+                setNextNodeId(Math.max(...(template.nodes?.map(n => parseInt(n.id.split('-')[1])) || [0])) + 1);
+                setActiveTab('builder'); // Switch to builder view
+                setExecutionStatus({
+                    status: 'success',
+                    message: `Template "${template.name}" loaded successfully! Customize the parameters and execute when ready.`
+                });
+                
+                // Clear success message after 5 seconds
+                setTimeout(() => setExecutionStatus(null), 5000);
+            };
+
             const saveWorkflow = async () => {
                 if (nodes.length === 0) {
                     alert('Please add some nodes to the workflow first');
@@ -878,6 +1018,22 @@
                             </button>
                         </div>
                     </div>
+
+                    {/* Tab Navigation */}
+                    <div className="tab-navigation">
+                        <button 
+                            className={`tab-btn ${activeTab === 'builder' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('builder')}
+                        >
+                            🔧 Workflow Builder
+                        </button>
+                        <button 
+                            className={`tab-btn ${activeTab === 'templates' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('templates')}
+                        >
+                            📚 Templates
+                        </button>
+                    </div>
                     
                     {executionStatus && (
                         <div className={`execution-status status-${executionStatus.status}`}>
@@ -906,20 +1062,24 @@
                         </div>
                     )}
                     
-                    <div className="builder-main">
-                        <NodeLibrary onAddNode={addNode} />
-                        
-                        <div className="builder-workspace">
-                            <Canvas 
-                                nodes={nodes}
-                                connections={connections}
-                                onCanvasClick={handleCanvasClick}
-                                selectedNode={selectedNode}
-                            />
-                            {nodes.map(node => (
-                                <WorkflowNode
-                                    key={node.id}
-                                    node={node}
+                    {/* Conditional rendering based on active tab */}
+                    {activeTab === 'templates' ? (
+                        <TemplateGallery onLoadTemplate={loadTemplate} />
+                    ) : (
+                        <div className="builder-main">
+                            <NodeLibrary onAddNode={addNode} />
+                            
+                            <div className="builder-workspace">
+                                <Canvas 
+                                    nodes={nodes}
+                                    connections={connections}
+                                    onCanvasClick={handleCanvasClick}
+                                    selectedNode={selectedNode}
+                                />
+                                {nodes.map(node => (
+                                    <WorkflowNode
+                                        key={node.id}
+                                        node={node}
                                     onSelect={setSelectedNode}
                                     onDelete={deleteNode}
                                     isSelected={selectedNode?.id === node.id}
@@ -932,7 +1092,8 @@
                             onUpdate={updateNodeParams}
                             onClose={() => setSelectedNode(null)}
                         />
-                    </div>
+                        </div>
+                    )}
 
                     {showHistory && (
                         <div className="history-panel">

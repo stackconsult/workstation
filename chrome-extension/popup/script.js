@@ -474,36 +474,44 @@ function showBuilderStatus(message, type = 'info') {
  */
 async function loadTemplates() {
   try {
-    const response = await fetch(`${settings.backendUrl}/api/v2/templates`, {
-      headers: {
-        'Authorization': `Bearer ${await getToken()}`
-      }
-    });
+    const response = await fetch(`${settings.backendUrl}/api/workflow-templates`);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
     
     const result = await response.json();
-    const templates = result.data || [];
+    const templates = result.data?.templates || [];
+    const categories = result.data?.categories || [];
     
     if (templates.length === 0) {
       templatesList.innerHTML = '<div class="templates-empty">No templates available</div>';
       return;
     }
     
-    templatesList.innerHTML = templates.map(template => `
-      <div class="template-item" data-id="${template.id}">
-        <div class="template-item-header">
-          <div class="template-item-title">${escapeHtml(template.name)}</div>
-          <span class="template-item-category">${template.category}</span>
-        </div>
-        <div class="template-item-description">${escapeHtml(template.description)}</div>
+    templatesList.innerHTML = `
+      <div class="templates-container">
+        ${templates.map(template => `
+          <div class="template-card" data-id="${template.id}">
+            <div class="template-card-icon">${template.icon || '📦'}</div>
+            <div class="template-card-content">
+              <div class="template-card-header">
+                <div class="template-card-title">${escapeHtml(template.name)}</div>
+                <span class="template-complexity template-complexity-${template.complexity}">${template.complexity}</span>
+              </div>
+              <div class="template-card-description">${escapeHtml(template.description)}</div>
+              <div class="template-card-meta">
+                <span>⏱️ ${template.estimatedDuration}</span>
+                <span>📦 ${template.nodes.length} nodes</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
       </div>
-    `).join('');
+    `;
     
     // Add click handlers
-    document.querySelectorAll('.template-item').forEach(item => {
+    document.querySelectorAll('.template-card').forEach(item => {
       item.addEventListener('click', () => {
         const id = item.dataset.id;
         const template = templates.find(t => t.id === id);
@@ -514,18 +522,47 @@ async function loadTemplates() {
     });
   } catch (error) {
     console.error('Failed to load templates:', error);
-    templatesList.innerHTML = '<div class="templates-empty">Failed to load templates</div>';
+    templatesList.innerHTML = '<div class="templates-empty">Failed to load templates. Make sure the backend is running.</div>';
   }
 }
 
-function loadTemplate(template) {
-  // Load template description into execute tab
-  promptTextarea.value = template.description || template.name;
-  
-  // Could also set up the workflow definition for execution
-  // For now, just switch to execute tab
-  switchTab('execute');
-  showStatus(`Template "${template.name}" loaded`, 'info');
+async function loadTemplate(template) {
+  try {
+    // Clone the template via API to get a new workflow instance
+    const response = await fetch(`${settings.backendUrl}/api/workflow-templates/${template.id}/clone`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: `${template.name} (Copy)`
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    const workflow = result.data;
+
+    // Store the workflow in local storage
+    chrome.storage.local.set({
+      currentTemplate: workflow
+    });
+
+    showStatus(`Template "${template.name}" loaded! Opening workflow builder...`, 'success');
+    
+    // Open workflow builder in new tab with the template
+    setTimeout(() => {
+      chrome.tabs.create({
+        url: `${settings.backendUrl}/workflow-builder.html?template=${template.id}`
+      });
+    }, 1000);
+  } catch (error) {
+    console.error('Failed to load template:', error);
+    showStatus(`Failed to load template: ${error.message}`, 'error');
+  }
 }
 
 async function getToken() {

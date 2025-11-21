@@ -138,6 +138,17 @@ npm run test:chrome
 - **Landing Page**: Feature showcase and documentation
 - **Simple Dashboard**: JWT and API testing
 - **Control Center**: Advanced workflow management
+- **Visual Workflow Builder**: Drag-and-drop workflow creation with 30+ node types
+- **Workflow Templates**: 8+ pre-built templates for common automation tasks
+
+### 📚 Workflow Templates (NEW!)
+- **8 Pre-Built Templates**: Web scraping, form automation, data processing, API integration, monitoring, e-commerce, social media, reporting
+- **Template Gallery**: Browse and search templates by category, complexity, or tags
+- **One-Click Loading**: Instant template loading into workflow builder
+- **Chrome Extension Integration**: Quick start templates from browser extension
+- **Customizable**: Full parameter customization after loading
+- **Categories**: Scraping, automation, data processing, integration, monitoring, e-commerce, social media, reporting
+- 📖 [Template Documentation](WORKFLOW_TEMPLATES.md) | [Template Guide](docs/WORKFLOW_TEMPLATE_GUIDE.md)
 
 ### 🔄 MCP Repository Sync
 - **Automated Sync**: Monitors private MCP repo every 5 minutes

@@ -1,0 +1,159 @@
+{
+  "id": "ecommerce-price-comparison",
+  "name": "E-Commerce Price Comparison",
+  "description": "Search for products across multiple e-commerce sites, extract prices and details, compare them, and save the results to CSV. Perfect for price monitoring and competitive analysis.",
+  "category": "ecommerce",
+  "icon": "🛒",
+  "tags": ["ecommerce", "prices", "comparison", "scraping", "advanced"],
+  "complexity": "advanced",
+  "estimatedDuration": "5-15 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Search Site 1",
+      "x": 50,
+      "y": 200,
+      "params": {
+        "url": "https://example-shop1.com/search?q=product",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "navigate",
+      "label": "Search Site 2",
+      "x": 200,
+      "y": 200,
+      "params": {
+        "url": "https://example-shop2.com/search?q=product",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "extract",
+      "label": "Extract Prices Site 1",
+      "x": 50,
+      "y": 300,
+      "params": {
+        "selector": ".product-item",
+        "fields": {
+          "name": ".product-name",
+          "price": ".product-price",
+          "rating": ".product-rating",
+          "url": "a@href"
+        }
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "extract",
+      "label": "Extract Prices Site 2",
+      "x": 200,
+      "y": 300,
+      "params": {
+        "selector": ".item",
+        "fields": {
+          "name": "h3",
+          "price": ".price",
+          "rating": ".stars",
+          "url": "a@href"
+        }
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "parallel",
+      "label": "Merge Results",
+      "x": 125,
+      "y": 400
+    },
+    {
+      "id": "node-7",
+      "type": "json_query",
+      "label": "Compare & Sort",
+      "x": 125,
+      "y": 500,
+      "params": {
+        "query": "[*] | sort_by(@, &price)",
+        "operation": "transform"
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "csv_write",
+      "label": "Save to CSV",
+      "x": 125,
+      "y": 600,
+      "params": {
+        "filename": "price_comparison_{date}.csv",
+        "headers": true,
+        "columns": ["name", "price", "rating", "url", "source"]
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "end",
+      "label": "End",
+      "x": 125,
+      "y": 700
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-1",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-2",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-3",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-4",
+      "target": "node-6"
+    },
+    {
+      "id": "conn-6",
+      "source": "node-5",
+      "target": "node-6"
+    },
+    {
+      "id": "conn-7",
+      "source": "node-6",
+      "target": "node-7"
+    },
+    {
+      "id": "conn-8",
+      "source": "node-7",
+      "target": "node-8"
+    },
+    {
+      "id": "conn-9",
+      "source": "node-8",
+      "target": "node-9"
+    }
+  ]
+}

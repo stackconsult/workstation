@@ -1,0 +1,195 @@
+{
+  "id": "report-generation",
+  "name": "Automated Report Generation",
+  "description": "Gather data from multiple sources (database, API, files), process and analyze it, generate a PDF report, and send it via email. Perfect for automated reporting, analytics, and business intelligence.",
+  "category": "reporting",
+  "icon": "📈",
+  "tags": ["reporting", "pdf", "analytics", "email", "advanced"],
+  "complexity": "advanced",
+  "estimatedDuration": "10-20 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "database_query",
+      "label": "Query Sales Data",
+      "x": 50,
+      "y": 200,
+      "params": {
+        "query": "SELECT * FROM sales WHERE date >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+        "database": "analytics"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "navigate",
+      "label": "Fetch API Metrics",
+      "x": 200,
+      "y": 200,
+      "params": {
+        "url": "https://api.analytics.com/metrics",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer API_KEY"
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "file_read",
+      "label": "Read Config",
+      "x": 350,
+      "y": 200,
+      "params": {
+        "filename": "report_config.json",
+        "format": "json"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "parallel",
+      "label": "Merge Data Sources",
+      "x": 200,
+      "y": 300
+    },
+    {
+      "id": "node-6",
+      "type": "json_query",
+      "label": "Calculate Metrics",
+      "x": 200,
+      "y": 400,
+      "params": {
+        "query": "{total_sales: sum(sales[*].amount), avg_order: avg(sales[*].amount), count: length(sales)}",
+        "operation": "aggregate"
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "excel_write",
+      "label": "Create Excel Summary",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "filename": "report_data_{date}.xlsx",
+        "sheets": {
+          "Summary": "metrics",
+          "Raw Data": "sales"
+        }
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "pdf_generate",
+      "label": "Generate PDF Report",
+      "x": 300,
+      "y": 500,
+      "params": {
+        "template": "monthly_report",
+        "filename": "Monthly_Report_{date}.pdf",
+        "data": "metrics"
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "parallel",
+      "label": "Collect Outputs",
+      "x": 200,
+      "y": 600
+    },
+    {
+      "id": "node-10",
+      "type": "email_send",
+      "label": "Send Report Email",
+      "x": 200,
+      "y": 700,
+      "params": {
+        "to": "stakeholders@company.com",
+        "subject": "Monthly Report - {date}",
+        "body": "Please find attached the monthly performance report.",
+        "attachments": ["Monthly_Report_{date}.pdf", "report_data_{date}.xlsx"]
+      }
+    },
+    {
+      "id": "node-11",
+      "type": "end",
+      "label": "End",
+      "x": 200,
+      "y": 800
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-1",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-1",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-2",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-3",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-6",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-7",
+      "source": "node-5",
+      "target": "node-6"
+    },
+    {
+      "id": "conn-8",
+      "source": "node-6",
+      "target": "node-7"
+    },
+    {
+      "id": "conn-9",
+      "source": "node-6",
+      "target": "node-8"
+    },
+    {
+      "id": "conn-10",
+      "source": "node-7",
+      "target": "node-9"
+    },
+    {
+      "id": "conn-11",
+      "source": "node-8",
+      "target": "node-9"
+    },
+    {
+      "id": "conn-12",
+      "source": "node-9",
+      "target": "node-10"
+    },
+    {
+      "id": "conn-13",
+      "source": "node-10",
+      "target": "node-11"
+    }
+  ]
+}

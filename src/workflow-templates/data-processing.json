@@ -1,0 +1,99 @@
+{
+  "id": "data-processing-pipeline",
+  "name": "Data Processing Pipeline",
+  "description": "Read data from a CSV file, process and transform it, then write the results to a new file. Great for data cleaning, ETL operations, or batch processing tasks.",
+  "category": "data-processing",
+  "icon": "⚙️",
+  "tags": ["data", "processing", "etl", "csv", "intermediate"],
+  "complexity": "intermediate",
+  "estimatedDuration": "3-10 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "file_read",
+      "label": "Read Input CSV",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "filename": "input_data.csv",
+        "format": "csv"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "csv_parse",
+      "label": "Parse CSV Data",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "delimiter": ",",
+        "headers": true
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "json_query",
+      "label": "Transform Data",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "query": "*.{name: name, value: price, category: type}",
+        "operation": "map"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "csv_write",
+      "label": "Write Output CSV",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "filename": "output_data.csv",
+        "headers": true
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    }
+  ]
+}
