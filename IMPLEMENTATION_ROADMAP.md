@@ -36,34 +36,38 @@ This document outlines the step-by-step implementation plan for completing the m
 - `transform_json`: Data transformation
 
 ### Step 1.3: Excel Agent
-- [ ] Create `src/automation/agents/data/excel.ts`
-- [ ] Implement Excel file parsing (XLSX)
-- [ ] Support multiple sheets
-- [ ] Add cell formatting support
-- [ ] Wire to agent registry
+- [x] Create `src/automation/agents/data/excel.ts`
+- [x] Implement Excel file parsing (XLSX)
+- [x] Support multiple sheets
+- [x] Add cell formatting support
+- [x] Wire to agent registry
 - [ ] Add unit tests in `tests/agents/data/excel.test.ts`
-- [ ] Update documentation
+- [x] Update documentation
 
 **Capabilities**:
-- `read_excel`: Read Excel file (all sheets or specific)
-- `write_excel`: Write data to Excel format
-- `get_sheet`: Extract specific sheet data
-- `format_cells`: Apply cell formatting
+- `readExcel`: Read Excel file (all sheets or specific)
+- `writeExcel`: Write data to Excel format
+- `getSheet`: Extract specific sheet data
+- `listSheets`: List all sheets in workbook
+- `formatCells`: Apply cell formatting
+- `getInfo`: Get Excel file information
 
 ### Step 1.4: PDF Agent
-- [ ] Create `src/automation/agents/data/pdf.ts`
-- [ ] Implement PDF text extraction
-- [ ] Add PDF table extraction
-- [ ] Support PDF generation from HTML/data
-- [ ] Wire to agent registry
+- [x] Create `src/automation/agents/data/pdf.ts`
+- [x] Implement PDF text extraction
+- [x] Add PDF table extraction
+- [x] Support PDF generation from data
+- [x] Wire to agent registry
 - [ ] Add unit tests in `tests/agents/data/pdf.test.ts`
-- [ ] Update documentation
+- [x] Update documentation
 
 **Capabilities**:
-- `extract_text`: Extract text from PDF
-- `extract_tables`: Extract tables from PDF
-- `generate_pdf`: Create PDF from HTML/data
-- `merge_pdfs`: Combine multiple PDFs
+- `extractText`: Extract text from PDF
+- `extractTables`: Extract tables from PDF
+- `generatePdf`: Create PDF from data
+- `mergePdfs`: Combine multiple PDFs
+- `getPdfInfo`: Get PDF metadata
+- `splitPdf`: Split PDF into pages
 
 ## Phase 2: Integration Agents (Priority: HIGH)
 **Goal**: Connect workflows to external services

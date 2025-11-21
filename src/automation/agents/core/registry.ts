@@ -9,6 +9,8 @@ import { FileAgent } from '../storage/file';
 import { RssAgent } from '../data/rss';
 import { CsvAgent } from '../data/csv';
 import { JsonAgent } from '../data/json';
+import { ExcelAgent } from '../data/excel';
+import { PdfAgent } from '../data/pdf';
 import { logger } from '../../../utils/logger';
 
 export interface AgentCapability {
@@ -70,6 +72,18 @@ export class AgentRegistry {
       agent_type: 'json',
       actions: ['parseJson', 'queryJson', 'validateJson', 'transformJson', 'stringifyJson', 'mergeJson'],
       description: 'JSON data parsing, querying, validation, and transformation'
+    });
+
+    this.registerCapability({
+      agent_type: 'excel',
+      actions: ['readExcel', 'writeExcel', 'getSheet', 'listSheets', 'formatCells', 'getInfo'],
+      description: 'Excel file reading, writing, multi-sheet operations, and cell formatting'
+    });
+
+    this.registerCapability({
+      agent_type: 'pdf',
+      actions: ['extractText', 'extractTables', 'generatePdf', 'mergePdfs', 'getPdfInfo', 'splitPdf'],
+      description: 'PDF text extraction, table extraction, generation, and manipulation'
     });
 
     logger.info('Default agents registered', { count: this.capabilities.length });
@@ -300,6 +314,64 @@ export class AgentRegistry {
               return await jsonAgent.mergeJson(params as never);
             default:
               throw new Error(`Unknown JSON action: ${action}`);
+          }
+        }
+      };
+
+      this.agents.set(key, actionWrapper);
+      return actionWrapper;
+    }
+
+    // Phase 1: Excel agent
+    if (agentType === 'excel') {
+      const excelAgent = new ExcelAgent();
+
+      const actionWrapper: AgentAction = {
+        execute: async (params: Record<string, unknown>) => {
+          switch (action) {
+            case 'readExcel':
+              return await excelAgent.readExcel(params as never);
+            case 'writeExcel':
+              return await excelAgent.writeExcel(params as never);
+            case 'getSheet':
+              return await excelAgent.getSheet(params as never);
+            case 'listSheets':
+              return await excelAgent.listSheets(params as never);
+            case 'formatCells':
+              return await excelAgent.formatCells(params as never);
+            case 'getInfo':
+              return await excelAgent.getInfo(params as never);
+            default:
+              throw new Error(`Unknown Excel action: ${action}`);
+          }
+        }
+      };
+
+      this.agents.set(key, actionWrapper);
+      return actionWrapper;
+    }
+
+    // Phase 1: PDF agent
+    if (agentType === 'pdf') {
+      const pdfAgent = new PdfAgent();
+
+      const actionWrapper: AgentAction = {
+        execute: async (params: Record<string, unknown>) => {
+          switch (action) {
+            case 'extractText':
+              return await pdfAgent.extractText(params as never);
+            case 'extractTables':
+              return await pdfAgent.extractTables(params as never);
+            case 'generatePdf':
+              return await pdfAgent.generatePdf(params as never);
+            case 'mergePdfs':
+              return await pdfAgent.mergePdfs(params as never);
+            case 'getPdfInfo':
+              return await pdfAgent.getPdfInfo(params as never);
+            case 'splitPdf':
+              return await pdfAgent.splitPdf(params as never);
+            default:
+              throw new Error(`Unknown PDF action: ${action}`);
           }
         }
       };
