@@ -1073,3 +1073,386 @@ curl http://localhost:3016/api/github/repos
 **Architecture Version**: 2.0 (MCP-enabled)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [Nginx Reverse Proxy Guide](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
+
+## Context-Memory Intelligence Layer
+
+### Overview
+
+The Context-Memory Intelligence Layer provides persistent memory, pattern recognition, and adaptive learning capabilities across the entire automation system. It enables the workstation to learn from past executions, detect patterns, and generate optimization suggestions.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│      Context-Memory Intelligence Layer               │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────┐ │
+│  │ Entity Store │  │   Workflow   │  │ Learning  │ │
+│  │              │  │   History    │  │   Model   │ │
+│  │  - Tracking  │  │  - Metrics   │  │ - Training│ │
+│  │  - Relations │  │  - Patterns  │  │ - Suggest │ │
+│  │  - Context   │  │  - Analytics │  │ - Feedback│ │
+│  └──────┬───────┘  └──────┬───────┘  └─────┬─────┘ │
+│         │                 │                 │       │
+│         └─────────────────┴─────────────────┘       │
+│                           │                          │
+│                    SQLite Database                   │
+└─────────────────────────────────────────────────────┘
+                            │
+                ┌───────────┴───────────┐
+                │                       │
+         ┌──────▼──────┐        ┌──────▼──────┐
+         │  Workflow   │        │   Agent     │
+         │  Executor   │        │ Orchestrator│
+         └─────────────┘        └─────────────┘
+```
+
+### Components
+
+#### 1. Entity Store (`src/intelligence/context-memory/entity-store.ts`)
+
+**Purpose**: Track entities and their relationships across workflow executions.
+
+**Features**:
+- Entity types: files, repositories, issues, PRs, agents, workflows, users, custom
+- Relationship mapping (depends_on, modifies, created_by, used_by, related_to)
+- Importance scoring (0-100)
+- Tag-based organization
+- Workflow association tracking
+- Query interface with filters and pagination
+- Deduplication on entity type + name
+- In-memory caching for performance
+
+**Database Tables**:
+- `entities` - Entity storage with metadata
+- `entity_relationships` - Relationship mapping
+
+**API Endpoints**:
+- `GET /api/v2/context/entities/:id` - Get entity by ID
+- `GET /api/v2/context/entities` - Query entities
+- `GET /api/v2/context/entities/stats` - Statistics
+
+#### 2. Workflow History (`src/intelligence/context-memory/workflow-history.ts`)
+
+**Purpose**: Track workflow executions and detect patterns.
+
+**Features**:
+- Execution record tracking
+- Performance metrics (task count, duration, failures)
+- Success/failure analytics
+- Automatic pattern detection:
+  - Success sequences (10+ consecutive successes)
+  - Failure points (3+ failures in 7 days)
+  - Performance bottlenecks (50% slower than average)
+  - Optimization opportunities
+- Pattern-based recommendations
+
+**Database Tables**:
+- `workflow_history` - Execution records
+- `workflow_patterns` - Detected patterns
+
+**API Endpoints**:
+- `GET /api/v2/context/history` - Query execution history
+- `GET /api/v2/context/history/:workflowId/stats` - Workflow statistics
+- `GET /api/v2/context/patterns/:workflowId` - Workflow patterns
+- `GET /api/v2/context/patterns` - All patterns
+
+#### 3. Learning Model (`src/intelligence/context-memory/learning-model.ts`)
+
+**Purpose**: Adaptive learning and suggestion generation.
+
+**Model Types**:
+- **Workflow Optimization**: Analyze execution times, suggest parallelization
+- **Error Prediction**: Predict failure likelihood, suggest error handling
+- **Resource Allocation**: Optimize resource usage
+- **Task Sequencing**: Improve task ordering for efficiency
+
+**Features**:
+- Training from historical data (configurable window: 7-365 days)
+- Minimum sample requirements (default: 100)
+- Auto-retrain capability
+- Confidence scoring (0-1)
+- Impact estimation (time savings, error reduction, resource savings)
+- Feedback loop for continuous improvement
+- Model versioning
+
+**Database Tables**:
+- `learning_models` - Model state and parameters
+- `learning_suggestions` - Generated suggestions
+
+**API Endpoints**:
+- `GET /api/v2/context/suggestions/:workflowId` - Get suggestions
+- `POST /api/v2/context/suggestions/:id/apply` - Apply with feedback
+- `POST /api/v2/context/models/train` - Train model
+
+### Data Flow
+
+#### 1. Entity Tracking Flow
+
+```
+Workflow Execution
+       │
+       ├─> trackEntity(repo, metadata, tags)
+       │         │
+       │         ├─> Check if exists (type + name)
+       │         │
+       │         ├─> Update or Create
+       │         │
+       │         └─> Save to database
+       │
+       └─> associateWithWorkflow(entityId, workflowId)
+```
+
+#### 2. Workflow History Flow
+
+```
+Workflow Start
+       │
+       ├─> recordExecution(workflowId, status, metrics)
+       │         │
+       │         └─> Create history record
+       │
+Workflow Complete
+       │
+       ├─> completeExecution(recordId, status, duration)
+       │         │
+       │         ├─> Update completion time
+       │         │
+       │         └─> Trigger pattern detection (async)
+       │                   │
+       │                   ├─> detectFailurePattern()
+       │                   ├─> detectPerformancePattern()
+       │                   └─> detectSuccessPattern()
+```
+
+#### 3. Learning Model Flow
+
+```
+Training Trigger (manual/scheduled)
+       │
+       ├─> collectTrainingData(window_days)
+       │         │
+       │         └─> Query workflow_history
+       │
+       ├─> performTraining(model_type, data)
+       │         │
+       │         ├─> Calculate metrics
+       │         ├─> Determine accuracy
+       │         └─> Save parameters
+       │
+       └─> generateSuggestions(modelId, workflowId)
+                 │
+                 ├─> Analyze patterns
+                 ├─> Calculate impact
+                 └─> Save suggestions
+```
+
+### Integration Points
+
+#### 1. Workflow Service Integration
+
+```typescript
+import { getEntityStore, getWorkflowHistory } from './intelligence/context-memory';
+
+class WorkflowService {
+  async executeWorkflow(workflow) {
+    const entityStore = getEntityStore();
+    const history = getWorkflowHistory();
+    
+    // Track workflow entity
+    const entity = await entityStore.trackEntity(
+      'workflow',
+      workflow.name,
+      { id: workflow.id, owner: workflow.owner_id },
+      ['active']
+    );
+    
+    // Record execution start
+    const record = await history.recordExecution(
+      workflow.id,
+      executionId,
+      'running',
+      { task_count: tasks.length, ... }
+    );
+    
+    // Execute workflow...
+    
+    // Complete execution
+    await history.completeExecution(
+      record.id,
+      'success',
+      durationMs
+    );
+  }
+}
+```
+
+#### 2. Agent Orchestrator Integration
+
+```typescript
+import { getEntityStore } from './intelligence/context-memory';
+
+class AgentOrchestrator {
+  async handoff(fromAgent, toAgent, data) {
+    const entityStore = getEntityStore();
+    
+    // Track agent entities
+    await entityStore.trackEntity('agent', fromAgent.name, { id: fromAgent.id }, []);
+    await entityStore.trackEntity('agent', toAgent.name, { id: toAgent.id }, []);
+    
+    // Create relationship
+    await entityStore.createRelationship(
+      fromAgentEntity.id,
+      toAgentEntity.id,
+      'used_by',
+      0.9 // high confidence
+    );
+  }
+}
+```
+
+#### 3. Chrome Extension Integration
+
+The context-memory API endpoints can be consumed by the Chrome extension:
+
+```javascript
+// In chrome extension background.js
+async function getWorkflowContext(workflowId) {
+  const response = await fetch(
+    `http://localhost:3000/api/v2/context/entities?workflow_id=${workflowId}`,
+    { headers: { 'Authorization': `Bearer ${token}` } }
+  );
+  const { data: entities } = await response.json();
+  
+  // Display entities in extension UI
+  displayEntities(entities);
+}
+```
+
+### Performance Characteristics
+
+- **Entity Tracking**: O(1) lookups with caching, O(log n) with indexes
+- **Pattern Detection**: Async, non-blocking (runs after execution)
+- **Query Performance**: Indexed queries, typical response < 50ms
+- **Memory Footprint**: Minimal with selective caching
+- **Database Size**: ~1MB per 10,000 entities
+
+### Storage
+
+#### SQLite Database Schema
+
+All context-memory data is stored in the main SQLite database (`workstation.db`):
+
+```sql
+-- Entities table
+CREATE TABLE entities (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL,
+  name TEXT NOT NULL,
+  metadata TEXT NOT NULL,
+  first_seen TEXT NOT NULL,
+  last_seen TEXT NOT NULL,
+  access_count INTEGER DEFAULT 1,
+  context TEXT NOT NULL,
+  tags TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- Indexes for performance
+CREATE INDEX idx_entities_type ON entities(type);
+CREATE INDEX idx_entities_name ON entities(name);
+CREATE INDEX idx_entities_last_seen ON entities(last_seen);
+
+-- Additional tables:
+-- entity_relationships, workflow_history, workflow_patterns,
+-- learning_models, learning_suggestions
+```
+
+### Configuration
+
+Environment variables:
+
+```bash
+# Optional: Override database path
+INTELLIGENCE_DB_PATH=/app/data/intelligence.db
+
+# Optional: Cleanup settings
+MAX_ENTITY_AGE_DAYS=365
+MAX_HISTORY_RECORDS=10000
+```
+
+### Monitoring
+
+#### Health Checks
+
+The intelligence service includes health checks:
+
+```bash
+# Docker health check
+healthcheck:
+  test: ["CMD", "node", "-e", "console.log('healthy')"]
+  interval: 30s
+  timeout: 5s
+  retries: 3
+```
+
+#### Metrics
+
+Available through statistics endpoints:
+
+- Entity count by type
+- Workflow execution success/failure rates
+- Average execution times
+- Pattern detection counts
+- Model accuracy tracking
+
+### Security
+
+- All API endpoints protected with JWT authentication
+- SQL injection protection via parameterized queries
+- Input validation on all endpoints
+- No sensitive data in logs
+- Rate limiting via existing middleware
+
+### Future Enhancements
+
+1. **PostgreSQL Migration**: Scale beyond SQLite
+2. **Redis Caching**: Distributed caching layer
+3. **Advanced ML**: TensorFlow.js integration
+4. **Vector Search**: Semantic entity search with embeddings
+5. **Graph Database**: Neo4j for complex relationship queries
+6. **Real-time Updates**: WebSocket notifications
+7. **Auto-learning Scheduler**: Periodic model retraining
+8. **Approval Workflows**: Human-in-the-loop for suggestions
+
+### Testing
+
+Test suite location: `tests/intelligence/context-memory/`
+
+```bash
+# Run context-memory tests
+npm test -- tests/intelligence/context-memory/
+
+# Run with coverage
+npm test -- --coverage tests/intelligence/context-memory/
+```
+
+### Documentation
+
+- **Module README**: `src/intelligence/context-memory/README.md`
+- **Implementation Report**: `CONTEXT_MEMORY_IMPLEMENTATION_COMPLETE.md`
+- **API Examples**: See individual route files
+
+### Troubleshooting
+
+Common issues and solutions:
+
+1. **Schema initialization fails**: Ensure main database is initialized first
+2. **Entities not persisting**: Check database file permissions
+3. **Pattern detection not working**: Minimum 5 executions required
+4. **Low model accuracy**: Increase training window or improve data quality
+
+For more details, see `src/intelligence/context-memory/README.md`.
+

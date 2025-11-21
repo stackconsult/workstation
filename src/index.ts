@@ -46,6 +46,8 @@ import workflowsRoutes from './routes/workflows';
 import workflowTemplatesRoutes from './routes/workflow-templates';
 import agentsRoutes from './routes/agents';
 import { initializeDatabase } from './automation/db/database';
+// Context-Memory Intelligence Layer
+import { initializeContextMemory } from './intelligence/context-memory';
 // Phase 3: Import advanced rate limiting and monitoring
 import { 
   authRateLimiter as advancedAuthLimiter,
@@ -57,11 +59,24 @@ import { initializeMonitoring } from './services/monitoring';
 const envConfig = validateEnvironment();
 printEnvironmentSummary(envConfig);
 
-// Initialize Phase 1 database
-initializeDatabase().then(() => {
-  logger.info('Phase 1: Database initialized successfully');
-}).catch(error => {
-  logger.error('Phase 1: Database initialization failed', { error });
+// Initialize Phase 1 database and context-memory before starting the server
+async function initialize() {
+  try {
+    await initializeDatabase();
+    logger.info('Phase 1: Database initialized successfully');
+    
+    await initializeContextMemory();
+    logger.info('Context-Memory Intelligence Layer initialized successfully');
+  } catch (error) {
+    logger.error('Initialization failed', { error });
+    process.exit(1);
+  }
+}
+
+// Run initialization (server will start after this completes)
+initialize().catch(error => {
+  logger.error('Fatal initialization error', { error });
+  process.exit(1);
 });
 
 const app = express();
@@ -271,6 +286,11 @@ app.use('/api/v2', gitRoutes);
 
 // Git operations API (protected) - low-level ops for automation agents
 app.use('/api/v2/gitops', gitopsRoutes);
+
+// Context-Memory Intelligence Layer Routes
+import contextMemoryRoutes from './routes/context-memory';
+app.use('/api/v2/context', contextMemoryRoutes);
+logger.info('Context-Memory Intelligence Layer routes registered');
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);

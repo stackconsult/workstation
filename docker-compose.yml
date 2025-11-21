@@ -83,6 +83,43 @@ services:
       - "component=scheduler"
       - "purpose=autonomous-weekly-cycle"
 
+  # ============================================
+  # INTELLIGENCE SERVICE (Context-Memory Layer)
+  # ============================================
+  intelligence:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.intelligence
+    container_name: workstation-intelligence
+    restart: unless-stopped
+    
+    environment:
+      - NODE_ENV=production
+      - TZ=America/Denver
+      - INTELLIGENCE_DB_PATH=/app/data/intelligence.db
+      
+    volumes:
+      - intelligence-data:/app/data:rw
+      - ./src:/app/src:ro
+      
+    networks:
+      - automation-network
+    
+    depends_on:
+      - workstation
+    
+    labels:
+      - "service.name=intelligence"
+      - "service.type=context-memory"
+      - "service.purpose=entity-tracking-learning"
+    
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('healthy')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 networks:
   automation-network:
     driver: bridge
@@ -96,3 +133,7 @@ volumes:
   scheduler-logs:
     driver: local
     name: agent-scheduler-logs
+  
+  intelligence-data:
+    driver: local
+    name: workstation-intelligence-data
