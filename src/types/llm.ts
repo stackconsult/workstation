@@ -5,7 +5,7 @@
 
 export interface LLMConfig {
   enabled: boolean;
-  provider: 'openai' | 'anthropic' | 'local' | 'ollama';
+  provider: 'openai' | 'anthropic' | 'local' | 'ollama' | 'lmstudio';
   apiKey?: string;
   model: string;
   temperature: number;

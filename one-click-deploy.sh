@@ -124,10 +124,18 @@ if [ ! -f .env ]; then
         echo ""
         info "LLM Integration Setup (Optional - improves workflow generation)"
         echo "Do you want to enable LLM-powered features?"
-        echo "  1) OpenAI (GPT-4)"
-        echo "  2) Anthropic (Claude)"
-        echo "  3) Skip (use basic features only)"
-        read -p "Enter choice [1-3]: " llm_choice
+        echo ""
+        echo "  Cloud Options (require API keys):"
+        echo "  1) OpenAI (GPT-4, GPT-3.5)"
+        echo "  2) Anthropic (Claude 3 Opus, Sonnet)"
+        echo ""
+        echo "  Local Options (FREE, works offline):"
+        echo "  3) Ollama (Qwen, Llama3, Mistral, CodeLlama)"
+        echo "  4) LM Studio (Qwen, Llama, DeepSeek, many more)"
+        echo ""
+        echo "  5) Skip (use basic features only)"
+        echo ""
+        read -p "Enter choice [1-5]: " llm_choice
         
         case $llm_choice in
             1)
@@ -162,7 +170,68 @@ if [ ! -f .env ]; then
                     success "Anthropic API key configured (model: $CLAUDE_MODEL)"
                 fi
                 ;;
-            3|*)
+            3)
+                info "Configuring Ollama (FREE local LLM)"
+                echo ""
+                echo "Recommended Qwen models for workflow automation:"
+                echo "  - qwen2.5:7b (fast, good for most tasks)"
+                echo "  - qwen2.5:32b (balanced performance and quality)"
+                echo "  - qwen2.5-coder:7b (optimized for code generation)"
+                echo ""
+                read -p "Enter model name (default: qwen2.5:7b): " ollama_model
+                ollama_model=${ollama_model:-qwen2.5:7b}
+                
+                OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434/api}"
+                
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s/LLM_PROVIDER=openai/LLM_PROVIDER=ollama/" .env
+                    sed -i '' "s|# OLLAMA_URL=http://localhost:11434/api|OLLAMA_URL=$OLLAMA_URL|" .env
+                    sed -i '' "s/LLM_MODEL=gpt-4/LLM_MODEL=$ollama_model/" .env
+                    sed -i '' "s/LLM_ENABLED=true/LLM_ENABLED=true/" .env
+                    sed -i '' "s/your-openai-api-key-here/not-needed-for-ollama/" .env
+                else
+                    sed -i "s/LLM_PROVIDER=openai/LLM_PROVIDER=ollama/" .env
+                    sed -i "s|# OLLAMA_URL=http://localhost:11434/api|OLLAMA_URL=$OLLAMA_URL|" .env
+                    sed -i "s/LLM_MODEL=gpt-4/LLM_MODEL=$ollama_model/" .env
+                    sed -i "s/LLM_ENABLED=true/LLM_ENABLED=true/" .env
+                    sed -i "s/your-openai-api-key-here/not-needed-for-ollama/" .env
+                fi
+                
+                success "Ollama configured (model: $ollama_model)"
+                info "Install Ollama from: https://ollama.ai/"
+                info "Then run: ollama pull $ollama_model"
+                ;;
+            4)
+                info "Configuring LM Studio (FREE local LLM)"
+                echo ""
+                echo "Popular models available in LM Studio:"
+                echo "  - qwen2.5-coder-32b-instruct (excellent for automation)"
+                echo "  - deepseek-coder-33b-instruct (great code understanding)"
+                echo "  - llama-3-70b-instruct (general purpose)"
+                echo ""
+                read -p "Enter model name: " lmstudio_model
+                
+                LMSTUDIO_URL="${LMSTUDIO_URL:-http://localhost:1234/v1}"
+                
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s/LLM_PROVIDER=openai/LLM_PROVIDER=lmstudio/" .env
+                    sed -i '' "s|# LMSTUDIO_URL=http://localhost:1234/v1|LMSTUDIO_URL=$LMSTUDIO_URL|" .env
+                    sed -i '' "s/LLM_MODEL=gpt-4/LLM_MODEL=$lmstudio_model/" .env
+                    sed -i '' "s/LLM_ENABLED=true/LLM_ENABLED=true/" .env
+                    sed -i '' "s/your-openai-api-key-here/not-needed-for-lmstudio/" .env
+                else
+                    sed -i "s/LLM_PROVIDER=openai/LLM_PROVIDER=lmstudio/" .env
+                    sed -i "s|# LMSTUDIO_URL=http://localhost:1234/v1|LMSTUDIO_URL=$LMSTUDIO_URL|" .env
+                    sed -i "s/LLM_MODEL=gpt-4/LLM_MODEL=$lmstudio_model/" .env
+                    sed -i "s/LLM_ENABLED=true/LLM_ENABLED=true/" .env
+                    sed -i "s/your-openai-api-key-here/not-needed-for-lmstudio/" .env
+                fi
+                
+                success "LM Studio configured (model: $lmstudio_model)"
+                info "Download LM Studio from: https://lmstudio.ai/"
+                info "Load your model in LM Studio and start the local server"
+                ;;
+            5|*)
                 if [[ "$OSTYPE" == "darwin"* ]]; then
                     sed -i '' "s/LLM_ENABLED=true/LLM_ENABLED=false/" .env
                 else

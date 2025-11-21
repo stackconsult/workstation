@@ -92,6 +92,8 @@ export class LLMService {
         return 'https://api.anthropic.com/v1';
       case 'ollama':
         return process.env.OLLAMA_URL || 'http://localhost:11434/api';
+      case 'lmstudio':
+        return process.env.LMSTUDIO_URL || 'http://localhost:1234/v1';
       case 'local':
         return process.env.LOCAL_LLM_URL || 'http://localhost:8000';
       default:
@@ -145,6 +147,7 @@ export class LLMService {
       case 'anthropic':
         return this.anthropicCompletion(request);
       case 'ollama':
+      case 'lmstudio':
       case 'local':
         return this.localCompletion(request);
       default:
@@ -416,7 +419,8 @@ Respond with ONLY valid JSON with suggestions.`;
    * Check if service is available
    */
   isAvailable(): boolean {
-    return this.config.enabled && (!!this.config.apiKey || this.config.provider === 'ollama' || this.config.provider === 'local');
+    const localProviders = ['ollama', 'lmstudio', 'local'];
+    return this.config.enabled && (!!this.config.apiKey || localProviders.includes(this.config.provider));
   }
 }
 

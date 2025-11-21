@@ -306,7 +306,8 @@ Layer 4: Container Isolation
 | Core System | FREE | All core features included |
 | OpenAI API | User pays | ~$0.03 per workflow generation |
 | Anthropic API | User pays | ~$0.05 per workflow generation |
-| Local Models (Ollama) | FREE | Run locally, no API costs |
+| Ollama (Local) | FREE | Qwen, Llama3, Mistral - works offline |
+| LM Studio (Local) | FREE | Qwen, DeepSeek, many models - works offline |
 
 ---
 
@@ -396,22 +397,29 @@ cd workstation
 - Click "Execute"
 - Watch it run!
 
-### 3. Try AI Features (5 minutes - requires API key)
+### 3. Try AI Features (5 minutes)
 
-**Option A: Use OpenAI**
+**Option A: Use OpenAI (Cloud)**
 - Get key from https://platform.openai.com/api-keys
 - Re-run deployment, choose option 1
 - Enter key
 
-**Option B: Use Anthropic**
+**Option B: Use Anthropic (Cloud)**
 - Get key from https://console.anthropic.com/
 - Re-run deployment, choose option 2
 - Enter key
 
-**Option C: Use Local (FREE)**
+**Option C: Use Ollama (FREE, Local, Works Offline)**
 - Install Ollama: https://ollama.ai/
-- Run: `ollama run llama3`
-- Set in .env: `LLM_PROVIDER=ollama`
+- Re-run deployment, choose option 3
+- Recommended: `qwen2.5:7b` or `qwen2.5-coder:7b`
+- Run: `ollama pull qwen2.5:7b`
+
+**Option D: Use LM Studio (FREE, Local, Works Offline)**
+- Download: https://lmstudio.ai/
+- Re-run deployment, choose option 4
+- Popular models: `qwen2.5-coder-32b-instruct`, `deepseek-coder-33b-instruct`
+- Load model in LM Studio and start local server
 
 ### 4. Build Custom Workflows (10 minutes)
 
