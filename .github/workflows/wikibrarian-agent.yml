@@ -105,13 +105,13 @@ jobs:
           NEXT_UPDATE="${TOMORROW} 06:00 UTC"
           SINCE_TIME=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)
           
-          cat > wiki/Home.md << EOF
+          cat > wiki/Home.md << 'EOFMARKER'
 # 📚 Workstation Wiki - Self-Updating Knowledge Library
 
 Welcome to the Workstation wiki - an expertly curated, self-updating library of informational, educational, and guiding material maintained by the **Wikibrarian Agent**.
 
-**Last Updated**: ${CURRENT_DATE}  
-**Next Update**: ${NEXT_UPDATE}  
+**Last Updated**: CURRENT_DATE_PLACEHOLDER  
+**Next Update**: NEXT_UPDATE_PLACEHOLDER  
 **Maintained by**: Wikibrarian Agent v1.0.0
 
 ---
@@ -229,12 +229,16 @@ Every wiki page follows these principles:
 
 ## 🔄 Recent Updates
 
-EOF
+EOFMARKER
 
+          # Replace placeholders with actual values
+          sed -i "s/CURRENT_DATE_PLACEHOLDER/$CURRENT_DATE/g" wiki/Home.md
+          sed -i "s/NEXT_UPDATE_PLACEHOLDER/$NEXT_UPDATE/g" wiki/Home.md
+          
           # Add recent commits
           git log --since="$SINCE_TIME" --pretty=format:"- %h: %s" --max-count=5 >> wiki/Home.md || echo "- No recent updates" >> wiki/Home.md
           
-          cat >> wiki/Home.md << EOF
+          cat >> wiki/Home.md << 'EOFMARKER2'
 
 ---
 
@@ -254,13 +258,13 @@ EOF
 ---
 
 *This wiki is a living, self-updating library maintained by AI. Content is generated and improved daily based on repository activity and best practices.*
-EOF
+EOFMARKER2
       
       - name: Create/Update Quick Start tab
         run: |
           CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
           
-          cat > wiki/Quick-Start.md << EOF
+          cat > wiki/Quick-Start.md << 'EOFQUICKSTART'
 # 🎯 Quick Start
 
 **Description**: Fast-track onboarding to get new contributors productive in minutes  
@@ -436,10 +440,13 @@ After quick start, dive deeper:
 
 ---
 
-**Last Updated**: ${CURRENT_DATE}  
+**Last Updated**: CURRENT_DATE_PLACEHOLDER2  
 **Maintained by**: Wikibrarian Agent  
 **Complexity**: ⭐ Basic
-EOF
+EOFQUICKSTART
+
+          # Replace placeholder with actual date
+          sed -i "s/CURRENT_DATE_PLACEHOLDER2/$CURRENT_DATE/g" wiki/Quick-Start.md
       
       - name: Update MCP container memory
         run: |

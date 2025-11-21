@@ -90,11 +90,11 @@ jobs:
           CURRENT_DATE_ONLY=$(date -u +%Y-%m-%d)
           
           # Update the task list with latest stats
-          cat > REPO_UPDATE_TASKS_TEMP.md << EOF
+          cat > REPO_UPDATE_TASKS_TEMP.md << 'EOFREPO'
 # 📋 Repository Update Tasks
 
-**Last Updated**: ${CURRENT_TIME}  
-**Next Update**: ${NEXT_UPDATE}  
+**Last Updated**: CURRENT_TIME_PLACEHOLDER  
+**Next Update**: NEXT_UPDATE_PLACEHOLDER  
 **Agent**: Repo Update Agent v1.0.0
 
 ---
@@ -105,7 +105,7 @@ jobs:
 ┌─────────────────────────────────────────────┐
 │  NEXT DOCUMENTATION UPDATE                  │
 ├─────────────────────────────────────────────┤
-│  📅 Date: ${NEXT_UPDATE}                    │
+│  📅 Date: NEXT_UPDATE_PLACEHOLDER           │
 │  🕐 Time: 21:00 UTC (9:00 PM)              │
 │                                             │
 │  Timezone Conversions:                      │
@@ -120,11 +120,11 @@ jobs:
 
 ## ✅ Completed Items (Last 24 Hours)
 
-### ${CURRENT_DATE_ONLY}
+### CURRENT_DATE_ONLY_PLACEHOLDER
 
 | Time (UTC) | Type | Change Description | Files Updated | Commits |
 |------------|------|-------------------|---------------|---------|
-EOF
+EOFREPO
           
           # Add recent commit info
           if [ -s recent_commits.txt ]; then
@@ -136,7 +136,7 @@ EOF
             echo "| - | - | No changes in last 24 hours | - | - |" >> REPO_UPDATE_TASKS_TEMP.md
           fi
           
-          cat >> REPO_UPDATE_TASKS_TEMP.md << EOF
+          cat >> REPO_UPDATE_TASKS_TEMP.md << 'EOFREPO2'
 
 **Total Updates Today**: ${{ steps.commits.outputs.recent_commits }} commits  
 **Agent Status**: ✅ Operational
@@ -168,22 +168,31 @@ EOF
 
 ## 🔄 Rollback Files
 
-**Latest Backup**: ${CURRENT_DATE_ONLY}  
-**Location**: \`rollbacks/${CURRENT_DATE_ONLY}/\`  
+**Latest Backup**: CURRENT_DATE_ONLY_PLACEHOLDER  
+**Location**: \`rollbacks/CURRENT_DATE_ONLY_PLACEHOLDER/\`  
 **Status**: ✅ Available
 
 ---
 
 **Managed by**: Repo Update Agent v1.0.0  
-**Next Run**: ${NEXT_UPDATE}
-EOF
+**Next Run**: NEXT_UPDATE_PLACEHOLDER
+EOFREPO2
+          
+          # Replace placeholders
+          sed -i "s/CURRENT_TIME_PLACEHOLDER/$CURRENT_TIME/g" REPO_UPDATE_TASKS_TEMP.md
+          sed -i "s/NEXT_UPDATE_PLACEHOLDER/$NEXT_UPDATE/g" REPO_UPDATE_TASKS_TEMP.md
+          sed -i "s/CURRENT_DATE_ONLY_PLACEHOLDER/$CURRENT_DATE_ONLY/g" REPO_UPDATE_TASKS_TEMP.md
           
           mv REPO_UPDATE_TASKS_TEMP.md REPO_UPDATE_TASKS.md
       
       - name: Generate update summary
         run: |
-          cat > repo-update-summary-$(date -u +'%Y-%m-%d').md << EOF
-# Repo Update Summary - $(date -u +'%Y-%m-%d %H:%M UTC')
+          SUMMARY_DATE=$(date -u +'%Y-%m-%d')
+          SUMMARY_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
+          SUMMARY_FILE="repo-update-summary-${SUMMARY_DATE}.md"
+          
+          cat > "$SUMMARY_FILE" << 'EOFSUMMARY'
+# Repo Update Summary - SUMMARY_TIME_PLACEHOLDER
 
 ## Repository Statistics
 - Total Files: ${{ steps.stats.outputs.total_files }}
@@ -207,11 +216,19 @@ EOF
 
 ## Updates Applied
 ✅ REPO_UPDATE_TASKS.md - Updated with current statistics
-✅ Rollback created in rollbacks/$(date -u +'%Y-%m-%d')/
+✅ Rollback created in rollbacks/SUMMARY_DATE_PLACEHOLDER/
 
 ## Next Run
-⏰ $(date -u -d 'tomorrow 21:00' +'%Y-%m-%d 21:00 UTC' 2>/dev/null || date -u -v+1d -v21H +'%Y-%m-%d 21:00 UTC')
-EOF
+⏰ NEXT_RUN_PLACEHOLDER
+EOFSUMMARY
+
+          # Pre-calculate next run time
+          NEXT_RUN=$(date -u -d 'tomorrow 21:00' +'%Y-%m-%d 21:00 UTC' 2>/dev/null || date -u -v+1d -v21H +'%Y-%m-%d 21:00 UTC')
+          
+          # Replace placeholders
+          sed -i "s/SUMMARY_TIME_PLACEHOLDER/$SUMMARY_TIME/g" "$SUMMARY_FILE"
+          sed -i "s/SUMMARY_DATE_PLACEHOLDER/$SUMMARY_DATE/g" "$SUMMARY_FILE"
+          sed -i "s/NEXT_RUN_PLACEHOLDER/$NEXT_RUN/g" "$SUMMARY_FILE"
       
       - name: Commit changes
         if: github.event.inputs.dry_run != 'true'

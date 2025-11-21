@@ -78,11 +78,11 @@ jobs:
           NEXT_UPDATE="${TOMORROW} 07:00 UTC"
           
           # Update the timeline (this is a simplified version - full implementation would be more complex)
-          cat > CODE_TIMELINE_TEMP.md << EOF
+          cat > CODE_TIMELINE_TEMP.md << 'EOFTIMELINE'
 # 📊 Repository Code Timeline & Growth Tracker
 
-**Last Updated**: $CURRENT_DATE  
-**Next Update**: $NEXT_UPDATE  
+**Last Updated**: CURRENT_DATE_PLACEHOLDER  
+**Next Update**: NEXT_UPDATE_PLACEHOLDER  
 **Tracking Agent**: Code Timeline Agent v1.0.0
 
 ---
@@ -113,7 +113,7 @@ jobs:
 
 \`\`\`
 ┌─────────────────────────────────────────────────────────────┐
-│  CODE DISTRIBUTION (as of ${CURRENT_DATE})                  │
+│  CODE DISTRIBUTION (as of CURRENT_DATE_PLACEHOLDER)         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  Production Code (src/)          ████████████░░  ${{ steps.stats.outputs.prod_loc }} LOC │
@@ -136,9 +136,13 @@ jobs:
 ---
 
 **Managed by**: Code Timeline Agent v1.0.0  
-**Last Updated**: ${CURRENT_DATE}  
-**Next Update**: ${NEXT_UPDATE}
-EOF
+**Last Updated**: CURRENT_DATE_PLACEHOLDER  
+**Next Update**: NEXT_UPDATE_PLACEHOLDER
+EOFTIMELINE
+          
+          # Replace placeholders with actual values
+          sed -i "s/CURRENT_DATE_PLACEHOLDER/$CURRENT_DATE/g" CODE_TIMELINE_TEMP.md
+          sed -i "s/NEXT_UPDATE_PLACEHOLDER/$NEXT_UPDATE/g" CODE_TIMELINE_TEMP.md
           
           # Replace file (keeping the full template from the original)
           if [ -f CODE_TIMELINE.md ]; then
