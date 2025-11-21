@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { validateEnvironment, printEnvironmentSummary } from '../src/utils/env';
 import { logger } from '../src/utils/logger';
 

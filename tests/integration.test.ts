@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 // Mock @octokit/rest before any imports that might use it
 jest.mock('@octokit/rest', () => ({
   Octokit: jest.fn().mockImplementation(() => ({

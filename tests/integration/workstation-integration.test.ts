@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /**
  * Integration Test for Complete Workstation Platform
  * Tests JWT Auth + Agent Server + MCP integration

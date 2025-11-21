@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 /**
  * Jest test setup file
  * Mocks external dependencies that cause ESM import issues

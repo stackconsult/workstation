@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /**
  * Phase 3 Integration Tests
  * Tests for advanced automation, WebSocket auth, rate limiting, and monitoring

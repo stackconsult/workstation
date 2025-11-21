@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import winston from 'winston';
 import { logger } from '../src/utils/logger';
 import * as fs from 'fs';

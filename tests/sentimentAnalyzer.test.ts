@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /**
  * Unit tests for Sentiment Analyzer
  */

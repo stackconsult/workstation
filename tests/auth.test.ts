@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { generateToken, verifyToken, generateDemoToken } from '../src/auth/jwt';
 
 describe('JWT Authentication', () => {

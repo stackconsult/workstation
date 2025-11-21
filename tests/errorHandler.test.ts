@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { Request, Response, NextFunction } from 'express';
 import { errorHandler, notFoundHandler, AppError } from '../src/middleware/errorHandler';
 import { logger } from '../src/utils/logger';

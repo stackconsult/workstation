@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /**
  * Workflow Builder Integration Tests
  * Tests the end-to-end workflow builder integration

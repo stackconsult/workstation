@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /**
  * MCP Routes Tests
  * Tests for Model Context Protocol endpoints

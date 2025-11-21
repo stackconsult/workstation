@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /**
  * Integration tests for Agent Handoff System
  * Tests memory retention, handoff workflow, and guardrail validation

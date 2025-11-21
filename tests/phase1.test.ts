@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 /**
  * Phase 1 Integration Tests
  * Tests for workflow creation, execution, and browser automation
