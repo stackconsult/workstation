@@ -29,8 +29,8 @@ export interface CsvFilterOptions {
 
 export interface CsvTransformOptions {
   columns?: Record<string, string>; // Map old column names to new
-  mapValues?: Record<string, (value: any) => any>; // Transform functions per column
-  addColumns?: Record<string, (row: any) => any>; // Add computed columns
+  mapValues?: Record<string, (value: unknown) => unknown>; // Transform functions per column
+  addColumns?: Record<string, (row: unknown) => unknown>; // Add computed columns
 }
 
 /**
@@ -150,10 +150,9 @@ export class CsvAgent {
         throw new Error('Data must be an array');
       }
 
-      let filtered = [...params.data];
-
-      for (const filter of params.filters) {
-        filtered = filtered.filter(row => {
+      // Apply all filters in a single pass for better performance
+      const filtered = params.data.filter(row =>
+        params.filters.every(filter => {
           const value = row[filter.column];
           
           switch (filter.operator) {
@@ -178,8 +177,8 @@ export class CsvAgent {
             default:
               return true;
           }
-        });
-      }
+        })
+      );
 
       logger.info(`CSV filtered: ${params.data.length} → ${filtered.length} rows`);
 

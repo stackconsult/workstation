@@ -253,7 +253,6 @@
             const [executionStatus, setExecutionStatus] = useState(null);
             const [executionHistory, setExecutionHistory] = useState([]);
             const [showHistory, setShowHistory] = useState(false);
-            const [connectingNode, setConnectingNode] = useState(null);
 
             const addNode = (type) => {
                 const newNode = {
@@ -288,14 +287,6 @@
             const handleCanvasClick = (e) => {
                 if (e.target.className === 'workflow-canvas' || e.target.className === 'connections-svg') {
                     setSelectedNode(null);
-                    setConnectingNode(null);
-                }
-            };
-
-            const addConnection = (fromId, toId) => {
-                const existingConnection = connections.find(c => c.from === fromId && c.to === toId);
-                if (!existingConnection) {
-                    setConnections([...connections, { from: fromId, to: toId }]);
                 }
             };
 
@@ -549,7 +540,9 @@
                             return;
                         } else if (pollCount < maxPolls) {
                             pollCount++;
-                            setTimeout(poll, 1000); // Poll every second
+                            // Exponential backoff: start at 1s, double up to 8s max
+                            const delay = Math.min(1000 * Math.pow(2, Math.floor(pollCount / 3)), 8000);
+                            setTimeout(poll, delay);
                         } else {
                             setIsExecuting(false);
                             setExecutionStatus({ status: 'timeout', message: 'Execution timed out' });

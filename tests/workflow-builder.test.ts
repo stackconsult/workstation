@@ -3,7 +3,7 @@
  * Tests the end-to-end workflow builder integration
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 
 describe('Workflow Builder Integration', () => {
   describe('Backend API Endpoints', () => {
@@ -42,25 +42,6 @@ describe('Workflow Builder Integration', () => {
           params: { selector: 'button' }
         }
       ];
-
-      const expected = {
-        tasks: [
-          {
-            name: 'navigate',
-            agent_type: 'browser',
-            action: 'navigate',
-            parameters: { url: 'https://example.com' }
-          },
-          {
-            name: 'click',
-            agent_type: 'browser',
-            action: 'click',
-            parameters: { selector: 'button' }
-          }
-        ],
-        variables: {},
-        on_error: 'stop'
-      };
 
       // This would be the actual conversion logic
       expect(visualNodes.length).toBe(2);

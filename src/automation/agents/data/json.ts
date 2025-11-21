@@ -5,11 +5,10 @@
  */
 
 import { logger } from '../../../utils/logger';
-import Joi from 'joi';
 
 export interface JsonParseOptions {
   strict?: boolean;
-  reviver?: (key: string, value: any) => any;
+  reviver?: (key: string, value: unknown) => unknown;
 }
 
 export interface JsonQueryOptions {
@@ -110,9 +109,9 @@ export class JsonAgent {
     error?: string;
   }> {
     try {
-      // If schema is a Joi schema, use Joi validation
+      // If schema is a Joi schema or has validate method, use it
       if (params.schema && typeof params.schema.validate === 'function') {
-        const { error, value } = params.schema.validate(params.data, {
+        const { error } = params.schema.validate(params.data, {
           abortEarly: false
         });
 
@@ -124,7 +123,7 @@ export class JsonAgent {
           };
         }
 
-        logger.info('JSON validation passed (Joi)');
+        logger.info('JSON validation passed (schema validator)');
         return {
           success: true,
           valid: true

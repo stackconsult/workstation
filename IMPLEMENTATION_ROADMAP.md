@@ -6,13 +6,13 @@ This document outlines the step-by-step implementation plan for completing the m
 **Goal**: Enable workflow automation to work with various data formats
 
 ### Step 1.1: CSV Agent
-- [ ] Create `src/automation/agents/data/csv.ts`
-- [ ] Implement CSV parsing (read/write operations)
-- [ ] Add CSV data transformation capabilities
-- [ ] Support CSV filtering and querying
-- [ ] Wire to agent registry
+- [x] Create `src/automation/agents/data/csv.ts`
+- [x] Implement CSV parsing (read/write operations)
+- [x] Add CSV data transformation capabilities
+- [x] Support CSV filtering and querying
+- [x] Wire to agent registry
 - [ ] Add unit tests in `tests/agents/data/csv.test.ts`
-- [ ] Update documentation
+- [x] Update documentation
 
 **Capabilities**:
 - `parse_csv`: Parse CSV file/string into structured data
@@ -21,13 +21,13 @@ This document outlines the step-by-step implementation plan for completing the m
 - `transform_csv`: Map/transform CSV columns
 
 ### Step 1.2: JSON Agent
-- [ ] Create `src/automation/agents/data/json.ts`
-- [ ] Implement JSON parsing and validation
-- [ ] Add JSON schema validation
-- [ ] Support JSONPath queries
-- [ ] Wire to agent registry
+- [x] Create `src/automation/agents/data/json.ts`
+- [x] Implement JSON parsing and validation
+- [x] Add JSON schema validation
+- [x] Support JSONPath queries
+- [x] Wire to agent registry
 - [ ] Add unit tests in `tests/agents/data/json.test.ts`
-- [ ] Update documentation
+- [x] Update documentation
 
 **Capabilities**:
 - `parse_json`: Parse JSON string with validation
