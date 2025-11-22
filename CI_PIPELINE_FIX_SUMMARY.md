@@ -101,18 +101,8 @@ Jest: "/path/to/src/auth/jwt.ts" coverage threshold for branches (77%) not met: 
    ```
 
 2. **tests/__mocks__/@octokit/rest.ts**:
-   - Removed duplicate `Octokit` class definitions
-   - Fixed syntax errors (missing closing braces)
-   - Consolidated to single clean mock structure:
-   ```typescript
-   export class Octokit {
-     rest = {
-       pulls: { /* ... */ },
-       repos: { /* ... */ },
-       git: { /* ... */ }
-     };
-   }
-   ```
+   - Completely removed mock file (deleted entire file)
+   - All tests now use real @octokit/rest implementation
 
 3. **tests/setup.ts**:
    ```typescript
