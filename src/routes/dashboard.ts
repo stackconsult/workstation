@@ -411,4 +411,112 @@ router.get('/agent-status', async (req, res: Response) => {
   }
 });
 
+/**
+ * Trigger automated deployment
+ * POST /api/dashboard/deploy
+ */
+router.post('/deploy', async (req, res: Response) => {
+  try {
+    const { target, environment = 'production' } = req.body;
+    
+    if (!['dashboard', 'chrome', 'full'].includes(target)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid deployment target. Must be: dashboard, chrome, or full'
+      });
+    }
+
+    logger.info(`Deployment requested: target=${target}, env=${environment}`);
+
+    // Execute deployment script based on target
+    let command = '';
+    let description = '';
+
+    switch (target) {
+      case 'dashboard':
+        command = 'npm run build && echo "Dashboard built successfully"';
+        description = 'Building dashboard UI';
+        break;
+      case 'chrome':
+        command = 'npm run build:chrome && echo "Chrome extension built successfully"';
+        description = 'Building Chrome extension';
+        break;
+      case 'full':
+        command = 'bash one-click-deploy.sh > /tmp/deployment.log 2>&1 &';
+        description = 'Running full stack deployment';
+        break;
+    }
+
+    // Start deployment asynchronously
+    exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
+      if (error) {
+        logger.error(`Deployment failed for ${target}:`, error);
+      } else {
+        logger.info(`Deployment completed for ${target}`);
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        target,
+        environment,
+        status: 'started',
+        message: `${description} started`,
+        command: target === 'full' ? 'one-click-deploy.sh' : command
+      }
+    });
+
+    logger.info(`Deployment initiated for ${target}`);
+  } catch (error) {
+    logger.error('Deployment trigger error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger deployment'
+    });
+  }
+});
+
+/**
+ * Check deployment status
+ * GET /api/dashboard/deploy/status
+ */
+router.get('/deploy/status', async (req, res: Response) => {
+  try {
+    // Check if deployment processes are running
+    const { stdout: processes } = await execAsync('ps aux | grep -E "one-click-deploy|npm run build" | grep -v grep || echo ""');
+    
+    const isDeploying = processes.trim().length > 0;
+    
+    // Check if deployment log exists
+    let lastDeployment = null;
+    try {
+      const logPath = '/tmp/deployment.log';
+      const stats = await fs.stat(logPath);
+      lastDeployment = {
+        timestamp: stats.mtime,
+        logPath
+      };
+    } catch (error) {
+      // No deployment log found
+    }
+
+    res.json({
+      success: true,
+      data: {
+        isDeploying,
+        lastDeployment,
+        environment: process.env.NODE_ENV || 'development',
+        ready: !isDeploying
+      }
+    });
+  } catch (error) {
+    logger.error('Deployment status check error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check deployment status'
+    });
+  }
+});
+
 export default router;
