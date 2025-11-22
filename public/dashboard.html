@@ -5,6 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workstation Dashboard</title>
     <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        /* Enhanced dashboard styles */
+        .health-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        .health-indicator.healthy {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .health-indicator.warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.status-healthy {
+            background-color: #28a745;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .status-dot.status-warning {
+            background-color: #ffc107;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .refresh-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 8px;
+        }
+        #last-refresh-time {
+            font-style: italic;
+        }
+        .refresh-pulse {
+            animation: refreshPulse 0.5s ease-out;
+        }
+        @keyframes refreshPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); color: #007bff; }
+            100% { transform: scale(1); }
+        }
+        .repo-stats-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .repo-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .repo-stat-item {
+            text-align: center;
+        }
+        .repo-stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .repo-stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .auto-update-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.9em;
+        }
+        
+        /* Deployment section styles */
+        .deployment-section {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .deployment-section h2 {
+            margin: 0 0 8px 0;
+        }
+        .deployment-section > p {
+            margin: 0 0 16px 0;
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+        .deployment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        .deployment-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 16px;
+            border-radius: 8px;
+        }
+        .deployment-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.1em;
+        }
+        .deployment-card p {
+            margin: 0 0 12px 0;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .deployment-card .btn {
+            width: 100%;
+            background-color: white;
+            color: #56ab2f;
+            border: none;
+        }
+        .deployment-card .btn i {
+            margin-right: 8px;
+        }
+        .deployment-status {
+            margin-top: 8px;
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        .deployment-info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -13,8 +159,17 @@
             <div class="header-left">
                 <h1>🖥️ Workstation</h1>
                 <span class="version">v1.2.0</span>
+                <div id="system-health-indicator" class="health-indicator">
+                    <span class="status-dot" role="status" aria-label="System health indicator: loading"></span> Loading...
+                </div>
             </div>
             <div class="header-right">
+                <div class="refresh-info">
+                    <span id="last-refresh-time">Initializing...</span>
+                    <button id="manual-refresh-btn" class="btn btn-secondary btn-small" style="padding: 4px 12px;">
+                        🔄 Refresh
+                    </button>
+                </div>
                 <span id="user-info" class="user-info"></span>
                 <button id="logout-btn" class="btn btn-secondary">Logout</button>
             </div>
@@ -32,6 +187,82 @@
         <main class="dashboard-main">
             <!-- Overview View -->
             <div id="overview-view" class="view-content active">
+                <!-- Repository Statistics Section -->
+                <div class="repo-stats-section">
+                    <h2 style="margin: 0 0 8px 0;">📊 creditXcredit/workstation Organization Dashboard</h2>
+                    <p style="margin: 0; opacity: 0.9; font-size: 0.95em;">Real-time repository statistics with auto-refresh</p>
+                    
+                    <div class="repo-stats-grid">
+                        <div class="repo-stat-item">
+                            <span id="repo-total-files" class="repo-stat-value">-</span>
+                            <span class="repo-stat-label">Total Files</span>
+                        </div>
+                        <div class="repo-stat-item">
+                            <span id="repo-production-loc" class="repo-stat-value">-</span>
+                            <span class="repo-stat-label">Production LOC</span>
+                        </div>
+                        <div class="repo-stat-item">
+                            <span id="repo-agents-count" class="repo-stat-value">-</span>
+                            <span class="repo-stat-label">Active Agents</span>
+                        </div>
+                        <div class="repo-stat-item">
+                            <span id="repo-containers-count" class="repo-stat-value">-</span>
+                            <span class="repo-stat-label">MCP Containers</span>
+                        </div>
+                        <div class="repo-stat-item">
+                            <span id="repo-commits-24h" class="repo-stat-value">-</span>
+                            <span class="repo-stat-label">Commits (24h)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="auto-update-info">
+                        <strong>🤖 Auto-Update Bot Status:</strong> Active | 
+                        <strong>Last Run:</strong> <span id="last-auto-update">Loading...</span> | 
+                        <strong>Next Run:</strong> Daily at 9:00 PM UTC
+                    </div>
+                </div>
+
+                <!-- Automated Deployment Section -->
+                <div class="deployment-section">
+                    <h2>🚀 Automated Deployment</h2>
+                    <p>One-click deployment for UI Dashboard and Chrome Extension</p>
+                    
+                    <div class="deployment-grid">
+                        <div class="deployment-card">
+                            <h3>📊 Dashboard UI</h3>
+                            <p>Deploy and configure dashboard interface</p>
+                            <button id="deploy-dashboard-btn" class="btn btn-primary">
+                                <i class="fas fa-rocket"></i>Deploy Dashboard
+                            </button>
+                            <div id="dashboard-deploy-status" class="deployment-status"></div>
+                        </div>
+                        
+                        <div class="deployment-card">
+                            <h3>🔌 Chrome Extension</h3>
+                            <p>Build and load Chrome extension automatically</p>
+                            <button id="deploy-chrome-btn" class="btn btn-primary">
+                                <i class="fab fa-chrome"></i>Deploy Extension
+                            </button>
+                            <div id="chrome-deploy-status" class="deployment-status"></div>
+                        </div>
+                        
+                        <div class="deployment-card">
+                            <h3>⚡ Full Stack</h3>
+                            <p>Deploy complete system (Production Ready)</p>
+                            <button id="deploy-full-btn" class="btn btn-primary">
+                                <i class="fas fa-layer-group"></i>Full Deployment
+                            </button>
+                            <div id="full-deploy-status" class="deployment-status"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="deployment-info-panel">
+                        <strong>ℹ️ Deployment Info:</strong> Automated deployment uses one-click-deploy.sh script | 
+                        <strong>Environment:</strong> <span id="deployment-env">Production</span> | 
+                        <strong>Status:</strong> <span id="deployment-system-status">Ready</span>
+                    </div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">📋</div>

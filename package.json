@@ -152,7 +152,7 @@
     "@types/helmet": "^0.0.48",
     "@types/jest": "^29.5.11",
     "@types/jsonwebtoken": "^9.0.5",
-    "@types/node": "^20.19.25",
+    "@types/node": "^18.19.130",
     "@types/pdfkit": "^0.17.3",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",

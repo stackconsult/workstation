@@ -14,6 +14,10 @@ on:
         description: 'Specific files to update (comma-separated, or "all")'
         required: false
         default: 'all'
+      force_rollback:
+        description: 'Force rollback to previous state'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
@@ -23,6 +27,8 @@ permissions:
 jobs:
   update-documentation:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: false
     
     steps:
       - name: Checkout repository
@@ -38,49 +44,108 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm install
+        id: install_deps
+        continue-on-error: true
+        run: |
+          npm ci --prefer-offline --no-audit || npm install
+          echo "install_status=$?" >> $GITHUB_OUTPUT
+      
+      - name: Verify installation
+        if: steps.install_deps.outputs.install_status != '0'
+        run: |
+          echo "::error::Dependency installation failed, attempting recovery..."
+          rm -rf node_modules package-lock.json
+          npm install
+      
+      - name: Health check
+        id: health_check
+        run: |
+          echo "health_status=healthy" >> $GITHUB_OUTPUT
+          if [ ! -f "package.json" ]; then
+            echo "::error::Critical file missing: package.json"
+            echo "health_status=unhealthy" >> $GITHUB_OUTPUT
+            exit 1
+          fi
       
       - name: Get repository statistics
         id: stats
+        continue-on-error: true
         run: |
-          echo "total_files=$(git ls-files | wc -l)" >> $GITHUB_OUTPUT
-          echo "ts_files=$(find src -name '*.ts' 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
-          echo "test_files=$(find tests -name '*.test.ts' -o -name '*.spec.ts' 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
-          echo "doc_files=$(find . -name '*.md' -not -path './node_modules/*' 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
-          echo "chrome_js=$(find chrome-extension -name '*.js' 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
-          echo "production_loc=$(find src -name '*.ts' -o -name '*.js' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')" >> $GITHUB_OUTPUT
-          echo "chrome_loc=$(find chrome-extension -name '*.js' 2>/dev/null | xargs cat | wc -l 2>/dev/null)" >> $GITHUB_OUTPUT
-          echo "test_loc=$(find tests -name '*.ts' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')" >> $GITHUB_OUTPUT
-          echo "agents=$(ls -d agents/*/ 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
-          echo "containers=$(ls -d mcp-containers/*/ 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
-          echo "workflows=$(ls -1 .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l)" >> $GITHUB_OUTPUT
+          set +e  # Don't exit on error
+          
+          # Wrap each stat collection with error handling
+          total_files=$(git ls-files | wc -l) || total_files=0
+          ts_files=$(find src -name '*.ts' 2>/dev/null | wc -l) || ts_files=0
+          test_files=$(find tests -name '*.test.ts' -o -name '*.spec.ts' 2>/dev/null | wc -l) || test_files=0
+          doc_files=$(find . -name '*.md' -not -path './node_modules/*' 2>/dev/null | wc -l) || doc_files=0
+          chrome_js=$(find chrome-extension -name '*.js' 2>/dev/null | wc -l) || chrome_js=0
+          production_loc=$(find src -name '*.ts' -o -name '*.js' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}') || production_loc=0
+          chrome_loc=$(find chrome-extension -name '*.js' 2>/dev/null | xargs cat | wc -l 2>/dev/null) || chrome_loc=0
+          test_loc=$(find tests -name '*.ts' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}') || test_loc=0
+          agents=$(ls -d agents/*/ 2>/dev/null | wc -l) || agents=0
+          containers=$(ls -d mcp-containers/*/ 2>/dev/null | wc -l) || containers=0
+          workflows=$(ls -1 .github/workflows/*.yml .github/workflows/*.yaml 2>/dev/null | wc -l) || workflows=0
+          
+          # Output with defaults if empty
+          echo "total_files=${total_files:-0}" >> $GITHUB_OUTPUT
+          echo "ts_files=${ts_files:-0}" >> $GITHUB_OUTPUT
+          echo "test_files=${test_files:-0}" >> $GITHUB_OUTPUT
+          echo "doc_files=${doc_files:-0}" >> $GITHUB_OUTPUT
+          echo "chrome_js=${chrome_js:-0}" >> $GITHUB_OUTPUT
+          echo "production_loc=${production_loc:-0}" >> $GITHUB_OUTPUT
+          echo "chrome_loc=${chrome_loc:-0}" >> $GITHUB_OUTPUT
+          echo "test_loc=${test_loc:-0}" >> $GITHUB_OUTPUT
+          echo "agents=${agents:-0}" >> $GITHUB_OUTPUT
+          echo "containers=${containers:-0}" >> $GITHUB_OUTPUT
+          echo "workflows=${workflows:-0}" >> $GITHUB_OUTPUT
+          echo "stats_status=success" >> $GITHUB_OUTPUT
+      
+      - name: Verify statistics
+        if: steps.stats.outputs.stats_status != 'success'
+        run: |
+          echo "::warning::Statistics collection had issues, using fallback values"
       
       - name: Get recent commits (last 24 hours)
         id: commits
+        continue-on-error: true
         run: |
+          set +e
           # Calculate 24 hours ago timestamp
           SINCE_TIME=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-24H +%Y-%m-%dT%H:%M:%SZ)
-          COMMIT_COUNT=$(git log --since="$SINCE_TIME" --oneline | wc -l)
-          echo "recent_commits=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          COMMIT_COUNT=$(git log --since="$SINCE_TIME" --oneline | wc -l) || COMMIT_COUNT=0
+          echo "recent_commits=${COMMIT_COUNT:-0}" >> $GITHUB_OUTPUT
           
           # Get commit messages
-          git log --since="$SINCE_TIME" --pretty=format:"- %h: %s" > recent_commits.txt || echo "- No recent commits" > recent_commits.txt
+          git log --since="$SINCE_TIME" --pretty=format:"- %h: %s" > recent_commits.txt 2>/dev/null || echo "- No recent commits" > recent_commits.txt
+          echo "commits_status=success" >> $GITHUB_OUTPUT
       
       - name: Create rollback directory
+        id: rollback
+        continue-on-error: true
         run: |
+          set -e
           ROLLBACK_DATE=$(date -u +%Y-%m-%d)
           ROLLBACK_DIR="rollbacks/${ROLLBACK_DATE}"
           mkdir -p "$ROLLBACK_DIR"
           
-          # Backup current documentation
-          cp README.md "$ROLLBACK_DIR/README.md.bak" 2>/dev/null || echo "README.md not found"
-          cp REPOSITORY_STATS.md "$ROLLBACK_DIR/REPOSITORY_STATS.md.bak" 2>/dev/null || echo "REPOSITORY_STATS.md not found"
-          cp STATS_OVERVIEW.md "$ROLLBACK_DIR/STATS_OVERVIEW.md.bak" 2>/dev/null || echo "STATS_OVERVIEW.md not found"
-          cp BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md "$ROLLBACK_DIR/BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md.bak" 2>/dev/null || echo "BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md not found"
-          cp ACTIVITY_TIMELINE.md "$ROLLBACK_DIR/ACTIVITY_TIMELINE.md.bak" 2>/dev/null || echo "ACTIVITY_TIMELINE.md not found"
-          cp ROADMAP_PROGRESS.md "$ROLLBACK_DIR/ROADMAP_PROGRESS.md.bak" 2>/dev/null || echo "ROADMAP_PROGRESS.md not found"
+          # Backup current documentation with error handling
+          for file in README.md REPOSITORY_STATS.md STATS_OVERVIEW.md BUILD_STATISTICS_AND_IMPACT_ANALYSIS.md ACTIVITY_TIMELINE.md ROADMAP_PROGRESS.md REPO_UPDATE_TASKS.md; do
+            if [ -f "$file" ]; then
+              cp "$file" "$ROLLBACK_DIR/${file}.bak" && echo "✅ Backed up $file" || echo "⚠️ Failed to backup $file"
+            else
+              echo "⚠️ File not found: $file"
+            fi
+          done
           
-          echo "Rollback created in $ROLLBACK_DIR"
+          echo "rollback_dir=$ROLLBACK_DIR" >> $GITHUB_OUTPUT
+          echo "rollback_status=success" >> $GITHUB_OUTPUT
+          echo "✅ Rollback created in $ROLLBACK_DIR"
+      
+      - name: Verify rollback creation
+        if: steps.rollback.outputs.rollback_status != 'success'
+        run: |
+          echo "::error::Rollback creation failed!"
+          exit 1
       
       - name: Update REPO_UPDATE_TASKS.md
         run: |
@@ -231,7 +296,9 @@ jobs:
           sed -i "s/NEXT_RUN_PLACEHOLDER/$NEXT_RUN/g" "$SUMMARY_FILE"
       
       - name: Commit changes
-        if: github.event.inputs.dry_run != 'true'
+        id: commit
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.force_rollback != 'true'
+        continue-on-error: true
         run: |
           git config user.name "Repo Update Agent"
           git config user.email "repo-update-agent@workstation.github.io"
@@ -242,6 +309,7 @@ jobs:
           
           if git diff --staged --quiet; then
             echo "No changes to commit"
+            echo "commit_status=no_changes" >> $GITHUB_OUTPUT
             exit 0
           fi
           
@@ -258,36 +326,150 @@ jobs:
           - Agents: ${{ steps.stats.outputs.agents }}
           - MCP Containers: ${{ steps.stats.outputs.containers }}
           
-          Automated by Repo Update Agent v1.0.0"
+          Automated by Repo Update Agent v1.1.0 (Enhanced with error handling)"
           
-          git push
+          echo "commit_status=success" >> $GITHUB_OUTPUT
+      
+      - name: Push changes with retry
+        if: steps.commit.outputs.commit_status == 'success'
+        id: push
+        continue-on-error: true
+        run: |
+          # Retry push up to 3 times with exponential backoff
+          for i in 1 2 3; do
+            if git push; then
+              echo "push_status=success" >> $GITHUB_OUTPUT
+              echo "✅ Successfully pushed changes"
+              exit 0
+            else
+              echo "⚠️ Push attempt $i failed, retrying..."
+              sleep $((i * 5))
+            fi
+          done
+          echo "push_status=failed" >> $GITHUB_OUTPUT
+          echo "::error::Failed to push after 3 attempts"
+          exit 1
+      
+      - name: Self-healing rollback on failure
+        if: failure() && steps.rollback.outputs.rollback_status == 'success'
+        run: |
+          echo "::warning::Workflow failure detected, initiating self-healing rollback..."
+          ROLLBACK_DIR="${{ steps.rollback.outputs.rollback_dir }}"
+          
+          if [ -d "$ROLLBACK_DIR" ]; then
+            echo "📁 Restoring files from $ROLLBACK_DIR"
+            for backup in "$ROLLBACK_DIR"/*.bak; do
+              if [ -f "$backup" ]; then
+                original="${backup%.bak}"
+                original="${original##*/}"
+                cp "$backup" "$original" && echo "✅ Restored $original" || echo "❌ Failed to restore $original"
+              fi
+            done
+            
+            # Commit rollback
+            git config user.name "Repo Update Agent (Recovery)"
+            git config user.email "repo-update-agent@workstation.github.io"
+            git add -A
+            git commit -m "🔄 Auto-rollback: Restored from backup after workflow failure" || true
+            git push || echo "::warning::Could not push rollback commit"
+            
+            echo "✅ Self-healing rollback complete"
+          else
+            echo "::error::Rollback directory not found: $ROLLBACK_DIR"
+          fi
+      
+      - name: Perform manual rollback
+        if: github.event.inputs.force_rollback == 'true'
+        run: |
+          echo "🔄 Manual rollback requested"
+          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d 2>/dev/null || date -u -v-1d +%Y-%m-%d)
+          ROLLBACK_DIR="rollbacks/${YESTERDAY}"
+          
+          if [ -d "$ROLLBACK_DIR" ]; then
+            for backup in "$ROLLBACK_DIR"/*.bak; do
+              if [ -f "$backup" ]; then
+                original="${backup%.bak}"
+                original="${original##*/}"
+                cp "$backup" "$original" && echo "✅ Restored $original"
+              fi
+            done
+            
+            git config user.name "Repo Update Agent (Manual Rollback)"
+            git config user.email "repo-update-agent@workstation.github.io"
+            git add -A
+            git commit -m "🔄 Manual rollback to ${YESTERDAY}"
+            git push
+            
+            echo "✅ Manual rollback complete"
+          else
+            echo "::error::No rollback found for ${YESTERDAY}"
+            exit 1
+          fi
       
       - name: Dry run output
         if: github.event.inputs.dry_run == 'true'
         run: |
           echo "=== DRY RUN MODE ==="
           echo "Changes that would be committed:"
-          git diff --staged --stat
+          git diff --staged --stat || echo "No staged changes"
           echo ""
           echo "Files that would be updated:"
-          git diff --staged --name-only
+          git diff --staged --name-only || echo "No files changed"
+          echo ""
+          echo "=== Statistics Summary ==="
+          echo "Total Files: ${{ steps.stats.outputs.total_files }}"
+          echo "TypeScript Files: ${{ steps.stats.outputs.ts_files }}"
+          echo "Test Files: ${{ steps.stats.outputs.test_files }}"
+          echo "Agents: ${{ steps.stats.outputs.agents }}"
+          echo "MCP Containers: ${{ steps.stats.outputs.containers }}"
       
       - name: Upload summary
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: update-summary-${{ github.run_id }}
           path: repo-update-summary-*.md
           retention-days: 30
+          if-no-files-found: warn
 
       - name: Cleanup old rollbacks
-        if: github.event.inputs.dry_run != 'true'
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.force_rollback != 'true'
+        continue-on-error: true
         run: |
           # Keep rollbacks for 30 days
           find rollbacks/ -type d -mtime +30 -exec rm -rf {} + 2>/dev/null || true
           
           # Commit cleanup if any files were removed
-          if ! git diff --quiet rollbacks/; then
+          if ! git diff --quiet rollbacks/ 2>/dev/null; then
             git add rollbacks/
             git commit -m "🧹 Cleanup old rollbacks (30+ days)" || true
             git push || true
+          fi
+      
+      - name: Workflow summary
+        if: always()
+        run: |
+          echo "## 📊 Repo Update Agent Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Health**: ${{ steps.health_check.outputs.health_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Statistics**: ${{ steps.stats.outputs.stats_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commits (24h)**: ${{ steps.commits.outputs.recent_commits }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Rollback**: ${{ steps.rollback.outputs.rollback_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 Repository Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- Total Files: ${{ steps.stats.outputs.total_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Production LOC: ${{ steps.stats.outputs.production_loc }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Agents: ${{ steps.stats.outputs.agents }}" >> $GITHUB_STEP_SUMMARY
+          echo "- MCP Containers: ${{ steps.stats.outputs.containers }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.push.outputs.push_status }}" == "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Changes successfully pushed to repository**" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.commit.outputs.commit_status }}" == "no_changes" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ **No changes detected**" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ job.status }}" == "failure" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Workflow failed - Self-healing rollback initiated**" >> $GITHUB_STEP_SUMMARY
           fi
