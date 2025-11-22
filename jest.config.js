@@ -5,27 +5,27 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   transformIgnorePatterns: [
-    'node_modules/(?!(@octokit|undici|cheerio|before-after-hook|universal-user-agent|@octokit\\/.*)/)',
+    'node_modules/(?!(@octokit|undici|cheerio|before-after-hook|universal-user-agent|simple-git))',
   ],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^@octokit/rest$': '<rootDir>/tests/__mocks__/@octokit/rest.ts',
-  },
-  globals: {
-    'ts-jest': {
-      tsconfig: {
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-        types: ['node', 'jest'],
-      },
-    },
   },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
+      isolatedModules: true,
       tsconfig: {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
-        types: ['node', 'jest'],
+        types: ['jest', 'node'],
+        module: 'ESNext',
+        moduleResolution: 'node',
+      },
+    }],
+    '^.+\\.m?js$': ['ts-jest', {
+      tsconfig: {
+        allowJs: true,
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
       },
     }],
   },
