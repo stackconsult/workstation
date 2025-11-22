@@ -1,71 +1,39 @@
 /// <reference types="jest" />
 
-import { generateToken, verifyToken, generateDemoToken, authenticateToken } from '../src/auth/jwt';
-import { Request, Response } from 'express';
+import { generateToken, verifyToken, generateDemoToken } from '../src/auth/jwt';
+import request from 'supertest';
+import app from '../src/index';
 
 describe('JWT Authentication', () => {
   describe('authenticateToken middleware', () => {
-    it('should call next() with valid token', () => {
+    it('should allow access to protected route with valid token', async () => {
       const payload = { userId: 'test-user', role: 'user' };
       const token = generateToken(payload);
       
-      const req = {
-        headers: {
-          authorization: `Bearer ${token}`
-        }
-      } as Request;
+      const response = await request(app)
+        .get('/api/protected')
+        .set('Authorization', `Bearer ${token}`);
       
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-      
-      const next = jest.fn();
-      
-      authenticateToken(req, res, next);
-      
-      expect(next).toHaveBeenCalled();
-      expect(res.status).not.toHaveBeenCalled();
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('message', 'Access granted to protected resource');
+      expect(response.body.user).toHaveProperty('userId', 'test-user');
     });
 
-    it('should return 401 when no token is provided', () => {
-      const req = {
-        headers: {}
-      } as Request;
+    it('should return 401 when no token is provided', async () => {
+      const response = await request(app)
+        .get('/api/protected');
       
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-      
-      const next = jest.fn();
-      
-      authenticateToken(req, res, next);
-      
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ error: 'No token provided' });
-      expect(next).not.toHaveBeenCalled();
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({ error: 'No token provided' });
     });
 
-    it('should return 403 for invalid token', () => {
-      const req = {
-        headers: {
-          authorization: 'Bearer invalid-token'
-        }
-      } as Request;
+    it('should return 403 for invalid token', async () => {
+      const response = await request(app)
+        .get('/api/protected')
+        .set('Authorization', 'Bearer invalid-token');
       
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      } as unknown as Response;
-      
-      const next = jest.fn();
-      
-      authenticateToken(req, res, next);
-      
-      expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Invalid or expired token' });
-      expect(next).not.toHaveBeenCalled();
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({ error: 'Invalid or expired token' });
     });
   });
 
