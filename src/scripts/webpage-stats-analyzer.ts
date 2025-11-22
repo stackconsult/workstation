@@ -206,12 +206,21 @@ async function countActualStats(repoPath: string): Promise<ActualStats> {
   
   try {
     // Count TypeScript files
-    const tsResult = await exec(`find ${repoPath}/src -type f -name "*.ts" 2>/dev/null | wc -l`);
-    stats.tsFiles = parseInt(tsResult.stdout.trim());
+    // Use execFile to call 'find' and count .ts files
+    const tsFindArgs = [`${repoPath}/src`, '-type', 'f', '-name', '*.ts'];
+    const tsFindResult = await execFile('find', tsFindArgs);
+    const tsFilesList = tsFindResult.stdout.trim() === '' ? [] : tsFindResult.stdout.trim().split('\n');
+    stats.tsFiles = tsFilesList.length;
     
-    // Count JavaScript files
-    const jsResult = await exec(`find ${repoPath} -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/dist/*" 2>/dev/null | wc -l`);
-    stats.jsFiles = parseInt(jsResult.stdout.trim());
+    // Count JavaScript files, excluding node_modules and dist
+    const jsFindArgs = [
+      `${repoPath}`, '-type', 'f', '-name', '*.js',
+      '!', '-path', '*/node_modules/*',
+      '!', '-path', '*/dist/*'
+    ];
+    const jsFindResult = await execFile('find', jsFindArgs);
+    const jsFilesList = jsFindResult.stdout.trim() === '' ? [] : jsFindResult.stdout.trim().split('\n');
+    stats.jsFiles = jsFilesList.length;
     
     // Count test files
     const testResult = await exec(`find ${repoPath} -type f \\( -name "*.test.ts" -o -name "*.spec.ts" -o -name "*.test.js" \\) ! -path "*/node_modules/*" 2>/dev/null | wc -l`);
