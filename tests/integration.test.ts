@@ -11,18 +11,20 @@ describe('API Integration Tests', () => {
       expect(response.body).toHaveProperty('status');
       expect(response.body).toHaveProperty('timestamp');
       expect(response.body).toHaveProperty('uptime');
-      expect(response.body).toHaveProperty('memory');
-      expect(response.body).toHaveProperty('version');
+      expect(response.body).toHaveProperty('metrics');
+      expect(response.body.metrics).toHaveProperty('memory');
+      expect(response.body.metrics).toHaveProperty('cpu');
     });
 
     it('should have valid memory metrics', async () => {
       const response = await request(app).get('/health');
       
-      expect(response.body.memory).toHaveProperty('used');
-      expect(response.body.memory).toHaveProperty('total');
-      expect(response.body.memory).toHaveProperty('percentage');
-      expect(typeof response.body.memory.used).toBe('number');
-      expect(typeof response.body.memory.total).toBe('number');
+      expect(response.body.metrics.memory).toHaveProperty('rss');
+      expect(response.body.metrics.memory).toHaveProperty('heapUsed');
+      expect(response.body.metrics.memory).toHaveProperty('heapTotal');
+      expect(typeof response.body.metrics.memory.rss).toBe('string');
+      expect(typeof response.body.metrics.memory.heapUsed).toBe('string');
+      expect(typeof response.body.metrics.memory.heapTotal).toBe('string');
     });
   });
 

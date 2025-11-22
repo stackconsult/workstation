@@ -1,6 +1,7 @@
 /**
  * Phase 3 Integration Tests
  * Tests for advanced automation, WebSocket auth, rate limiting, and monitoring
+ * Requires: Redis, PostgreSQL running
  */
 
 import request from 'supertest';
@@ -9,7 +10,11 @@ import { advancedAutomation } from '../../src/services/advanced-automation';
 import { getMCPProtocol } from '../../src/services/mcp-protocol';
 import { wsRateLimiter } from '../../src/middleware/websocket-auth';
 
-describe('Phase 3 Integration Tests', () => {
+// Skip phase3 tests if required services (Redis/PostgreSQL) are not available
+// These tests require live external services
+const describeIfServices = (process.env.REDIS_URL && process.env.DATABASE_URL) ? describe : describe.skip;
+
+describeIfServices('Phase 3 Integration Tests', () => {
   describe('Advanced Browser Automation - MCP Integration', () => {
     test('should handle open_tab MCP request', async () => {
       const mcpProtocol = getMCPProtocol();
