@@ -65,7 +65,7 @@ export class MachineFingerprinter {
       network: await this.captureNetwork(platform),
       os: await this.captureOS(platform),
       optimizationHints: [],
-      captureTime: new Date()
+      captureTime: new Date(),
     };
 
     // Analyze for optimization opportunities
@@ -256,31 +256,32 @@ export class MachineFingerprinter {
     const { cpu, storage, memory } = this.fingerprint;
 
     // CPU-specific optimization opportunities
-    if (cpu.capabilities.includes('AVX512')) {
-      this.fingerprint.optimizationHints.push('vectorized-computation');
-      this.fingerprint.optimizationHints.push('simd-operations');
+    if (cpu.capabilities.includes("AVX512")) {
+      this.fingerprint.optimizationHints.push("vectorized-computation");
+      this.fingerprint.optimizationHints.push("simd-operations");
     }
 
-    if (cpu.capabilities.includes('AVX2')) {
-      this.fingerprint.optimizationHints.push('parallel-math-operations');
+    if (cpu.capabilities.includes("AVX2")) {
+      this.fingerprint.optimizationHints.push("parallel-math-operations");
     }
 
     // Storage-specific optimizations
-    if (storage.type === 'NVMe' && storage.speed > 3000) {
-      this.fingerprint.optimizationHints.push('parallel-io-intensive');
-      this.fingerprint.optimizationHints.push('large-file-operations');
+    if (storage.type === "NVMe" && storage.speed > 3000) {
+      this.fingerprint.optimizationHints.push("parallel-io-intensive");
+      this.fingerprint.optimizationHints.push("large-file-operations");
     }
 
     // Memory-specific optimizations
-    if (memory.total > 64 * 1024 * 1024 * 1024) { // 64GB+
-      this.fingerprint.optimizationHints.push('memory-intensive-workloads');
-      this.fingerprint.optimizationHints.push('in-memory-caching');
+    if (memory.total > 64 * 1024 * 1024 * 1024) {
+      // 64GB+
+      this.fingerprint.optimizationHints.push("memory-intensive-workloads");
+      this.fingerprint.optimizationHints.push("in-memory-caching");
     }
 
     // Multi-core optimizations
     if (cpu.cores >= 8) {
-      this.fingerprint.optimizationHints.push('parallel-task-execution');
-      this.fingerprint.optimizationHints.push('worker-thread-pool');
+      this.fingerprint.optimizationHints.push("parallel-task-execution");
+      this.fingerprint.optimizationHints.push("worker-thread-pool");
     }
   }
 

@@ -116,20 +116,20 @@ describe('Logger Utility', () => {
       process.env.NODE_ENV = originalEnv;
     });
 
-    it('should have console transport even in production', () => {
+    it("should have console transport even in production", () => {
       // Console transport should always be present
       const transports = logger.transports;
       const hasConsole = transports.some(
-        t => t instanceof winston.transports.Console
+        (t) => t instanceof winston.transports.Console,
       );
       expect(hasConsole).toBe(true);
     });
   });
 
-  describe('Logger Error Handling', () => {
-    it('should handle logging errors gracefully', () => {
+  describe("Logger Error Handling", () => {
+    it("should handle logging errors gracefully", () => {
       // Spy on console.error to catch any winston errors
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
 
       // Try to log with invalid data types
       expect(() => {
@@ -141,58 +141,66 @@ describe('Logger Utility', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should handle missing message parameter', () => {
+    it("should handle missing message parameter", () => {
       expect(() => {
-        logger.info('', { data: 'test' });
+        logger.info("", { data: "test" });
       }).not.toThrow();
     });
 
-    it('should handle complex objects', () => {
+    it("should handle complex objects", () => {
       expect(() => {
         const complexObj = {
           nested: {
             deeply: {
               data: [1, 2, 3],
-              map: new Map([['key', 'value']]),
+              map: new Map([["key", "value"]]),
               date: new Date(),
             },
           },
         };
-        logger.info('Complex object', complexObj);
+        logger.info("Complex object", complexObj);
       }).not.toThrow();
     });
   });
 
-  describe('Log Levels', () => {
-    it('should respect log level filtering', () => {
+  describe("Log Levels", () => {
+    it("should respect log level filtering", () => {
       // Logger should have a level property
       expect(logger.level).toBeDefined();
-      
+
       // Verify level is a valid winston level
-      const validLevels = ['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'];
+      const validLevels = [
+        "error",
+        "warn",
+        "info",
+        "http",
+        "verbose",
+        "debug",
+        "silly",
+      ];
       expect(validLevels).toContain(logger.level);
     });
 
-    it('should support all winston log levels', () => {
-      const levels = ['error', 'warn', 'info', 'debug'];
-      
-      levels.forEach(level => {
-        expect(typeof (logger as any)[level]).toBe('function');
+    it("should support all winston log levels", () => {
+      const levels = ["error", "warn", "info", "debug"];
+
+      levels.forEach((level) => {
+        expect(typeof (logger as any)[level]).toBe("function");
       });
     });
   });
 
-  describe('Service Identification', () => {
-    it('should tag all logs with service name', () => {
-      expect(logger.defaultMeta?.service).toBe('stackBrowserAgent');
+  describe("Service Identification", () => {
+    it("should tag all logs with service name", () => {
+      expect(logger.defaultMeta?.service).toBe("stackBrowserAgent");
     });
 
-    it('should maintain service tag across log calls', () => {
+    it("should maintain service tag across log calls", () => {
       // Multiple log calls should all use the same defaultMeta
-      logger.info('First log');
-      logger.info('Second log');
-      
-      expect(logger.defaultMeta?.service).toBe('stackBrowserAgent');
+      logger.info("First log");
+      logger.info("Second log");
+
+      expect(logger.defaultMeta?.service).toBe("stackBrowserAgent");
     });
   });
 });

@@ -24,7 +24,15 @@ export interface WorkflowTemplate {
   id: string;
   name: string;
   description: string;
-  category: 'scraping' | 'automation' | 'data-processing' | 'integration' | 'monitoring' | 'ecommerce' | 'social-media' | 'reporting';
+  category:
+    | "scraping"
+    | "automation"
+    | "data-processing"
+    | "integration"
+    | "monitoring"
+    | "ecommerce"
+    | "social-media"
+    | "reporting";
   icon?: string;
   thumbnail?: string;
   tags: string[];
@@ -32,7 +40,7 @@ export interface WorkflowTemplate {
   connections: WorkflowConnection[];
   defaultParams?: Record<string, any>;
   estimatedDuration?: string;
-  complexity: 'beginner' | 'intermediate' | 'advanced';
+  complexity: "beginner" | "intermediate" | "advanced";
   createdAt: string;
   updatedAt: string;
 }
