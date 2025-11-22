@@ -569,3 +569,168 @@ function logout() {
     localStorage.removeItem('authToken');
     window.location.href = '/login.html';
 }
+
+// Deployment functions
+async function deployDashboard() {
+    const btn = document.getElementById('deploy-dashboard-btn');
+    const status = document.getElementById('dashboard-deploy-status');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i>Deploying...';
+    status.textContent = 'Building dashboard...';
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/dashboard/deploy`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                target: 'dashboard',
+                environment: 'production'
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            status.innerHTML = `✅ ${result.data.message}`;
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-rocket" style="margin-right: 8px;"></i>Deploy Dashboard';
+                status.textContent = 'Ready to deploy again';
+            }, 3000);
+        } else {
+            throw new Error('Deployment failed');
+        }
+    } catch (error) {
+        console.error('Dashboard deployment error:', error);
+        status.innerHTML = '❌ Deployment failed';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-rocket" style="margin-right: 8px;"></i>Deploy Dashboard';
+    }
+}
+
+async function deployChromeExtension() {
+    const btn = document.getElementById('deploy-chrome-btn');
+    const status = document.getElementById('chrome-deploy-status');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fab fa-chrome fa-spin" style="margin-right: 8px;"></i>Deploying...';
+    status.textContent = 'Building Chrome extension...';
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/dashboard/deploy`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                target: 'chrome',
+                environment: 'production'
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            status.innerHTML = `✅ ${result.data.message}`;
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fab fa-chrome" style="margin-right: 8px;"></i>Deploy Extension';
+                status.innerHTML = 'Load from: <code>build/chrome-extension/</code>';
+            }, 3000);
+        } else {
+            throw new Error('Deployment failed');
+        }
+    } catch (error) {
+        console.error('Chrome deployment error:', error);
+        status.innerHTML = '❌ Deployment failed';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fab fa-chrome" style="margin-right: 8px;"></i>Deploy Extension';
+    }
+}
+
+async function deployFullStack() {
+    const btn = document.getElementById('deploy-full-btn');
+    const status = document.getElementById('full-deploy-status');
+    
+    if (!confirm('This will run one-click-deploy.sh and restart the server. Continue?')) {
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-layer-group fa-spin" style="margin-right: 8px;"></i>Deploying...';
+    status.textContent = 'Starting full deployment...';
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/dashboard/deploy`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                target: 'full',
+                environment: 'production'
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            status.innerHTML = `✅ ${result.data.message}`;
+            status.innerHTML += '<br/>Check logs at: <code>/tmp/deployment.log</code>';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-layer-group" style="margin-right: 8px;"></i>Full Deployment';
+            }, 5000);
+        } else {
+            throw new Error('Deployment failed');
+        }
+    } catch (error) {
+        console.error('Full deployment error:', error);
+        status.innerHTML = '❌ Deployment failed';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-layer-group" style="margin-right: 8px;"></i>Full Deployment';
+    }
+}
+
+// Check deployment status periodically
+async function checkDeploymentStatus() {
+    try {
+        const response = await fetch(`${API_BASE}/api/dashboard/deploy/status`);
+        if (response.ok) {
+            const result = await response.json();
+            const envEl = document.getElementById('deployment-env');
+            const statusEl = document.getElementById('deployment-system-status');
+            
+            if (envEl) envEl.textContent = result.data.environment || 'Production';
+            if (statusEl) {
+                statusEl.textContent = result.data.ready ? 'Ready' : 'Deploying...';
+                statusEl.style.color = result.data.ready ? '#28a745' : '#ffc107';
+            }
+        }
+    } catch (error) {
+        console.error('Deployment status check error:', error);
+    }
+}
+
+// Add deployment button listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const deployDashboardBtn = document.getElementById('deploy-dashboard-btn');
+    const deployChromeBtn = document.getElementById('deploy-chrome-btn');
+    const deployFullBtn = document.getElementById('deploy-full-btn');
+    
+    if (deployDashboardBtn) {
+        deployDashboardBtn.addEventListener('click', deployDashboard);
+    }
+    
+    if (deployChromeBtn) {
+        deployChromeBtn.addEventListener('click', deployChromeExtension);
+    }
+    
+    if (deployFullBtn) {
+        deployFullBtn.addEventListener('click', deployFullStack);
+    }
+    
+    // Check deployment status on load and periodically
+    checkDeploymentStatus();
+    setInterval(checkDeploymentStatus, 30000); // Every 30 seconds
+});

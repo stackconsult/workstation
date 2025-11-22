@@ -2,19 +2,55 @@
 
 **Version**: 1.1.0  
 **Status**: ✅ Active  
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-22
 
 ---
 
 ## 🎯 Overview
 
-The Workstation dashboard now features a **self-updating system** with comprehensive error handling, automatic recovery, and real-time statistics. This guide explains the new features and how to use them.
+The Workstation dashboard now features a **self-updating system** with comprehensive error handling, automatic recovery, real-time statistics, and **automated deployment buttons** for production environments. This guide explains the new features and how to use them.
 
 ---
 
 ## ✨ New Features
 
-### 1. Auto-Updating Dashboard
+### 1. Automated Deployment Buttons (NEW!)
+
+The dashboard now includes a dedicated **Automated Deployment** section with three one-click deployment options:
+
+#### 📊 Dashboard UI Deployment
+- **Purpose**: Build and deploy the dashboard interface
+- **Action**: Runs `npm run build` to compile TypeScript and prepare assets
+- **Use Case**: Quick dashboard updates without full system restart
+- **Status Indicator**: Shows build progress and completion
+
+#### 🔌 Chrome Extension Deployment  
+- **Purpose**: Build Chrome extension for production
+- **Action**: Runs `npm run build:chrome` to create extension package
+- **Output**: Extension built to `build/chrome-extension/`
+- **Use Case**: Update Chrome extension without redeploying full stack
+- **Load**: Ready to load from chrome://extensions/
+
+#### ⚡ Full Stack Deployment
+- **Purpose**: Complete system deployment (Production Ready)
+- **Action**: Executes `one-click-deploy.sh` script
+- **Features**:
+  - Installs dependencies
+  - Builds TypeScript code
+  - Builds Chrome extension
+  - Starts backend server
+  - Configures environment
+- **Use Case**: Fresh deployment or major updates
+- **Log Output**: Check `/tmp/deployment.log` for details
+
+**Benefits:**
+- One-click deployment from UI (no CLI needed)
+- Real-time status feedback
+- Post-production environment support
+- Automated build verification
+- Error reporting and recovery
+
+### 2. Auto-Updating Dashboard
 
 The dashboard automatically refreshes data at configurable intervals:
 
@@ -112,9 +148,66 @@ gh run list --workflow=repo-update-agent.yml
 gh run view <run-id>
 ```
 
+### GET /api/dashboard/deploy/status
+
+Returns current deployment system status.
+
+**Authentication**: None required  
+**Rate Limit**: No limit
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "isDeploying": false,
+    "lastDeployment": {
+      "timestamp": "2025-11-22T09:00:00.000Z",
+      "logPath": "/tmp/deployment.log"
+    },
+    "environment": "production",
+    "ready": true
+  }
+}
+```
+
+### POST /api/dashboard/deploy
+
+Trigger automated deployment.
+
+**Authentication**: None required (consider adding for production)  
+**Rate Limit**: Recommended to add
+
+**Request Body:**
+```json
+{
+  "target": "dashboard|chrome|full",
+  "environment": "production"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "target": "chrome",
+    "environment": "production",
+    "status": "started",
+    "message": "Building Chrome extension started",
+    "command": "npm run build:chrome"
+  }
+}
+```
+
+**Targets:**
+- `dashboard`: Builds dashboard UI only
+- `chrome`: Builds Chrome extension only
+- `full`: Runs complete one-click deployment
+
 ---
 
-## 📖 API Documentation
+## 📖 API Documentation (continued)
 
 ### GET /api/dashboard/repo-stats
 
