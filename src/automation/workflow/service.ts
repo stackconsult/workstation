@@ -3,9 +3,9 @@
  * Manages workflow CRUD operations
  */
 
-import { getDatabase, generateId, getCurrentTimestamp } from '../db/database';
-import { Workflow, CreateWorkflowInput } from '../db/models';
-import { logger } from '../../utils/logger';
+import { getDatabase, generateId, getCurrentTimestamp } from "../db/database";
+import { Workflow, CreateWorkflowInput } from "../db/models";
+import { logger } from "../../utils/logger";
 
 export class WorkflowService {
   /**
@@ -22,13 +22,13 @@ export class WorkflowService {
       definition: input.definition,
       owner_id: input.owner_id,
       workspace_id: input.workspace_id,
-      status: 'active',
+      status: "active",
       version: 1,
       timeout_seconds: input.timeout_seconds || 3600,
       max_retries: input.max_retries || 3,
       cron_schedule: input.cron_schedule,
       created_at: getCurrentTimestamp(),
-      updated_at: getCurrentTimestamp()
+      updated_at: getCurrentTimestamp(),
     };
 
     await db.run(
@@ -48,10 +48,10 @@ export class WorkflowService {
       workflow.max_retries,
       workflow.cron_schedule,
       workflow.created_at,
-      workflow.updated_at
+      workflow.updated_at,
     );
 
-    logger.info('Workflow created', { workflowId, name: workflow.name });
+    logger.info("Workflow created", { workflowId, name: workflow.name });
     return workflow;
   }
 
@@ -60,13 +60,17 @@ export class WorkflowService {
    */
   async getWorkflow(workflowId: string): Promise<Workflow | null> {
     const db = getDatabase();
-    
+
     const workflow = await db.get<Workflow>(
-      'SELECT * FROM workflows WHERE id = ?',
-      workflowId
+      "SELECT * FROM workflows WHERE id = ?",
+      workflowId,
     );
 
-    if (workflow && workflow.definition && typeof workflow.definition === 'string') {
+    if (
+      workflow &&
+      workflow.definition &&
+      typeof workflow.definition === "string"
+    ) {
       workflow.definition = JSON.parse(workflow.definition);
     }
 
@@ -78,22 +82,25 @@ export class WorkflowService {
    */
   async listWorkflows(ownerId?: string): Promise<Workflow[]> {
     const db = getDatabase();
-    
-    let query = 'SELECT * FROM workflows';
+
+    let query = "SELECT * FROM workflows";
     const params: string[] = [];
 
     if (ownerId) {
-      query += ' WHERE owner_id = ?';
+      query += " WHERE owner_id = ?";
       params.push(ownerId);
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += " ORDER BY created_at DESC";
 
     const workflows = await db.all<Workflow[]>(query, ...params);
 
-    return workflows.map(w => ({
+    return workflows.map((w) => ({
       ...w,
-      definition: typeof w.definition === 'string' ? JSON.parse(w.definition) : w.definition
+      definition:
+        typeof w.definition === "string"
+          ? JSON.parse(w.definition)
+          : w.definition,
     }));
   }
 
@@ -102,10 +109,10 @@ export class WorkflowService {
    */
   async updateWorkflow(
     workflowId: string,
-    updates: Partial<CreateWorkflowInput>
+    updates: Partial<CreateWorkflowInput>,
   ): Promise<Workflow | null> {
     const db = getDatabase();
-    
+
     const workflow = await this.getWorkflow(workflowId);
     if (!workflow) {
       return null;
@@ -114,7 +121,7 @@ export class WorkflowService {
     const updatedWorkflow: Workflow = {
       ...workflow,
       ...updates,
-      updated_at: getCurrentTimestamp()
+      updated_at: getCurrentTimestamp(),
     };
 
     if (updates.definition) {
@@ -137,10 +144,10 @@ export class WorkflowService {
       updatedWorkflow.max_retries,
       updatedWorkflow.cron_schedule,
       updatedWorkflow.updated_at,
-      workflowId
+      workflowId,
     );
 
-    logger.info('Workflow updated', { workflowId });
+    logger.info("Workflow updated", { workflowId });
     return updatedWorkflow;
   }
 
@@ -149,13 +156,13 @@ export class WorkflowService {
    */
   async deleteWorkflow(workflowId: string): Promise<boolean> {
     const db = getDatabase();
-    
+
     const result = await db.run(
-      'DELETE FROM workflows WHERE id = ?',
-      workflowId
+      "DELETE FROM workflows WHERE id = ?",
+      workflowId,
     );
 
-    logger.info('Workflow deleted', { workflowId });
+    logger.info("Workflow deleted", { workflowId });
     return (result.changes || 0) > 0;
   }
 
@@ -164,18 +171,18 @@ export class WorkflowService {
    */
   async updateWorkflowStatus(
     workflowId: string,
-    status: 'active' | 'inactive' | 'archived'
+    status: "active" | "inactive" | "archived",
   ): Promise<void> {
     const db = getDatabase();
-    
+
     await db.run(
-      'UPDATE workflows SET status = ?, updated_at = ? WHERE id = ?',
+      "UPDATE workflows SET status = ?, updated_at = ? WHERE id = ?",
       status,
       getCurrentTimestamp(),
-      workflowId
+      workflowId,
     );
 
-    logger.info('Workflow status updated', { workflowId, status });
+    logger.info("Workflow status updated", { workflowId, status });
   }
 }
 
