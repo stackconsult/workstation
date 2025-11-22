@@ -1,7 +1,9 @@
 /**
  * Jest test setup file
- * Mocks external dependencies that cause ESM import issues
+ * Configuration for test environment
  */
+
+/// <reference types="jest" />
 
 // Suppress console logs during tests unless they're errors
 const originalConsole = { ...console };
