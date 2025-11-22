@@ -251,6 +251,8 @@ npm run test:chrome
 | [📚 Wiki](../../wiki) | **NEW!** Self-updating knowledge library (Wikibrarian Agent, daily at 6 AM UTC) |
 | [🎨 Wiki-Artist Agent](agents/wiki-artist/README.md) | **NEW!** Visual design enhancement agent (agentic handoff at 6:46 AM UTC) |
 | [📖 Documentation Index](docs/DOCUMENTATION_INDEX.md) | Complete navigation of all docs |
+| [🔧 Error Handling](ERROR_HANDLING_DOCUMENTATION.md) | **NEW!** Error handling patterns and troubleshooting guide |
+| [🔄 Automation Flow Analysis](AUTOMATION_FLOW_ANALYSIS.md) | **NEW!** Comprehensive automation system review |
 | [🎯 START_HERE.md](START_HERE.md) | 30-second quick start |
 | [🌐 Chrome Extension Guide](chrome-extension/README.md) | Complete Chrome extension documentation |
 | [🤖 Repo Update Agent](agents/repo-update-agent/README.md) | **NEW!** Automated documentation sync agent |
