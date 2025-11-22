@@ -56,7 +56,9 @@
     "orchestrator:rollback": "ts-node scripts/agent-builder/orchestrator.ts --rollback",
     "agent17:build": "cd agents/agent17 && npm install && npm run build",
     "agent17:test": "cd agents/agent17 && npm test",
-    "agent17:generate": "cd agents/agent17 && npm run generate"
+    "agent17:generate": "cd agents/agent17 && npm run generate",
+    "stats:analyze": "npx ts-node src/scripts/webpage-stats-analyzer.ts",
+    "stats:verify": "bash -c 'echo \"=== Repository Statistics ===\"  && echo \"Total tracked files:\" && find . -type f ! -path \"*/node_modules/*\" ! -path \"*/.git/*\" ! -path \"*/dist/*\" 2>/dev/null | wc -l && echo \"TypeScript files:\" && find src -type f -name \"*.ts\" 2>/dev/null | wc -l && echo \"Documentation files:\" && find . -type f -name \"*.md\" ! -path \"*/node_modules/*\" 2>/dev/null | wc -l && echo \"Lines of TypeScript:\" && find src -type f -name \"*.ts\" -exec wc -l {} + 2>/dev/null | tail -1 | awk \"{print \\$1}\"'"
   },
   "overrides": {
     "js-yaml": "^4.1.1"
