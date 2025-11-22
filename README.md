@@ -36,7 +36,8 @@ Workstation is a **production-ready** browser automation platform that combines:
 **Current Status**: 
 - ✅ **Phase 1 Complete**: Full browser automation with 7 core actions
 - ⚠️ **189 Tests Passing (2 Failing)**: Active development, improving coverage
-- ✅ **753 Files**: Comprehensive codebase with 321 docs
+- ✅ **891+ Tracked Files**: 68 TypeScript source files, 38 JavaScript files, 26 test files, 378 docs
+- ✅ **22,000+ Lines of TypeScript**: Production-ready codebase in src/
 - ✅ **25 Agents + 23 MCP Containers**: Robust microservices ecosystem
 - ✅ **Chrome Extension MVP**: Browser integration ready
 - 🚧 **Phase 2 Active**: Building multi-agent ecosystem (40% complete)
@@ -251,6 +252,8 @@ npm run test:chrome
 | [📚 Wiki](../../wiki) | **NEW!** Self-updating knowledge library (Wikibrarian Agent, daily at 6 AM UTC) |
 | [🎨 Wiki-Artist Agent](agents/wiki-artist/README.md) | **NEW!** Visual design enhancement agent (agentic handoff at 6:46 AM UTC) |
 | [📖 Documentation Index](docs/DOCUMENTATION_INDEX.md) | Complete navigation of all docs |
+| [🔧 Error Handling](ERROR_HANDLING_DOCUMENTATION.md) | **NEW!** Error handling patterns and troubleshooting guide |
+| [🔄 Automation Flow Analysis](AUTOMATION_FLOW_ANALYSIS.md) | **NEW!** Comprehensive automation system review |
 | [🎯 START_HERE.md](START_HERE.md) | 30-second quick start |
 | [🌐 Chrome Extension Guide](chrome-extension/README.md) | Complete Chrome extension documentation |
 | [🤖 Repo Update Agent](agents/repo-update-agent/README.md) | **NEW!** Automated documentation sync agent |

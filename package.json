@@ -56,7 +56,9 @@
     "orchestrator:rollback": "ts-node scripts/agent-builder/orchestrator.ts --rollback",
     "agent17:build": "cd agents/agent17 && npm install && npm run build",
     "agent17:test": "cd agents/agent17 && npm test",
-    "agent17:generate": "cd agents/agent17 && npm run generate"
+    "agent17:generate": "cd agents/agent17 && npm run generate",
+    "stats:analyze": "npx ts-node src/scripts/webpage-stats-analyzer.ts",
+    "stats:verify": "./scripts/verify-stats.sh"
   },
   "overrides": {
     "js-yaml": "^4.1.1"
@@ -152,7 +154,7 @@
     "@types/helmet": "^0.0.48",
     "@types/jest": "^29.5.11",
     "@types/jsonwebtoken": "^9.0.5",
-    "@types/node": "^20.19.25",
+    "@types/node": "^18.19.130",
     "@types/pdfkit": "^0.17.3",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
