@@ -2,7 +2,11 @@ import request from 'supertest';
 import app from '../src/index';
 import { generateDemoToken } from '../src/auth/jwt';
 
-describe('Git Operations API', () => {
+// Skip git tests if GITHUB_TOKEN is not configured
+// These tests require live GitHub API integration
+const describeIfGitHub = process.env.GITHUB_TOKEN ? describe : describe.skip;
+
+describeIfGitHub('Git Operations API', () => {
   let token: string;
 
   beforeAll(() => {
