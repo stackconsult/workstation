@@ -54,8 +54,8 @@ This task involved creating a browser automation system to:
 
 1. **`README.md`**
    - **Before**: "753 Files: Comprehensive codebase with 321 docs"
-   - **After**: "887+ Tracked Files: 68 TypeScript source files, 38 JavaScript files, 25 test files, 375 docs"
-   - **Added**: "21,964+ Lines of TypeScript: Production-ready codebase in src/"
+   - **After**: "891+ Tracked Files: 68 TypeScript source files, 38 JavaScript files, 26 test files, 377 docs"
+   - **Added**: "21,988+ Lines of TypeScript: Production-ready codebase in src/"
 
 2. **`package.json`**
    - Added `stats:verify` script → runs `/scripts/verify-stats.sh`
@@ -80,12 +80,12 @@ This task involved creating a browser automation system to:
 
 | Metric | Count |
 |--------|-------|
-| **Total Tracked Files** | 1,070 |
+| **Total Tracked Files** | 891 |
 | **TypeScript Files** | 68 |
-| **JavaScript Files** | 44 |
+| **JavaScript Files** | 38 |
 | **Test Files** | 26 |
-| **Documentation Files** | 376 |
-| **Lines of TypeScript** | 21,977 |
+| **Documentation Files** | 377 |
+| **Lines of TypeScript** | 21,988 |
 
 ### Repository Growth
 
@@ -93,8 +93,9 @@ The repository has grown significantly since last update:
 
 | Metric | Previous | Current | Change |
 |--------|----------|---------|--------|
-| Total Files | 753 | 1,070 | **+317 (+42%)** |
-| Documentation | 321 | 376 | **+55 (+17%)** |
+| Total Files | 753 | 891 | **+138 (+18.3%)** |
+| Documentation | 321 | 377 | **+56 (+17.4%)** |
+| TypeScript Lines | Not tracked | 21,988 | **NEW** |
 | TypeScript Lines | Not tracked | 21,977 | **NEW** |
 
 ---
