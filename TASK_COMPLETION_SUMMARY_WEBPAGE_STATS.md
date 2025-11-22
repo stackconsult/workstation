@@ -96,7 +96,6 @@ The repository has grown significantly since last update:
 | Total Files | 753 | 891 | **+138 (+18.3%)** |
 | Documentation | 321 | 377 | **+56 (+17.4%)** |
 | TypeScript Lines | Not tracked | 21,988 | **NEW** |
-| TypeScript Lines | Not tracked | 21,977 | **NEW** |
 
 ---
 
