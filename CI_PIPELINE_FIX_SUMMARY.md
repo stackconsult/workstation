@@ -1,6 +1,6 @@
 # CI/CD Pipeline Fix Summary
 
-**Date**: 2025-11-21  
+**Date**: 2025-11-22  
 **Issue**: #112 - CI/CD Pipeline Failure on refs/pull/112/merge  
 **Workflow Run**: 19509930281  
 **Status**: ✅ RESOLVED
@@ -91,12 +91,34 @@ Jest: "/path/to/src/auth/jwt.ts" coverage threshold for branches (77%) not met: 
    // Added jest types to transform configuration
    transform: {
      '^.+\\.tsx?$': ['ts-jest', {
+       isolatedModules: true,  // ← Added for faster compilation
        tsconfig: {
          esModuleInterop: true,
          allowSyntheticDefaultImports: true,
          types: ['jest', 'node'],  // ← Added
+         module: 'ESNext',  // ← Added - Enables ES module syntax
+         moduleResolution: 'node',  // ← Added - Uses Node.js module resolution
        },
      }],
+     // Added transform for ES modules (.mjs, .js files)
+     '^.+\\.m?js$': ['ts-jest', {
+       tsconfig: {
+         allowJs: true,
+         esModuleInterop: true,
+         allowSyntheticDefaultImports: true,
+       },
+     }]
+   }
+   
+   // Updated transformIgnorePatterns to include simple-git
+   transformIgnorePatterns: [
+     'node_modules/(?!(@octokit|undici|cheerio|before-after-hook|universal-user-agent|simple-git))',
+   ]
+   
+   // Removed mock mapping for @octokit/rest from moduleNameMapper
+   moduleNameMapper: {
+     '^(\\.{1,2}/.*)\\.js$': '$1',
+     // Removed: '^@octokit/rest$': '<rootDir>/tests/__mocks__/@octokit/rest.ts'
    }
    ```
 
@@ -339,7 +361,7 @@ git push origin main
 **Reviewed By**: Automated Code Review  
 **Security Scan**: CodeQL (0 alerts)  
 **Status**: Ready for CI Validation  
-**Date**: 2025-11-21
+**Date**: 2025-11-22
 
 ---
 
