@@ -187,7 +187,7 @@ class MessageBroker extends EventEmitter {
       
       if (this.isRedisEnabled && this.redisPublisher) {
         await this.redisPublisher.publish(channel, messageStr);
-        console.log(`[MessageBroker] Published to Redis ${channel}:`, message.type);
+        console.log('[MessageBroker] Published to Redis %s:', channel, message.type);
       } else {
         // In-memory fallback
         if (!this.messageQueue.has(channel)) {
