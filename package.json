@@ -11,6 +11,8 @@
     "build:downloads": "node scripts/build-downloads.js",
     "generate:manifest": "node scripts/generate-manifest.js",
     "test:chrome": "node scripts/test-chrome-extension.js",
+    "update:agent-status": "node scripts/update-agent-status.js",
+    "update:agent-status:dry-run": "node scripts/update-agent-status.js --dry-run",
     "start": "node dist/index.js",
     "verify": "./scripts/verify-startup.sh",
     "dev": "ts-node src/index.ts",
