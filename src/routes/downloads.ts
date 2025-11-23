@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 
 const router = Router();
 
@@ -42,6 +43,9 @@ router.get('/chrome-extension.zip', (req: Request, res: Response) => {
       console.error('Error streaming chrome extension:', error);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Failed to download file' });
+      } else {
+        // Close the response stream if headers already sent
+        res.end();
       }
     });
 
@@ -89,6 +93,9 @@ router.get('/workflow-builder.zip', (req: Request, res: Response) => {
       console.error('Error streaming workflow builder:', error);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Failed to download file' });
+      } else {
+        // Close the response stream if headers already sent
+        res.end();
       }
     });
 
@@ -105,18 +112,26 @@ router.get('/workflow-builder.zip', (req: Request, res: Response) => {
  * GET /downloads/manifest.json
  * Get version and metadata information for available downloads
  */
-router.get('/manifest.json', (req: Request, res: Response) => {
+router.get('/manifest.json', async (req: Request, res: Response) => {
   try {
     const chromeExtPath = path.join(DOWNLOADS_DIR, 'chrome-extension.zip');
     const workflowPath = path.join(DOWNLOADS_DIR, 'workflow-builder.zip');
 
     // Read package.json for version
     const packageJsonPath = path.join(__dirname, '../../package.json');
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    const packageJsonContent = await fsPromises.readFile(packageJsonPath, 'utf-8');
+    const packageJson = JSON.parse(packageJsonContent);
 
     // Check file existence and get sizes
-    const chromeExtExists = fs.existsSync(chromeExtPath);
-    const workflowExists = fs.existsSync(workflowPath);
+    const [chromeExtExists, workflowExists] = await Promise.all([
+      fsPromises.access(chromeExtPath).then(() => true).catch(() => false),
+      fsPromises.access(workflowPath).then(() => true).catch(() => false)
+    ]);
+
+    const [chromeExtStats, workflowStats] = await Promise.all([
+      chromeExtExists ? fsPromises.stat(chromeExtPath) : Promise.resolve(null),
+      workflowExists ? fsPromises.stat(workflowPath) : Promise.resolve(null)
+    ]);
 
     const manifest = {
       version: packageJson.version,
@@ -125,14 +140,14 @@ router.get('/manifest.json', (req: Request, res: Response) => {
         chromeExtension: {
           filename: 'chrome-extension.zip',
           available: chromeExtExists,
-          size: chromeExtExists ? fs.statSync(chromeExtPath).size : 0,
+          size: chromeExtStats ? chromeExtStats.size : 0,
           downloadUrl: '/downloads/chrome-extension.zip',
           description: 'stackBrowserAgent Chrome Extension for browser automation'
         },
         workflowBuilder: {
           filename: 'workflow-builder.zip',
           available: workflowExists,
-          size: workflowExists ? fs.statSync(workflowPath).size : 0,
+          size: workflowStats ? workflowStats.size : 0,
           downloadUrl: '/downloads/workflow-builder.zip',
           description: 'Workflow Builder application for creating automation workflows'
         }

@@ -90,7 +90,15 @@ class DownloadHandler {
             if (statusElementId) {
               const statusEl = document.getElementById(statusElementId);
               if (statusEl) {
-                statusEl.innerHTML = `<span style="color: #ffc107;">⚠️ Package not built. Run: <code>${this.manifest.buildCommands[packageKey]}</code></span>`;
+                // Safely construct the status message without using innerHTML
+                statusEl.textContent = '';
+                const span = document.createElement('span');
+                span.style.color = '#ffc107';
+                span.appendChild(document.createTextNode('⚠️ Package not built. Run: '));
+                const code = document.createElement('code');
+                code.textContent = this.manifest.buildCommands[packageKey];
+                span.appendChild(code);
+                statusEl.appendChild(span);
               }
             }
           }
@@ -113,7 +121,11 @@ class DownloadHandler {
       if (statusElementId) {
         const statusEl = document.getElementById(statusElementId);
         if (statusEl) {
-          statusEl.innerHTML = `<span style="color: #dc3545;">❌ ${error.message}</span>`;
+          const span = document.createElement('span');
+          span.style.color = '#dc3545';
+          span.textContent = `❌ ${error.message}`;
+          statusEl.textContent = '';
+          statusEl.appendChild(span);
         }
       }
     }
@@ -162,7 +174,8 @@ class DownloadHandler {
       console.error(`Error downloading ${packageKey}:`, error);
       
       if (statusEl) {
-        statusEl.innerHTML = `<span style="color: #dc3545;">❌ Download failed: ${error.message}</span>`;
+        statusEl.style.color = "#dc3545";
+        statusEl.textContent = `❌ Download failed: ${error.message}`;
       }
     }
   }
@@ -172,21 +185,20 @@ class DownloadHandler {
    * Automatically detects standard element IDs
    */
   async initializeAll() {
-    // Chrome Extension
-    await this.initializeDownloadUI('chromeExtension', {
-      versionElementId: 'chrome-ext-version',
-      sizeElementId: 'chrome-ext-size',
-      buttonElementId: 'download-chrome-btn',
-      statusElementId: 'chrome-download-status'
-    });
-
-    // Workflow Builder
-    await this.initializeDownloadUI('workflowBuilder', {
-      versionElementId: 'workflow-version',
-      sizeElementId: 'workflow-size',
-      buttonElementId: 'download-workflow-btn',
-      statusElementId: 'workflow-download-status'
-    });
+    await Promise.allSettled([
+      this.initializeDownloadUI('chromeExtension', {
+        versionElementId: 'chrome-ext-version',
+        sizeElementId: 'chrome-ext-size',
+        buttonElementId: 'download-chrome-btn',
+        statusElementId: 'chrome-download-status'
+      }),
+      this.initializeDownloadUI('workflowBuilder', {
+        versionElementId: 'workflow-version',
+        sizeElementId: 'workflow-size',
+        buttonElementId: 'download-workflow-btn',
+        statusElementId: 'workflow-download-status'
+      })
+    ]);
   }
 }
 

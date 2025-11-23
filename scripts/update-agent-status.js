@@ -9,7 +9,6 @@ const path = require('path');
 const { injectContent, validateMarkers } = require('./lib/markdown-injector');
 
 // Configuration
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
 const README_PATH = path.join(__dirname, '../README.md');
 const ROADMAP_PATH = path.join(__dirname, '../ROADMAP_PROGRESS.md');
 const START_MARKER = '<!-- AGENT_STATUS_START -->';
