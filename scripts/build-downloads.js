@@ -12,7 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 
 const DOWNLOADS_DIR = path.join(__dirname, '..', 'public', 'downloads');
 const CHROME_EXT_SRC = path.join(__dirname, '..', 'chrome-extension');
@@ -86,7 +86,18 @@ function buildChromeExtension() {
     fs.unlinkSync(outputZip);
   }
   
-  exec(`cd ${cwd} && zip -r ${outputZip} ${dirName} -x "*.git*" "*node_modules*" "*.DS_Store"`);
+  // Use execFileSync to avoid shell interpolation issues
+  const zipArgs = [
+    '-r',
+    outputZip,
+    dirName,
+    '-x',
+    '*.git*',
+    '*node_modules*',
+    '*.DS_Store'
+  ];
+  console.log(`▶ zip ${zipArgs.join(' ')}`);
+  execFileSync('zip', zipArgs, { cwd: cwd, stdio: 'inherit' });
   
   const stats = fs.statSync(outputZip);
   console.log(`✅ Chrome extension built: ${outputZip} (${(stats.size / 1024).toFixed(2)} KB)`);
