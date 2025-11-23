@@ -30,6 +30,10 @@ fixes/
 # Build artifacts
 build/
 
+# Downloads - exclude zips but keep manifest
+public/downloads/*.zip
+!public/downloads/manifest.json
+
 # Agent 1-6 artifacts (Build Setup Agents)
 agents/agent1/reports/*/
 !agents/agent1/reports/.gitkeep
