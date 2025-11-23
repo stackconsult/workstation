@@ -67,7 +67,7 @@ async function initialize() {
     
     await initializeContextMemory();
     logger.info('Context-Memory Intelligence Layer initialized successfully');
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Initialization failed', { error });
     process.exit(1);
   }
@@ -170,7 +170,7 @@ app.use(express.json());
 try {
   app.use(globalRateLimiter);
   logger.info('Global rate limiter enabled (Redis-backed)');
-} catch (error) {
+} catch (error: unknown) {
   logger.warn('Global rate limiter fallback to memory-based limiter', { error });
   app.use(limiter); // Fallback to memory-based rate limiting
 }

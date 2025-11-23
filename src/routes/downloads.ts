@@ -64,7 +64,7 @@ router.get('/chrome-extension.zip', (req: Request, res: Response) => {
       }
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error serving chrome extension:', error);
     res.status(500).json({
       error: 'Internal server error',
@@ -119,7 +119,7 @@ router.get('/workflow-builder.zip', (req: Request, res: Response) => {
       }
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error serving workflow builder:', error);
     res.status(500).json({
       error: 'Internal server error',
@@ -185,7 +185,7 @@ router.get('/manifest.json', async (req: Request, res: Response) => {
 
     res.json(manifest);
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error generating manifest:', error);
     res.status(500).json({
       error: 'Failed to generate manifest',
