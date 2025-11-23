@@ -9,6 +9,25 @@ const router = Router();
 const DOWNLOADS_DIR = path.join(__dirname, '../../public/downloads');
 
 /**
+ * Initialize downloads directory
+ * Ensures the downloads directory exists before serving files
+ */
+async function initializeDownloadsDir(): Promise<void> {
+  try {
+    await fsPromises.access(DOWNLOADS_DIR);
+  } catch {
+    // Directory doesn't exist, create it
+    await fsPromises.mkdir(DOWNLOADS_DIR, { recursive: true });
+    console.log(`Created downloads directory: ${DOWNLOADS_DIR}`);
+  }
+}
+
+// Initialize on module load
+initializeDownloadsDir().catch((error) => {
+  console.error('Failed to initialize downloads directory:', error);
+});
+
+/**
  * Validate that a file path is within the downloads directory
  * Prevents path traversal attacks
  */
@@ -113,9 +132,6 @@ router.get('/workflow-builder.zip', (req: Request, res: Response) => {
       console.error('Error streaming workflow builder:', error);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Failed to download file' });
-      } else {
-        // Close the response stream if headers already sent
-        res.end();
       } else {
         // Close the response stream if headers already sent
         res.end();
