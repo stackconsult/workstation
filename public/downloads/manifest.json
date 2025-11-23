@@ -1,5 +1,5 @@
 {
-  "generated": "2025-11-23T15:13:02.194Z",
+  "generated": "2025-11-23T15:46:59.311Z",
   "version": "1.0.0",
   "repository": "git+https://github.com/stackconsult/stackBrowserAgent.git",
   "downloads": [
@@ -8,7 +8,7 @@
       "description": "Workstation AI Agent Chrome Extension - Browser automation with natural language",
       "size": 74766,
       "sizeFormatted": "73.01 KB",
-      "checksum": "f77948a8ec4083d278416c64591941bc3b20569229902e7fbd3c0444baf10922",
+      "checksum": "4f49db6bb006f0478dcb994d093918ec911a230438922af459eb6dc23711bdf9",
       "url": "/downloads/chrome-extension.zip",
       "version": "1.0.0"
     },
@@ -17,7 +17,7 @@
       "description": "Workflow Builder - Visual automation workflow designer",
       "size": 21928,
       "sizeFormatted": "21.41 KB",
-      "checksum": "6cece22069013082b997300bbb5413a6ba4b90d7518da95cc7b123b60507b205",
+      "checksum": "21d69beb0f5e1438a3053fa7235745c04aa70f1bcb52bac27ae6307220d7dafc",
       "url": "/downloads/workflow-builder.zip",
       "version": "1.0.0"
     }

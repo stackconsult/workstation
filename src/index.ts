@@ -45,6 +45,7 @@ import dashboardRoutes from './routes/dashboard';
 import workflowsRoutes from './routes/workflows';
 import workflowTemplatesRoutes from './routes/workflow-templates';
 import agentsRoutes from './routes/agents';
+import downloadsRoutes from './routes/downloads';
 import { initializeDatabase } from './automation/db/database';
 // Context-Memory Intelligence Layer
 import { initializeContextMemory } from './intelligence/context-memory';
@@ -277,6 +278,10 @@ app.use('/api/workflow-templates', workflowTemplatesRoutes);
 
 // Agents management routes
 app.use('/api/agents', agentsRoutes);
+
+// Downloads routes for build artifacts
+app.use('/downloads', downloadsRoutes);
+logger.info('Downloads routes registered for build artifacts');
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);
