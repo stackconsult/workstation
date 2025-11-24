@@ -1,6 +1,10 @@
 version: 2
 updates:
-  # Enable version updates for npm - ROOT PRODUCTION CODE ONLY
+  # PRODUCTION DEPENDENCIES ONLY - Root package.json
+  # This configuration ONLY monitors the root /package.json
+  # It does NOT scan subdirectories (agents/, mcp-containers/, modules/, tools/, examples/, tests/)
+  # The 'allow' directive restricts to production dependencies only
+  # Development dependencies group is preserved but won't create PRs due to 'allow' restriction
   # This monitors ONLY the main package.json at the repository root
   # By specifying directory: "/" without additional entries, Dependabot will:
   # 1. Only check /package.json (the root file)
@@ -25,7 +29,7 @@ updates:
       include: "scope"
     reviewers:
       - "stackconsult"
-    # Group minor and patch updates together
+    # Group minor and patch updates together (both groups preserved for automation compatibility)
     groups:
       development-dependencies:
         dependency-type: "development"
@@ -37,12 +41,15 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    # Skip major version bumps (no PRs created)
+    # CRITICAL: Only allow production dependencies (dev dependencies won't create PRs)
+    allow:
+      - dependency-type: "production"
+    # Ignore ALL major updates (breaking changes)
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
-  # Enable version updates for GitHub Actions
+  # GITHUB ACTIONS UPDATES - Workflow dependencies
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
