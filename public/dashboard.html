@@ -222,6 +222,45 @@
                     </div>
                 </div>
 
+                <!-- Quick Downloads Section -->
+                <div class="downloads-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+                    <h2 style="margin: 0 0 8px 0;">📦 Quick Downloads</h2>
+                    <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 0.95em;">Download pre-built packages for instant deployment</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                        <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; backdrop-filter: blur(10px);">
+                            <h3 style="margin: 0 0 8px 0;">🔌 Chrome Extension</h3>
+                            <p style="margin: 0 0 12px 0; font-size: 0.9em; opacity: 0.9;">Browser automation extension for Chrome</p>
+                            <div style="margin-bottom: 12px;">
+                                <span id="chrome-ext-version" style="font-size: 0.85em; opacity: 0.8;">Version: Loading...</span><br>
+                                <span id="chrome-ext-size" style="font-size: 0.85em; opacity: 0.8;">Size: Loading...</span>
+                            </div>
+                            <button id="download-chrome-btn" class="btn btn-primary" style="width: 100%; background: white; color: #667eea; font-weight: 600;" disabled>
+                                ⬇️ Checking...
+                            </button>
+                            <div id="chrome-download-status" style="margin-top: 8px; font-size: 0.85em;"></div>
+                        </div>
+                        
+                        <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; backdrop-filter: blur(10px);">
+                            <h3 style="margin: 0 0 8px 0;">⚡ Workflow Builder</h3>
+                            <p style="margin: 0 0 12px 0; font-size: 0.9em; opacity: 0.9;">Visual workflow creation tool</p>
+                            <div style="margin-bottom: 12px;">
+                                <span id="workflow-version" style="font-size: 0.85em; opacity: 0.8;">Version: Loading...</span><br>
+                                <span id="workflow-size" style="font-size: 0.85em; opacity: 0.8;">Size: Loading...</span>
+                            </div>
+                            <button id="download-workflow-btn" class="btn btn-primary" style="width: 100%; background: white; color: #764ba2; font-weight: 600;" disabled>
+                                ⬇️ Checking...
+                            </button>
+                            <div id="workflow-download-status" style="margin-top: 8px; font-size: 0.85em;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; margin-top: 16px; font-size: 0.9em;">
+                        <strong>💡 Installation Tips:</strong> After downloading, extract the ZIP files and follow the README instructions. 
+                        Chrome Extension can be loaded via <code style="background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">chrome://extensions</code> in Developer Mode.
+                    </div>
+                </div>
+
                 <!-- Automated Deployment Section -->
                 <div class="deployment-section">
                     <h2>🚀 Automated Deployment</h2>
@@ -393,6 +432,8 @@
         </div>
     </div>
 
+    <!-- Scripts -->
+    <script src="/js/download-handler.js"></script>
     <script src="/js/dashboard.js"></script>
 </body>
 </html>

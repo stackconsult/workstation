@@ -1019,7 +1019,29 @@
                         </div>
                     </div>
 
-                    {/* Tab Navigation */}
+                    <!-- Quick Downloads Section -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 20px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between">
+                        <div>
+                            <h3 style="margin: 0 0 4px 0; font-size: 1.1em">📦 Download Workflow Builder</h3>
+                            <p style="margin: 0; font-size: 0.85em; opacity: 0.9">
+                                <span id="workflow-version">Version: Loading...</span> • 
+                                <span id="workflow-size" style="margin-left: 8px">Size: Loading...</span>
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center">
+                            <button 
+                                id="download-workflow-btn" 
+                                class="btn btn-primary"
+                                style="background: white; color: #764ba2; font-weight: 600; border: none; padding: 8px 16px"
+                                disabled
+                            >
+                                ⬇️ Checking...
+                            </button>
+                            <div id="workflow-download-status" style="font-size: 0.85em; min-width: 150px"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Navigation -->
                     <div className="tab-navigation">
                         <button 
                             className={`tab-btn ${activeTab === 'builder' ? 'active' : ''}`}
@@ -1136,5 +1158,8 @@
         // Render the app
         ReactDOM.render(<WorkflowBuilder />, document.getElementById('root'));
     </script>
+    
+    <!-- Download handler for package downloads -->
+    <script src="/js/download-handler.js"></script>
 </body>
 </html>
