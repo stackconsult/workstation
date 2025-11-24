@@ -3,7 +3,8 @@ updates:
   # PRODUCTION DEPENDENCIES ONLY - Root package.json
   # This configuration ONLY monitors the root /package.json
   # It does NOT scan subdirectories (agents/, mcp-containers/, modules/, tools/, examples/, tests/)
-  # Dependabot will ONLY create PRs for production dependencies, not dev/test dependencies
+  # The 'allow' directive restricts to production dependencies only
+  # Development dependencies group is preserved but won't create PRs due to 'allow' restriction
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -18,14 +19,19 @@ updates:
       include: "scope"
     reviewers:
       - "stackconsult"
-    # ONLY group and allow production dependencies
+    # Group minor and patch updates together (both groups preserved for automation compatibility)
     groups:
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
       production-dependencies:
         dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
-    # Ignore development dependencies completely
+    # CRITICAL: Only allow production dependencies (dev dependencies won't create PRs)
     allow:
       - dependency-type: "production"
     # Ignore ALL major updates (breaking changes)

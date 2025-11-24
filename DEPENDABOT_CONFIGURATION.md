@@ -11,6 +11,7 @@ This repository uses GitHub Dependabot to automatically monitor and update depen
 
 ### What Dependabot IGNORES
 - **Development dependencies** - All packages in `devDependencies` (test tools, linters, etc.)
+  - **Note**: The `development-dependencies` group is preserved in the configuration for automation compatibility, but the `allow` directive restricts actual monitoring to production dependencies only
 - **Major version updates** - Breaking changes that require manual review
 - **Subdirectories** - All package.json files in:
   - `agents/*` - Agent-specific dependencies
@@ -58,7 +59,8 @@ Major versions are ignored because:
 
 ### Grouping Strategy
 - **Production Dependencies**: Minor and patch updates grouped together
-- **Benefits**: Single PR for multiple related updates
+- **Development Dependencies**: Group preserved for automation compatibility but won't create PRs
+- **Benefits**: Configuration structure maintained while restricting to production-only updates
 - **Reduces**: PR overhead
 
 ### Labels
@@ -90,6 +92,11 @@ updates:
     reviewers:
       - "stackconsult"
     groups:
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
       production-dependencies:
         dependency-type: "production"
         update-types:

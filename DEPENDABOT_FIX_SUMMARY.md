@@ -18,7 +18,8 @@
 - **ONLY** monitors production dependencies (`allow: dependency-type: production`)
 - Open PR limit: 5 (manageable)
 - Labels: "dependencies", "production" (specific)
-- **ONLY** groups production dependencies
+- **BOTH** groups preserved (development-dependencies + production-dependencies)
+- Development group preserved for automation compatibility but won't create PRs due to `allow` restriction
 - Automatically excludes all subdirectories (agents/, mcp-containers/, modules/, tools/, examples/, tests/)
 
 ### 2. New Documentation (DEPENDABOT_CONFIGURATION.md)
@@ -28,6 +29,7 @@ Created comprehensive documentation covering:
 - Expected behavior
 - Manual update procedures
 - Troubleshooting guide
+- **Important**: Documents that development-dependencies group is preserved for automation compatibility
 
 ## Impact Analysis
 
