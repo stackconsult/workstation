@@ -378,7 +378,7 @@ jobs:
           retention-days: 30
       
       - name: Create issue summary
-        uses: peter-evans/create-issue-from-file@v5
+        uses: peter-evans/create-issue-from-file@v6
         with:
           title: "🔍 Audit Classification Report - $(date +%Y-%m-%d)"
           content-filepath: priority-matrix.md
