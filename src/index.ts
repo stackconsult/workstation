@@ -46,6 +46,8 @@ import workflowsRoutes from './routes/workflows';
 import workflowTemplatesRoutes from './routes/workflow-templates';
 import agentsRoutes from './routes/agents';
 import downloadsRoutes from './routes/downloads';
+import backupsRoutes from './routes/backups';
+import workflowStateRoutes from './routes/workflow-state';
 import { initializeDatabase } from './automation/db/database';
 // Context-Memory Intelligence Layer
 import { initializeContextMemory } from './intelligence/context-memory';
@@ -55,6 +57,8 @@ import {
   globalRateLimiter 
 } from './middleware/advanced-rate-limit';
 import { initializeMonitoring } from './services/monitoring';
+// Phase 4: Import backup service
+import { initializeBackupService } from './services/backup';
 
 // Validate environment configuration
 const envConfig = validateEnvironment();
@@ -68,6 +72,10 @@ async function initialize() {
     
     await initializeContextMemory();
     logger.info('Context-Memory Intelligence Layer initialized successfully');
+    
+    // Phase 4: Initialize backup service
+    initializeBackupService();
+    logger.info('Phase 4: Backup service initialized successfully');
   } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);
@@ -282,6 +290,14 @@ app.use('/api/agents', agentsRoutes);
 // Downloads routes for build artifacts
 app.use('/downloads', downloadsRoutes);
 logger.info('Downloads routes registered for build artifacts');
+
+// Phase 4: Backup management routes
+app.use('/api/backups', backupsRoutes);
+logger.info('Backup management routes registered');
+
+// Phase 4: Workflow state management routes
+app.use('/api/workflow-state', workflowStateRoutes);
+logger.info('Workflow state management routes registered');
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);
