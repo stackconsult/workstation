@@ -309,7 +309,7 @@ router.get('/repo-stats', publicStatsLimiter, async (req, res: Response) => {
         stats.activity = {
           commitsLast24h: parseInt(recentCommits.trim()) || 0
         };
-      } catch (error) {
+      } catch {
         stats.activity = { commitsLast24h: 0 };
       }
 
@@ -321,7 +321,7 @@ router.get('/repo-stats', publicStatsLimiter, async (req, res: Response) => {
         if (lastUpdatedMatch) {
           stats.lastAutoUpdate = lastUpdatedMatch[1].trim();
         }
-      } catch (error) {
+      } catch {
         stats.lastAutoUpdate = 'Unknown';
       }
 
@@ -387,7 +387,7 @@ router.get('/agent-status', async (req, res: Response) => {
           
           const readmePath = join(agentsDir, dir.name, 'README.md');
           let description = '';
-          let status = 'active';
+          const status = 'active';
 
           try {
             const readmeContent = await fs.readFile(readmePath, 'utf-8');
@@ -395,7 +395,7 @@ router.get('/agent-status', async (req, res: Response) => {
             if (titleMatch) {
               description = titleMatch[1];
             }
-          } catch (error) {
+          } catch {
             // README not found, use directory name
             description = dir.name;
           }
@@ -468,7 +468,7 @@ router.post('/deploy', authenticateToken, async (req: AuthenticatedRequest, res:
     }
 
     // Start deployment asynchronously
-    exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
+    exec(command, { cwd: process.cwd() }, (error) => {
       if (error) {
         logger.error(`Deployment failed for ${target}:`, error);
       } else {
@@ -518,7 +518,7 @@ router.get('/deploy/status', authenticateToken, async (req: AuthenticatedRequest
         timestamp: stats.mtime,
         logPath
       };
-    } catch (error) {
+    } catch {
       // No deployment log found
     }
 
