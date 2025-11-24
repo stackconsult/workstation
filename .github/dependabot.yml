@@ -1,33 +1,34 @@
 version: 2
 updates:
-  # Enable version updates for npm
+  # PRODUCTION DEPENDENCIES ONLY - Root package.json
+  # This configuration ONLY monitors the root /package.json
+  # It does NOT scan subdirectories (agents/, mcp-containers/, modules/, tools/, examples/, tests/)
+  # Dependabot will ONLY create PRs for production dependencies, not dev/test dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "automated"
+      - "production"
     commit-message:
       prefix: "chore"
       include: "scope"
     reviewers:
       - "stackconsult"
-    # Group minor and patch updates together
+    # ONLY group and allow production dependencies
     groups:
-      development-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
       production-dependencies:
         dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
-    # Auto-merge patch updates
+    # Ignore development dependencies completely
+    allow:
+      - dependency-type: "production"
+    # Ignore ALL major updates (breaking changes)
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
