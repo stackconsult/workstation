@@ -45,6 +45,7 @@ import dashboardRoutes from './routes/dashboard';
 import workflowsRoutes from './routes/workflows';
 import workflowTemplatesRoutes from './routes/workflow-templates';
 import agentsRoutes from './routes/agents';
+import downloadsRoutes from './routes/downloads';
 import { initializeDatabase } from './automation/db/database';
 // Context-Memory Intelligence Layer
 import { initializeContextMemory } from './intelligence/context-memory';
@@ -67,7 +68,7 @@ async function initialize() {
     
     await initializeContextMemory();
     logger.info('Context-Memory Intelligence Layer initialized successfully');
-  } catch (error: unknown) {
+  } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);
   }
@@ -100,15 +101,6 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 auth requests per windowMs
   message: 'Too many authentication attempts, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Rate limit for download endpoints
-const downloadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 downloads per windowMs
-  message: 'Too many download requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -170,7 +162,7 @@ app.use(express.json());
 try {
   app.use(globalRateLimiter);
   logger.info('Global rate limiter enabled (Redis-backed)');
-} catch (error: unknown) {
+} catch (error) {
   logger.warn('Global rate limiter fallback to memory-based limiter', { error });
   app.use(limiter); // Fallback to memory-based rate limiting
 }
@@ -217,7 +209,7 @@ try {
     
     res.json({ token });
   });
-} catch (_error) {
+} catch {
   // Fallback to memory-based rate limiter if Redis unavailable
   app.post('/auth/token', authLimiter, validateRequest(schemas.generateToken), (req: Request, res: Response) => {
     const { userId, role } = req.body;
@@ -239,7 +231,7 @@ try {
       message: 'Use this token for testing. Add it to Authorization header as: Bearer <token>'
     });
   });
-} catch (_error) {
+} catch {
   // Fallback to memory-based rate limiter if Redis unavailable
   app.get('/auth/demo-token', authLimiter, (req: Request, res: Response) => {
     const token = generateDemoToken();
@@ -287,9 +279,9 @@ app.use('/api/workflow-templates', workflowTemplatesRoutes);
 // Agents management routes
 app.use('/api/agents', agentsRoutes);
 
-// Downloads routes (public access for downloads with rate limiting)
-import downloadsRoutes from './routes/downloads';
-app.use('/downloads', downloadLimiter, downloadsRoutes);
+// Downloads routes for build artifacts
+app.use('/downloads', downloadsRoutes);
+logger.info('Downloads routes registered for build artifacts');
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);

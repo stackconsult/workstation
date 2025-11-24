@@ -65,28 +65,32 @@ npm start
 
 ## 📦 Quick Downloads
 
-**Download pre-built packages instantly** - No build required!
+[![Download Chrome Extension](https://img.shields.io/badge/Download-Chrome%20Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](http://localhost:3000/downloads/chrome-extension.zip)
+[![Download Workflow Builder](https://img.shields.io/badge/Download-Workflow%20Builder-2196F3?style=for-the-badge&logo=files&logoColor=white)](http://localhost:3000/downloads/workflow-builder.zip)
 
-| Package | Description | Download |
-|---------|-------------|----------|
-| 🔌 **Chrome Extension** | Browser automation extension (v1.0.0) | [Download ZIP](http://localhost:3000/downloads/chrome-extension.zip) (~72KB) - *Replace localhost:3000 with your server URL* |
-| ⚡ **Workflow Builder** | Visual workflow creation tool (v1.0.0) | [Download ZIP](http://localhost:3000/downloads/workflow-builder.zip) (~14KB) - *Replace localhost:3000 with your server URL* |
+**One-Click Installation:**
 
-### Installation Instructions
-
-**Chrome Extension:**
-1. Download the ZIP file
-2. Extract to a folder
-3. Open `chrome://extensions/` in Chrome
-4. Enable "Developer mode" (top right)
+### Chrome Extension
+1. Click the "Download Chrome Extension" badge above or visit `http://localhost:3000/downloads/chrome-extension.zip`
+2. Extract the downloaded ZIP file
+3. Navigate to `chrome://extensions/` in your Chrome browser
+4. Enable "Developer mode" (toggle in top-right corner)
 5. Click "Load unpacked" and select the extracted folder
+6. The Workstation extension is now installed! 🎉
 
-**Workflow Builder:**
-1. Download the ZIP file
-2. Extract and open `workflow-builder.html` in any browser
-3. Connect to your Workstation server at `http://localhost:3000`
+### Workflow Builder
+1. Click the "Download Workflow Builder" badge above or visit `http://localhost:3000/downloads/workflow-builder.zip`
+2. Extract the downloaded ZIP file
+3. Open `workflow-builder.html` in your browser
+4. Start building visual workflows with drag-and-drop! 🎨
 
-**Alternative:** Build from source using `npm run build:chrome` or `npm run build:workflow`
+**Live Deployment URLs:**
+- 📊 **Dashboard** with download buttons: `http://localhost:3000/dashboard.html`
+- 🎨 **Workflow Builder** with downloads: `http://localhost:3000/workflow-builder.html`
+- 📥 **Download API**: `http://localhost:3000/downloads/`
+- 📋 **Manifest**: `http://localhost:3000/downloads/manifest.json` (version info)
+
+**Need Help?** See the [Installation Guide](docs/guides/INSTALLATION_GUIDE.md) for detailed instructions with screenshots.
 
 ---
 
@@ -262,6 +266,14 @@ npm run test:chrome
 📊 Security Vulnerabilities: 0 critical/high
 📊 Repository Health:       9.2/10 - EXCELLENT
 ```
+
+---
+
+## 📊 Live Agent Status
+
+<!-- AUTO-GENERATED-CONTENT:START (AGENT_STATUS) -->
+_Agent status will be auto-updated daily. Run `npm run update:agent-status` to update manually._
+<!-- AUTO-GENERATED-CONTENT:END -->
 
 ---
 

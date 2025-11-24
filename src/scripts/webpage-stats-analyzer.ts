@@ -144,7 +144,7 @@ async function extractGhlocStats(page: Page): Promise<GhlocStats> {
     try {
       await page.screenshot({ path: SCREENSHOT_PATH, fullPage: true });
       console.log(`📸 Screenshot saved to ${SCREENSHOT_PATH}`);
-    } catch (e) {
+    } catch {
       console.log('Note: Could not save screenshot');
     }
     
@@ -268,12 +268,12 @@ async function countActualStats(repoPath: string): Promise<ActualStats> {
           if (match) {
             totalLines += parseInt(match[1]);
           }
-        } catch (wcErr) {
+        } catch {
           // skip files that error
         }
       stats.totalLines = totalLines;
       }
-    } catch (e) {
+    } catch {
       console.log('Note: Could not count total lines');
     }
     

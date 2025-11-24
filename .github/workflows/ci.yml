@@ -11,6 +11,21 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'testuser' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'testpass' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'testdb' }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     strategy:
       matrix:
         node-version: [18.x, 20.x]
@@ -45,8 +60,14 @@ jobs:
       - name: Run tests with coverage
         run: npm test -- --coverage
         env:
-          JWT_SECRET: test-secret-for-ci
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-for-ci-minimum-32-chars-required' }}
           NODE_ENV: test
+          DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER || 'testuser' }}:${{ secrets.POSTGRES_PASSWORD || 'testpass' }}@localhost:5432/${{ secrets.POSTGRES_DB || 'testdb' }}
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'testuser' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'testpass' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'testdb' }}
       
       # 📦 Component Mapping & Documentation Generation (only on Node 20.x)
       - name: Generate dependency map
@@ -359,10 +380,146 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Rollback instructions:** See ROLLBACK_GUIDE.md" >> $GITHUB_STEP_SUMMARY
 
+  live-production-validation:
+    name: Live Production Validation
+    runs-on: ubuntu-latest
+    needs: [test, build-docker]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'produser' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'prodpass' }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'proddb' }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build project for production
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Start server in production mode
+        run: |
+          # Set production environment variables
+          export NODE_ENV=production
+          export JWT_SECRET="${{ secrets.JWT_SECRET || 'production-secret-minimum-32-characters-long-for-security' }}"
+          export JWT_EXPIRATION="${{ secrets.JWT_EXPIRATION || '24h' }}"
+          export PORT=3000
+          export DATABASE_URL="postgresql://${{ secrets.POSTGRES_USER || 'produser' }}:${{ secrets.POSTGRES_PASSWORD || 'prodpass' }}@localhost:5432/${{ secrets.POSTGRES_DB || 'proddb' }}"
+          export POSTGRES_HOST=localhost
+          export POSTGRES_PORT=5432
+          export POSTGRES_USER="${{ secrets.POSTGRES_USER || 'produser' }}"
+          export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD || 'prodpass' }}"
+          export POSTGRES_DB="${{ secrets.POSTGRES_DB || 'proddb' }}"
+          
+          # Start server in background
+          npm start &
+          SERVER_PID=$!
+          echo "SERVER_PID=${SERVER_PID}" >> "${GITHUB_ENV}"
+          
+          # Wait for server to be ready
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:3000/health > /dev/null 2>&1; then
+              echo "✓ Server is ready"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "✗ Server failed to start within 30 seconds"
+              exit 1
+            fi
+            echo "Attempt $i: Server not ready yet, waiting..."
+            sleep 1
+          done
+        env:
+          NODE_ENV: production
+      
+      - name: Run production health checks
+        run: |
+          echo "### 🏥 Production Health Checks" >> "${GITHUB_STEP_SUMMARY}"
+          echo "" >> "${GITHUB_STEP_SUMMARY}"
+          
+          # Health endpoint
+          if curl -f http://localhost:3000/health > /dev/null 2>&1; then
+            echo "✅ Health endpoint: PASS" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "❌ Health endpoint: FAIL" >> "${GITHUB_STEP_SUMMARY}"
+            exit 1
+          fi
+          
+          # Downloads health (if implemented)
+          if curl -f http://localhost:3000/downloads/health > /dev/null 2>&1; then
+            echo "✅ Downloads health: PASS" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "⚠️ Downloads health: Not available or failed" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+          
+          # Dashboard accessibility
+          if curl -f http://localhost:3000/dashboard.html > /dev/null 2>&1; then
+            echo "✅ Dashboard: ACCESSIBLE" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "⚠️ Dashboard: Not accessible" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+          
+          echo "" >> "${GITHUB_STEP_SUMMARY}"
+          echo "**Status:** Production validation completed successfully" >> "${GITHUB_STEP_SUMMARY}"
+      
+      - name: Test critical API endpoints
+        run: |
+          echo "### 🔍 API Endpoint Tests" >> "${GITHUB_STEP_SUMMARY}"
+          echo "" >> "${GITHUB_STEP_SUMMARY}"
+          
+          # Test JWT token generation
+          RESPONSE=$(curl -s -X POST http://localhost:3000/api/auth/token \
+            -H "Content-Type: application/json" \
+            -d '{"username":"testuser"}')
+          
+          if echo "$RESPONSE" | grep -q "token"; then
+            echo "✅ JWT generation: PASS" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "⚠️ JWT generation: Failed or not configured" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+          
+          # Test manifest endpoint
+          if curl -f http://localhost:3000/downloads/manifest.json > /dev/null 2>&1; then
+            echo "✅ Manifest endpoint: PASS" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "⚠️ Manifest endpoint: Not available" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -n "${SERVER_PID}" ]; then
+            echo "Stopping server (PID: ${SERVER_PID})"
+            kill "${SERVER_PID}" || true
+            wait "${SERVER_PID}" 2>/dev/null || true
+          fi
+
   report-failures:
     name: Report CI Failures
     runs-on: ubuntu-latest
-    needs: [test, security]
+    needs: [test, security, live-production-validation]
     if: failure()
     permissions:
       issues: write

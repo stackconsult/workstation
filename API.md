@@ -234,6 +234,202 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
 
 ---
 
+## Downloads API
+
+The Downloads API provides access to build artifacts including the Chrome Extension and Workflow Builder.
+
+### 6. Downloads Health Check
+
+Check the status of the downloads service and available files.
+
+**Endpoint**: `GET /downloads/health`
+
+**Authentication**: Not required
+
+**Rate Limit**: 20 requests / 15 minutes
+
+**Request**:
+```bash
+curl http://localhost:3000/downloads/health
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "status": "healthy",
+  "downloadsDirectory": true,
+  "files": [
+    {
+      "name": "chrome-extension.zip",
+      "exists": true,
+      "size": 74766
+    },
+    {
+      "name": "workflow-builder.zip",
+      "exists": true,
+      "size": 21928
+    },
+    {
+      "name": "manifest.json",
+      "exists": true,
+      "size": 881
+    }
+  ],
+  "timestamp": "2025-11-23T15:46:59.311Z"
+}
+```
+
+---
+
+### 7. Download Chrome Extension
+
+Download the latest Chrome Extension build as a zip file.
+
+**Endpoint**: `GET /downloads/chrome-extension.zip`
+
+**Authentication**: Not required
+
+**Rate Limit**: 20 requests / 15 minutes
+
+**Request**:
+```bash
+curl -O http://localhost:3000/downloads/chrome-extension.zip
+```
+
+**Response**: Binary zip file with appropriate headers
+- `Content-Type: application/zip`
+- `Content-Disposition: attachment; filename="chrome-extension.zip"`
+- `Content-Length: [file size in bytes]`
+- `Cache-Control: public, max-age=3600`
+
+**Error Response** (404 Not Found):
+```json
+{
+  "success": false,
+  "error": "File not found. Please ensure builds have been generated."
+}
+```
+
+---
+
+### 8. Download Workflow Builder
+
+Download the latest Workflow Builder build as a zip file.
+
+**Endpoint**: `GET /downloads/workflow-builder.zip`
+
+**Authentication**: Not required
+
+**Rate Limit**: 20 requests / 15 minutes
+
+**Request**:
+```bash
+curl -O http://localhost:3000/downloads/workflow-builder.zip
+```
+
+**Response**: Binary zip file with appropriate headers
+- `Content-Type: application/zip`
+- `Content-Disposition: attachment; filename="workflow-builder.zip"`
+- `Content-Length: [file size in bytes]`
+- `Cache-Control: public, max-age=3600`
+
+---
+
+### 9. Download Manifest
+
+Get version information and metadata for all available downloads.
+
+**Endpoint**: `GET /downloads/manifest.json`
+
+**Authentication**: Not required
+
+**Rate Limit**: 20 requests / 15 minutes
+
+**Request**:
+```bash
+curl http://localhost:3000/downloads/manifest.json
+```
+
+**Response** (200 OK):
+```json
+{
+  "generated": "2025-11-23T15:46:59.311Z",
+  "version": "1.0.0",
+  "repository": "git+https://github.com/stackconsult/stackBrowserAgent.git",
+  "downloads": [
+    {
+      "name": "chrome-extension.zip",
+      "description": "Workstation AI Agent Chrome Extension - Browser automation with natural language",
+      "size": 74766,
+      "sizeFormatted": "73.01 KB",
+      "checksum": "4f49db6bb006f04700d7e19a1b1dbea34e6dd5ec7a6e1a4f0f3f6f1d4e1f8e9a",
+      "url": "/downloads/chrome-extension.zip",
+      "version": "1.0.0"
+    },
+    {
+      "name": "workflow-builder.zip",
+      "description": "Workflow Builder - Visual automation workflow designer",
+      "size": 21928,
+      "sizeFormatted": "21.41 KB",
+      "checksum": "21d69beb0f5e14389c0f8b6e1e8e1c3d4f5e6a7b8c9d0e1f2a3b4c5d6e7f8g9h",
+      "url": "/downloads/workflow-builder.zip",
+      "version": "1.0.0"
+    }
+  ]
+}
+```
+
+**Response Headers**:
+- `Content-Type: application/json`
+- `Cache-Control: public, max-age=3600`
+
+---
+
+## Building Downloads
+
+To generate the download files, run:
+
+```bash
+# Build both Chrome Extension and Workflow Builder zips
+npm run build:downloads
+
+# Generate manifest.json with checksums and metadata
+npm run generate:manifest
+```
+
+Files are built to: `public/downloads/`
+
+---
+
+## Security Features
+
+### File Whitelist
+Only the following files can be downloaded:
+- `chrome-extension.zip`
+- `workflow-builder.zip`
+- `manifest.json`
+
+Any attempt to download other files will result in a 404 response.
+
+### Rate Limiting
+All download endpoints are protected by rate limiting:
+- **Limit**: 20 requests per 15 minutes per IP address
+- **Headers**: Standard rate limit headers are included in responses
+- **Exceeded**: Returns 429 Too Many Requests with JSON error message
+
+### Privacy
+- IP addresses are anonymized (SHA256 hash) in logs
+- User-Agent strings are truncated to 100 characters
+- Download analytics include only: filename, size, timestamp, anonymized IP
+
+### Caching
+Downloads include cache headers to reduce server load:
+- `Cache-Control: public, max-age=3600` (1 hour)
+- `ETag` based on file modification time and size
+
+---
+
 ## Error Responses
 
 All endpoints may return the following error responses:

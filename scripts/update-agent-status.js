@@ -2,226 +2,355 @@
 
 /**
  * Agent Status Auto-Updater
- * Fetches agent status from the API and updates documentation
+ * 
+ * Fetches agent and container health data from the API and dynamically
+ * injects stats into README.md and ROADMAP_PROGRESS.md.
+ * 
+ * Features:
+ * - Fetch data from /api/agents/system/overview
+ * - Generate formatted markdown tables
+ * - Safely inject into markdown files
+ * - Error handling and rollback
+ * - Logging for debugging
+ * 
+ * Usage:
+ *   node scripts/update-agent-status.js [options]
+ * 
+ * Options:
+ *   --dry-run    Show what would be updated without making changes
+ *   --verbose    Show detailed logging
+ *   --url <url>  Override API URL (default: http://localhost:3000)
  */
 
+const axios = require('axios');
 const path = require('path');
-const { injectContent, validateMarkers } = require('./lib/markdown-injector');
+const fs = require('fs');
+const { injectContent, hasMarkers, addMarkers } = require('./lib/markdown-injector');
 
 // Configuration
-const README_PATH = path.join(__dirname, '../README.md');
-const ROADMAP_PATH = path.join(__dirname, '../ROADMAP_PROGRESS.md');
-const START_MARKER = '<!-- AGENT_STATUS_START -->';
-const END_MARKER = '<!-- AGENT_STATUS_END -->';
+const CONFIG = {
+  apiUrl: process.env.API_URL || 'http://localhost:3000',
+  apiEndpoint: '/api/agents/system/overview',
+  files: [
+    {
+      path: path.join(__dirname, '../README.md'),
+      markers: {
+        start: '<!-- AUTO-GENERATED-CONTENT:START (AGENT_STATUS) -->',
+        end: '<!-- AUTO-GENERATED-CONTENT:END -->'
+      }
+    },
+    {
+      path: path.join(__dirname, '../ROADMAP_PROGRESS.md'),
+      markers: {
+        start: '<!-- AUTO-GENERATED-CONTENT:START (AGENT_STATUS) -->',
+        end: '<!-- AUTO-GENERATED-CONTENT:END -->'
+      }
+    }
+  ],
+  timeout: 10000,
+  retries: 3,
+  retryDelay: 2000
+};
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const isDryRun = args.includes('--dry-run');
+const isVerbose = args.includes('--verbose');
+const urlIndex = args.indexOf('--url');
+if (urlIndex !== -1 && args[urlIndex + 1]) {
+  CONFIG.apiUrl = args[urlIndex + 1];
+}
+
+// Logger
+const logger = {
+  info: (...args) => console.log('ℹ️ ', ...args),
+  success: (...args) => console.log('✅', ...args),
+  warn: (...args) => console.warn('⚠️ ', ...args),
+  error: (...args) => console.error('❌', ...args),
+  verbose: (...args) => isVerbose && console.log('🔍', ...args),
+  debug: (...args) => isVerbose && console.log('🐛', ...args)
+};
 
 /**
- * Fetch agent status from the API
+ * Fetch agent status from API
+ * 
+ * @returns {Promise<Object>} - Agent status data
  */
 async function fetchAgentStatus() {
-  try {
-    // For now, we'll generate mock data since the API requires authentication
-    // In production, this would fetch from /api/agents/system/overview with a token
-    
-    console.log('📊 Fetching agent status...');
-    
-    // Mock data - replace with actual API call when authentication is set up
-    const mockStatus = {
-      totalAgents: 12,
-      runningAgents: 10,
-      stoppedAgents: 2,
-      healthyAgents: 9,
-      unhealthyAgents: 3,
-      pendingTasks: 5,
-      lastUpdated: new Date().toISOString()
-    };
+  const url = `${CONFIG.apiUrl}${CONFIG.apiEndpoint}`;
+  logger.verbose(`Fetching agent status from: ${url}`);
 
-    return mockStatus;
+  let lastError = null;
+  
+  for (let attempt = 1; attempt <= CONFIG.retries; attempt++) {
+    try {
+      logger.debug(`Attempt ${attempt}/${CONFIG.retries}`);
+      
+      const response = await axios.get(url, {
+        timeout: CONFIG.timeout,
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Agent-Status-Updater/1.0'
+        }
+      });
 
-    /* Actual API call (uncomment when ready):
-    // Note: Node.js 18+ has built-in fetch, no need for node-fetch
-    const token = process.env.WORKSTATION_API_TOKEN;
-    if (!token) {
-      throw new Error('WORKSTATION_API_TOKEN environment variable not set');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/agents/system/overview`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
+      if (response.status !== 200) {
+        throw new Error(`API returned status ${response.status}`);
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}: ${response.statusText}`);
+      if (!response.data) {
+        throw new Error('API returned empty response');
+      }
+
+      logger.verbose(`Received data: ${JSON.stringify(response.data, null, 2).substring(0, 200)}...`);
+      return response.data;
+
+    } catch (error) {
+      lastError = error;
+      logger.warn(`Attempt ${attempt} failed: ${error.message}`);
+      
+      if (attempt < CONFIG.retries) {
+        logger.verbose(`Retrying in ${CONFIG.retryDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay));
+      }
     }
-
-    const result = await response.json();
-    return result.data;
-    */
-
-  } catch (error) {
-    console.error('❌ Error fetching agent status:', error.message);
-    throw error;
   }
+
+  throw new Error(`Failed to fetch agent status after ${CONFIG.retries} attempts: ${lastError.message}`);
 }
 
 /**
- * Generate markdown table from agent status
+ * Generate markdown table from agent data
+ * 
+ * @param {Object} data - Agent status data
+ * @returns {string} - Formatted markdown table
  */
-function generateStatusMarkdown(status) {
-  const timestamp = new Date().toISOString().split('T')[0];
-  const time = new Date().toLocaleTimeString('en-US', { timeZone: 'UTC', hour12: false });
+function generateMarkdownTable(data) {
+  const { agents = [], containers = [], summary = {} } = data;
 
-  return `
-## 🤖 Agent System Status
-
-**Last Updated**: ${timestamp} ${time} UTC
-
-| Metric | Count | Status |
-|--------|-------|--------|
-| **Total Agents** | ${status.totalAgents} | ${status.totalAgents > 0 ? '✅' : '⚠️'} |
-| **Running Agents** | ${status.runningAgents} | ${status.runningAgents > 0 ? '✅' : '⏸️'} |
-| **Stopped Agents** | ${status.stoppedAgents} | ${status.stoppedAgents === 0 ? '✅' : '⚠️'} |
-| **Healthy Agents** | ${status.healthyAgents} | ${status.healthyAgents > 0 ? '✅' : '❌'} |
-| **Unhealthy Agents** | ${status.unhealthyAgents} | ${status.unhealthyAgents === 0 ? '✅' : '⚠️'} |
-| **Pending Tasks** | ${status.pendingTasks} | ${status.pendingTasks < 10 ? '✅' : '⚠️'} |
-
-### Health Summary
-
-- **Overall Health**: ${calculateHealthPercentage(status)}%
-- **Active Agents**: ${status.runningAgents}/${status.totalAgents}
-- **System Status**: ${getSystemStatus(status)}
-
-### Quick Actions
-
-- 📊 [View Dashboard](http://localhost:3000/dashboard.html)
-- 🤖 [Agent Management](http://localhost:3000/api/agents)
-- 📈 [System Metrics](http://localhost:3000/metrics)
-`;
-}
-
-/**
- * Calculate overall system health percentage
- */
-function calculateHealthPercentage(status) {
-  if (status.totalAgents === 0) return 0;
-  const healthRatio = status.healthyAgents / status.totalAgents;
-  const runningRatio = status.runningAgents / status.totalAgents;
-  return Math.round((healthRatio * 0.7 + runningRatio * 0.3) * 100);
-}
-
-/**
- * Get system status label
- */
-function getSystemStatus(status) {
-  const health = calculateHealthPercentage(status);
-  if (health >= 90) return '🟢 Excellent';
-  if (health >= 70) return '🟡 Good';
-  if (health >= 50) return '🟠 Fair';
-  return '🔴 Needs Attention';
-}
-
-/**
- * Update README.md with agent status
- */
-async function updateReadme(statusMarkdown) {
-  console.log('📝 Updating README.md...');
-
-  // Validate markers exist
-  const validation = validateMarkers(README_PATH, START_MARKER, END_MARKER);
+  let markdown = '\n';
   
-  if (!validation.valid) {
-    console.warn(`⚠️ Markers not found in README.md: ${validation.message}`);
-    console.log('ℹ️ Skipping README update. Add the following markers to enable auto-update:');
-    console.log(`   ${START_MARKER}`);
-    console.log(`   ${END_MARKER}`);
-    return false;
+  // Summary section
+  markdown += `### 📊 System Overview\n\n`;
+  markdown += `**Last Updated**: ${new Date().toISOString()}\n\n`;
+  markdown += `| Metric | Value |\n`;
+  markdown += `|--------|-------|\n`;
+  markdown += `| Total Agents | ${summary.totalAgents || agents.length} |\n`;
+  markdown += `| Active Agents | ${summary.activeAgents || agents.filter(a => a.status === 'active').length} |\n`;
+  markdown += `| Total Containers | ${summary.totalContainers || containers.length} |\n`;
+  markdown += `| Healthy Containers | ${summary.healthyContainers || containers.filter(c => c.health === 'healthy').length} |\n`;
+  markdown += `| System Health | ${summary.overallHealth || calculateOverallHealth(agents, containers)} |\n\n`;
+
+  // Agents table
+  if (agents.length > 0) {
+    markdown += `### 🤖 Agent Status\n\n`;
+    markdown += `| Agent ID | Name | Status | Version | Last Seen |\n`;
+    markdown += `|----------|------|--------|---------|----------|\n`;
+    
+    for (const agent of agents.sort((a, b) => parseInt(a.id) - parseInt(b.id))) {
+      const statusEmoji = agent.status === 'active' ? '✅' : 
+                          agent.status === 'inactive' ? '⏸️' : '❌';
+      const lastSeen = agent.lastSeen ? new Date(agent.lastSeen).toLocaleDateString() : 'Never';
+      
+      markdown += `| ${agent.id} | ${agent.name} | ${statusEmoji} ${agent.status} | ${agent.version || 'N/A'} | ${lastSeen} |\n`;
+    }
+    markdown += '\n';
   }
 
-  // Inject the content
-  const result = injectContent(README_PATH, statusMarkdown, START_MARKER, END_MARKER);
-
-  if (result.success) {
-    console.log('✅ README.md updated successfully');
-    return true;
-  } else {
-    console.error(`❌ Failed to update README.md: ${result.message}`);
-    return false;
+  // Containers table
+  if (containers.length > 0) {
+    markdown += `### 🐳 Container Status\n\n`;
+    markdown += `| Container | Port | Status | Health | Uptime |\n`;
+    markdown += `|-----------|------|--------|--------|---------|\n`;
+    
+    for (const container of containers.sort((a, b) => parseInt(a.port) - parseInt(b.port))) {
+      const healthEmoji = container.health === 'healthy' ? '🟢' : 
+                          container.health === 'degraded' ? '🟡' : '🔴';
+      const statusEmoji = container.status === 'running' ? '▶️' : 
+                          container.status === 'stopped' ? '⏹️' : '⏸️';
+      
+      markdown += `| ${container.name} | ${container.port} | ${statusEmoji} ${container.status} | ${healthEmoji} ${container.health} | ${container.uptime || 'N/A'} |\n`;
+    }
+    markdown += '\n';
   }
+
+  return markdown;
 }
 
 /**
- * Update ROADMAP_PROGRESS.md with agent status
+ * Calculate overall health score
+ * 
+ * @param {Array} agents - Agent data
+ * @param {Array} containers - Container data
+ * @returns {string} - Health status
  */
-async function updateRoadmap(statusMarkdown) {
-  console.log('📝 Updating ROADMAP_PROGRESS.md...');
+function calculateOverallHealth(agents, containers) {
+  const totalAgents = agents.length;
+  const activeAgents = agents.filter(a => a.status === 'active').length;
+  const totalContainers = containers.length;
+  const healthyContainers = containers.filter(c => c.health === 'healthy').length;
 
-  // Validate markers exist
-  const validation = validateMarkers(ROADMAP_PATH, START_MARKER, END_MARKER);
+  const agentHealthScore = totalAgents > 0 ? (activeAgents / totalAgents) : 1;
+  const containerHealthScore = totalContainers > 0 ? (healthyContainers / totalContainers) : 1;
   
-  if (!validation.valid) {
-    console.warn(`⚠️ Markers not found in ROADMAP_PROGRESS.md: ${validation.message}`);
-    console.log('ℹ️ Skipping ROADMAP update. Add markers if auto-update is needed.');
-    return false;
-  }
+  const overallScore = (agentHealthScore + containerHealthScore) / 2;
 
-  // Inject the content
-  const result = injectContent(ROADMAP_PATH, statusMarkdown, START_MARKER, END_MARKER);
-
-  if (result.success) {
-    console.log('✅ ROADMAP_PROGRESS.md updated successfully');
-    return true;
-  } else {
-    console.error(`❌ Failed to update ROADMAP_PROGRESS.md: ${result.message}`);
-    return false;
-  }
+  if (overallScore >= 0.9) return '🟢 Excellent';
+  if (overallScore >= 0.7) return '🟡 Good';
+  if (overallScore >= 0.5) return '🟠 Fair';
+  return '🔴 Poor';
 }
 
 /**
- * Main execution
+ * Update markdown files with agent status
+ * 
+ * @param {Object} data - Agent status data
+ * @returns {Promise<Array>} - Results for each file
+ */
+async function updateMarkdownFiles(data) {
+  const results = [];
+  const markdownContent = generateMarkdownTable(data);
+
+  logger.verbose('Generated markdown content:');
+  logger.verbose(markdownContent);
+
+  for (const fileConfig of CONFIG.files) {
+    try {
+      const { path: filePath, markers } = fileConfig;
+      
+      logger.info(`Processing ${path.basename(filePath)}...`);
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        logger.warn(`File not found: ${filePath}`);
+        results.push({
+          file: filePath,
+          success: false,
+          error: 'File not found'
+        });
+        continue;
+      }
+
+      // Check if markers exist
+      if (!hasMarkers(filePath, markers)) {
+        logger.warn(`Markers not found in ${path.basename(filePath)}`);
+        logger.info(`Attempting to add markers...`);
+        
+        const addResult = await addMarkers(filePath, 'Agent Status', markers);
+        
+        if (!addResult.success) {
+          logger.error(`Failed to add markers: ${addResult.error}`);
+          results.push({
+            file: filePath,
+            success: false,
+            error: addResult.error
+          });
+          continue;
+        }
+        
+        logger.success(`Markers added to ${path.basename(filePath)}`);
+      }
+
+      // Perform dry run check
+      if (isDryRun) {
+        logger.info(`[DRY RUN] Would update ${path.basename(filePath)}`);
+        results.push({
+          file: filePath,
+          success: true,
+          dryRun: true
+        });
+        continue;
+      }
+
+      // Inject content
+      const result = await injectContent(filePath, markdownContent, {
+        ...markers,
+        createBackup: true,
+        validateContent: true
+      });
+
+      if (result.success) {
+        logger.success(`Updated ${path.basename(filePath)}`);
+        if (result.backupPath) {
+          logger.verbose(`Backup created: ${result.backupPath}`);
+        }
+      } else {
+        logger.error(`Failed to update ${path.basename(filePath)}: ${result.error}`);
+      }
+
+      results.push({
+        file: filePath,
+        success: result.success,
+        error: result.error,
+        backupPath: result.backupPath
+      });
+
+    } catch (error) {
+      logger.error(`Error processing ${fileConfig.path}: ${error.message}`);
+      results.push({
+        file: fileConfig.path,
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Main execution function
  */
 async function main() {
-  console.log('🚀 Starting Agent Status Auto-Updater...\n');
+  logger.info('🚀 Agent Status Auto-Updater');
+  logger.info(`API URL: ${CONFIG.apiUrl}${CONFIG.apiEndpoint}`);
+  
+  if (isDryRun) {
+    logger.info('Running in DRY RUN mode - no files will be modified');
+  }
 
   try {
     // Fetch agent status
-    const status = await fetchAgentStatus();
-    console.log('✓ Agent status fetched successfully\n');
+    logger.info('Fetching agent status...');
+    const data = await fetchAgentStatus();
+    logger.success('Agent status fetched successfully');
 
-    // Generate markdown
-    const markdown = generateStatusMarkdown(status);
+    // Update markdown files
+    logger.info('Updating markdown files...');
+    const results = await updateMarkdownFiles(data);
 
-    // Update documents
-    const readmeUpdated = await updateReadme(markdown);
-    const roadmapUpdated = await updateRoadmap(markdown);
+    // Report results
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.filter(r => !r.success).length;
 
-    // Summary
-    console.log('\n📊 Update Summary:');
-    console.log(`   README.md: ${readmeUpdated ? '✅ Updated' : '⏭️ Skipped'}`);
-    console.log(`   ROADMAP_PROGRESS.md: ${roadmapUpdated ? '✅ Updated' : '⏭️ Skipped'}`);
+    logger.info('\n📊 Update Summary:');
+    logger.info(`  ✅ Successful: ${successCount}`);
+    logger.info(`  ❌ Failed: ${failCount}`);
+    logger.info(`  📁 Total files: ${results.length}`);
 
-    if (readmeUpdated || roadmapUpdated) {
-      console.log('\n✅ Agent status update completed successfully!');
-      process.exit(0);
-    } else {
-      console.log('\nℹ️ No files were updated. Add markers to enable auto-update.');
-      process.exit(0);
+    if (failCount > 0) {
+      logger.error('\n❌ Some updates failed. Check logs above for details.');
+      process.exit(1);
     }
 
+    logger.success('\n✅ All updates completed successfully!');
+    process.exit(0);
+
   } catch (error) {
-    console.error('\n❌ Agent status update failed:', error.message);
-    console.error('Stack trace:', error.stack);
+    logger.error('\n❌ Fatal error:', error.message);
+    logger.debug('Stack trace:', error.stack);
     process.exit(1);
   }
 }
 
-// Run if called directly
+// Run if executed directly
 if (require.main === module) {
   main();
 }
 
 module.exports = {
   fetchAgentStatus,
-  generateStatusMarkdown,
-  updateReadme,
-  updateRoadmap
+  generateMarkdownTable,
+  updateMarkdownFiles,
+  calculateOverallHealth
 };

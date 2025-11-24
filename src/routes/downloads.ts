@@ -1,215 +1,207 @@
+/**
+ * Downloads Routes
+ * API endpoints for serving build artifacts (Chrome Extension, Workflow Builder)
+ * 
+ * Features:
+ * - File download endpoints with proper headers
+ * - Rate limiting to prevent abuse
+ * - Download analytics logging
+ * - Manifest endpoint for version information
+ * - Health check endpoint
+ */
+
 import { Router, Request, Response } from 'express';
-import path from 'path';
-import fs from 'fs';
-import { promises as fsPromises } from 'fs';
+import rateLimit from 'express-rate-limit';
+import { join } from 'path';
+import { existsSync, statSync, createReadStream } from 'fs';
+import { createHash } from 'crypto';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
-// Path to downloads directory
-const DOWNLOADS_DIR = path.join(__dirname, '../../public/downloads');
+// Downloads directory path
+const DOWNLOADS_DIR = join(__dirname, '../../public/downloads');
+
+// Whitelist of allowed download files
+const ALLOWED_FILES = [
+  'chrome-extension.zip',
+  'workflow-builder.zip',
+  'manifest.json'
+];
+
+// Rate limiter for downloads - 20 requests per 15 minutes
+const downloadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 download requests per windowMs
+  message: {
+    success: false,
+    error: 'Too many download requests, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip successful responses from being counted against the limit
+  skipSuccessfulRequests: false,
+  // Skip failed requests from being counted
+  skipFailedRequests: true
+});
 
 /**
- * Initialize downloads directory
- * Ensures the downloads directory exists before serving files
+ * Get MIME type for file
  */
-async function initializeDownloadsDir(): Promise<void> {
-  try {
-    await fsPromises.access(DOWNLOADS_DIR);
-  } catch {
-    // Directory doesn't exist, create it
-    await fsPromises.mkdir(DOWNLOADS_DIR, { recursive: true });
-    console.log(`Created downloads directory: ${DOWNLOADS_DIR}`);
-  }
+function getMimeType(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    'zip': 'application/zip',
+    'json': 'application/json',
+    'txt': 'text/plain',
+    'md': 'text/markdown'
+  };
+  return mimeTypes[ext || ''] || 'application/octet-stream';
 }
 
-// Initialize on module load
-initializeDownloadsDir().catch((error) => {
-  console.error('Failed to initialize downloads directory:', error);
-});
-
 /**
- * Validate that a file path is within the downloads directory
- * Prevents path traversal attacks
+ * Anonymize IP address for privacy
  */
-function validateFilePath(filePath: string): boolean {
-  const resolvedPath = path.resolve(filePath);
-  const resolvedDir = path.resolve(DOWNLOADS_DIR);
-  return resolvedPath.startsWith(resolvedDir);
+function anonymizeIp(ip: string | undefined): string {
+  if (!ip) return 'unknown';
+  const hash = createHash('sha256').update(ip).digest('hex');
+  return hash.substring(0, 16);
 }
 
 /**
- * GET /downloads/chrome-extension.zip
- * Download the Chrome extension package
+ * Health check endpoint
+ * GET /downloads/health
  */
-router.get('/chrome-extension.zip', (req: Request, res: Response) => {
-  const filePath = path.join(DOWNLOADS_DIR, 'chrome-extension.zip');
-
-  // Validate file path is within downloads directory
-  if (!validateFilePath(filePath)) {
-    return res.status(400).json({ error: 'Invalid file path' });
-  }
-
-  // Check if file exists
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({
-      error: 'Chrome extension package not found',
-      message: 'The package may not have been built yet. Please run: npm run build:chrome'
-    });
-  }
-
+router.get('/health', (_req: Request, res: Response) => {
   try {
-    // Get file stats for size
-    const stats = fs.statSync(filePath);
-    const sizeInMB = (stats.size / 1024 / 1024).toFixed(2);
-
-    // Set appropriate headers
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="chrome-extension.zip"');
-    res.setHeader('Content-Length', stats.size.toString());
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-    res.setHeader('X-File-Size', `${sizeInMB}MB`);
-
-    // Stream the file
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-
-    fileStream.on('error', (error) => {
-      console.error('Error streaming chrome extension:', error);
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'Failed to download file' });
-      } else {
-        // Close the response stream if headers already sent
-        res.end();
-      }
+    // Check if downloads directory exists
+    const downloadsExist = existsSync(DOWNLOADS_DIR);
+    
+    // Check for required files
+    const filesStatus = ALLOWED_FILES.map(filename => {
+      const filePath = join(DOWNLOADS_DIR, filename);
+      return {
+        name: filename,
+        exists: existsSync(filePath),
+        size: existsSync(filePath) ? statSync(filePath).size : 0
+      };
     });
-
-  } catch (error: unknown) {
-    console.error('Error serving chrome extension:', error);
+    
+    const allFilesExist = filesStatus.every(f => f.exists);
+    
+    res.json({
+      success: true,
+      status: allFilesExist ? 'healthy' : 'degraded',
+      downloadsDirectory: downloadsExist,
+      files: filesStatus,
+      timestamp: new Date().toISOString()
+    });
+    
+    logger.info('Downloads health check', { 
+      status: allFilesExist ? 'healthy' : 'degraded',
+      filesCount: filesStatus.filter(f => f.exists).length
+    });
+  } catch (error) {
+    logger.error('Downloads health check error:', error);
     res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to serve chrome extension package'
+      success: false,
+      status: 'unhealthy',
+      error: 'Health check failed',
+      timestamp: new Date().toISOString()
     });
   }
 });
 
 /**
- * GET /downloads/workflow-builder.zip
- * Download the Workflow Builder package
+ * Download file endpoint
+ * GET /downloads/:filename
+ * 
+ * Serves whitelisted files with proper headers and analytics
  */
-router.get('/workflow-builder.zip', (req: Request, res: Response) => {
-  const filePath = path.join(DOWNLOADS_DIR, 'workflow-builder.zip');
-
-  // Validate file path is within downloads directory
-  if (!validateFilePath(filePath)) {
-    return res.status(400).json({ error: 'Invalid file path' });
-  }
-
-  // Check if file exists
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({
-      error: 'Workflow builder package not found',
-      message: 'The package may not have been built yet. Please run: npm run build:workflow'
-    });
-  }
-
+router.get('/:filename', downloadLimiter, (req: Request, res: Response) => {
   try {
-    // Get file stats for size
-    const stats = fs.statSync(filePath);
-    const sizeInKB = (stats.size / 1024).toFixed(2);
-
+    const { filename } = req.params;
+    
+    // Validate filename is in whitelist
+    if (!ALLOWED_FILES.includes(filename)) {
+      logger.warn('Download attempt for non-whitelisted file', { 
+        filename,
+        ip: anonymizeIp(req.ip)
+      });
+      return res.status(404).json({
+        success: false,
+        error: 'File not found'
+      });
+    }
+    
+    // Construct file path
+    const filePath = join(DOWNLOADS_DIR, filename);
+    
+    // Check if file exists
+    if (!existsSync(filePath)) {
+      logger.error('Download file not found', { 
+        filename,
+        path: filePath
+      });
+      return res.status(404).json({
+        success: false,
+        error: 'File not found. Please ensure builds have been generated.'
+      });
+    }
+    
+    // Get file stats
+    const stats = statSync(filePath);
+    const fileSize = stats.size;
+    
     // Set appropriate headers
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="workflow-builder.zip"');
-    res.setHeader('Content-Length', stats.size.toString());
+    const mimeType = getMimeType(filename);
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', fileSize);
+    
+    // For zip files, set Content-Disposition to trigger download
+    if (filename.endsWith('.zip')) {
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    }
+    
+    // Cache control headers
     res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-    res.setHeader('X-File-Size', `${sizeInKB}KB`);
-
-    // Stream the file
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-
+    res.setHeader('ETag', `"${stats.mtime.getTime()}-${fileSize}"`);
+    
+    // Log download analytics
+    logger.info('File download', {
+      filename,
+      size: fileSize,
+      sizeFormatted: `${(fileSize / 1024).toFixed(2)} KB`,
+      ip: anonymizeIp(req.ip),
+      userAgent: req.get('User-Agent')?.substring(0, 100) || 'unknown',
+      timestamp: new Date().toISOString()
+    });
+    
+    // Stream file to client
+    const fileStream = createReadStream(filePath);
+    
     fileStream.on('error', (error) => {
-      console.error('Error streaming workflow builder:', error);
+      logger.error('File stream error', { filename, error });
       if (!res.headersSent) {
-        res.status(500).json({ error: 'Failed to download file' });
-      } else {
-        // Close the response stream if headers already sent
-        res.end();
+        res.status(500).json({
+          success: false,
+          error: 'Error streaming file'
+        });
       }
     });
-
-  } catch (error: unknown) {
-    console.error('Error serving workflow builder:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to serve workflow builder package'
-    });
-  }
-});
-
-/**
- * GET /downloads/manifest.json
- * Get version and metadata information for available downloads
- */
-router.get('/manifest.json', async (req: Request, res: Response) => {
-  try {
-    const chromeExtPath = path.join(DOWNLOADS_DIR, 'chrome-extension.zip');
-    const workflowPath = path.join(DOWNLOADS_DIR, 'workflow-builder.zip');
-
-    // Read package.json for version
-    const packageJsonPath = path.join(__dirname, '../../package.json');
-    const packageJsonContent = await fsPromises.readFile(packageJsonPath, 'utf-8');
-    const packageJson = JSON.parse(packageJsonContent);
-
-    // Check file existence and get sizes
-    const [chromeExtExists, workflowExists] = await Promise.all([
-      fsPromises.access(chromeExtPath).then(() => true).catch(() => false),
-      fsPromises.access(workflowPath).then(() => true).catch(() => false)
-    ]);
-
-    const [chromeExtStats, workflowStats] = await Promise.all([
-      chromeExtExists ? fsPromises.stat(chromeExtPath) : Promise.resolve(null),
-      workflowExists ? fsPromises.stat(workflowPath) : Promise.resolve(null)
-    ]);
-
-    const manifest = {
-      version: packageJson.version,
-      generated: new Date().toISOString(),
-      packages: {
-        chromeExtension: {
-          filename: 'chrome-extension.zip',
-          available: chromeExtExists,
-          size: chromeExtStats ? chromeExtStats.size : 0,
-          downloadUrl: '/downloads/chrome-extension.zip',
-          description: 'stackBrowserAgent Chrome Extension for browser automation'
-        },
-        workflowBuilder: {
-          filename: 'workflow-builder.zip',
-          available: workflowExists,
-          size: workflowStats ? workflowStats.size : 0,
-          downloadUrl: '/downloads/workflow-builder.zip',
-          description: 'Workflow Builder application for creating automation workflows'
-        }
-      },
-      buildCommands: {
-        chromeExtension: 'npm run build:chrome',
-        workflowBuilder: 'npm run build:workflow',
-        all: 'npm run build'
-      }
-    };
-
-    // Set caching headers
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
-
-    res.json(manifest);
-
-  } catch (error: unknown) {
-    console.error('Error generating manifest:', error);
-    res.status(500).json({
-      error: 'Failed to generate manifest',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
+    
+    fileStream.pipe(res);
+    
+  } catch (error) {
+    logger.error('Download error:', error);
+    
+    // Only send response if headers haven't been sent
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
   }
 });
 

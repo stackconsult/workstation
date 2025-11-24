@@ -1,34 +1,71 @@
 # Downloads Directory
 
-This directory contains downloadable packages for the stackBrowserAgent workstation system.
+This directory contains build artifacts for distribution via static serving.
 
-## Generated Files
+## Available Downloads
 
-The following files are automatically generated during the build process:
+### Chrome Extension (`chrome-extension.zip`)
+- **Description**: Workstation AI Agent browser extension
+- **Version**: See manifest.json for current version
+- **Build Command**: `npm run build:downloads`
+- **Install**: Download and load unpacked in Chrome extensions page
 
-- **chrome-extension.zip** - Chrome extension package for browser automation
-- **workflow-builder.zip** - Workflow builder application bundle
+### Workflow Builder (`workflow-builder.zip`)
+- **Description**: Standalone workflow builder application
+- **Version**: See manifest.json for current version
+- **Build Command**: `npm run build:downloads`
+- **Install**: Extract and open workflow-builder.html in browser
+
+## Download Manifest
+
+The `manifest.json` file tracks all available downloads with metadata:
+```json
+{
+  "generated": "ISO timestamp",
+  "version": "package.json version",
+  "downloads": [
+    {
+      "name": "chrome-extension.zip",
+      "description": "...",
+      "size": "bytes",
+      "checksum": "sha256 hash"
+    }
+  ]
+}
+```
+
+## API Access
+
+Downloads are accessible via HTTP:
+- Chrome Extension: `GET /downloads/chrome-extension.zip`
+- Workflow Builder: `GET /downloads/workflow-builder.zip`
+- Manifest: `GET /downloads/manifest.json`
 
 ## Build Process
 
-These packages are created by:
-- `npm run build:chrome` - Builds and packages the Chrome extension
-- `npm run build:workflow` - Packages the workflow builder
-- `npm run build` - Runs both build processes
+1. **Build Source**: `npm run build` (TypeScript compilation)
+2. **Build Downloads**: `npm run build:downloads` (Creates zips)
+3. **Verify**: Check manifest.json for correct checksums
 
-## Usage
+## File Integrity
 
-Users can download these packages via:
-- Dashboard UI: `http://localhost:3000/dashboard.html`
-- Direct download: `http://localhost:3000/downloads/[filename]`
-- API endpoint: `GET /downloads/manifest.json` for version info
+All downloads include SHA256 checksums in manifest.json for verification:
+```bash
+# Verify chrome extension
+sha256sum chrome-extension.zip
+# Compare with manifest.json checksum
+```
 
-## Version Information
+## Automated Builds
 
-Version information is embedded in the manifest.json file and served via the `/downloads/manifest.json` endpoint.
+The build process is automated via CI/CD:
+- Triggered on: Push to main, release tags
+- Artifacts: Stored in this directory
+- Verification: Checksums validated automatically
 
 ## Notes
 
-- These files are gitignored and generated on each build
-- Files are served with appropriate MIME types and caching headers
-- The download routes include file existence checks and error handling
+- Zip files are excluded from git (see .gitignore)
+- manifest.json is committed to track versions
+- Downloads are served statically via Express
+- Rate limiting applies to download endpoints

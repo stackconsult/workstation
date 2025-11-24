@@ -111,7 +111,7 @@ export class MachineFingerprinter {
       if (features.includes('SSE4')) capabilities.push('SSE4');
 
       return { model, cores, threads, architecture: arch, capabilities, frequency: freq };
-    } catch (_error) {
+    } catch {
       return {
         model: 'macOS CPU',
         cores: 8,
@@ -141,7 +141,7 @@ export class MachineFingerprinter {
       if (flags.includes('sse4')) capabilities.push('SSE4');
 
       return { model, cores, threads, architecture: arch, capabilities, frequency: freq };
-    } catch (_error) {
+    } catch {
       return {
         model: 'Linux CPU',
         cores: 4,
@@ -172,7 +172,7 @@ export class MachineFingerprinter {
         capabilities: ['AVX2', 'SSE4'],
         frequency: freq
       };
-    } catch (_error) {
+    } catch {
       return {
         model: 'Windows CPU',
         cores: 4,
@@ -195,7 +195,7 @@ export class MachineFingerprinter {
         type: 'DDR4', // Simplified - actual detection requires platform-specific tools
         speed: 3200 // MHz - default estimate
       };
-    } catch (_error) {
+    } catch {
       return {
         total: 16 * 1024 * 1024 * 1024, // 16GB
         available: 8 * 1024 * 1024 * 1024, // 8GB
@@ -223,7 +223,7 @@ export class MachineFingerprinter {
       }
 
       return { type, speed, available, total };
-    } catch (_error) {
+    } catch {
       return {
         type: 'SSD',
         speed: 500,

@@ -30,8 +30,9 @@ fixes/
 # Build artifacts
 build/
 
-# Generated download packages
+# Downloads - exclude zips but keep manifest
 public/downloads/*.zip
+!public/downloads/manifest.json
 
 # Agent 1-6 artifacts (Build Setup Agents)
 agents/agent1/reports/*/
@@ -112,4 +113,3 @@ agents/*/dist/
 # Agent Server
 agent-server/nodejs/node_modules/
 agent-server/nodejs/logs/*.log
-public/downloads-demo.html
