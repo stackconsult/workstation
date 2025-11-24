@@ -240,7 +240,7 @@ jobs:
             VERSION=${{ github.ref_name }}
       
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
           format: 'sarif'
