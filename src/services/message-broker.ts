@@ -1,5 +1,5 @@
-import Redis from 'ioredis';
-import { EventEmitter } from 'events';
+import Redis from "ioredis";
+import { EventEmitter } from "events";
 
 /**
  * Message Broker Service
@@ -9,7 +9,7 @@ import { EventEmitter } from 'events';
 
 export interface MCPMessage {
   id: string;
-  type: 'task' | 'status' | 'result' | 'heartbeat' | 'command' | 'response';
+  type: "task" | "status" | "result" | "heartbeat" | "command" | "response";
   agentId: string;
   taskId?: string;
   payload: any;
@@ -18,7 +18,7 @@ export interface MCPMessage {
 }
 
 export interface TaskMessage extends MCPMessage {
-  type: 'task';
+  type: "task";
   taskId: string;
   payload: {
     workflowId?: string;
@@ -28,17 +28,17 @@ export interface TaskMessage extends MCPMessage {
 }
 
 export interface StatusMessage extends MCPMessage {
-  type: 'status';
+  type: "status";
   taskId: string;
   payload: {
-    status: 'pending' | 'running' | 'completed' | 'failed' | 'retry';
+    status: "pending" | "running" | "completed" | "failed" | "retry";
     progress?: number;
     message?: string;
   };
 }
 
 export interface ResultMessage extends MCPMessage {
-  type: 'result';
+  type: "result";
   taskId: string;
   payload: {
     success: boolean;
@@ -58,18 +58,20 @@ class MessageBroker extends EventEmitter {
 
   constructor() {
     super();
-    
+
     // Only initialize Redis if explicitly enabled
-    this.isRedisEnabled = process.env.REDIS_ENABLED === 'true';
-    
+    this.isRedisEnabled = process.env.REDIS_ENABLED === "true";
+
     if (this.isRedisEnabled) {
       const redisConfig = {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
+        host: process.env.REDIS_HOST || "localhost",
+        port: parseInt(process.env.REDIS_PORT || "6379"),
         password: process.env.REDIS_PASSWORD,
         retryStrategy: (times: number) => {
           if (times > 3) {
-            console.warn('[MessageBroker] Redis connection failed, switching to in-memory mode');
+            console.warn(
+              "[MessageBroker] Redis connection failed, switching to in-memory mode",
+            );
             this.isRedisEnabled = false;
             return null; // Stop retrying
           }
@@ -85,18 +87,26 @@ class MessageBroker extends EventEmitter {
         this.redisSubscriber = new Redis(redisConfig);
         this.setupConnectionHandlers();
         this.setupMessageHandlers();
-        
+
         // Attempt to connect
         this.connect().catch((error) => {
-          console.warn('[MessageBroker] Failed to connect to Redis, using in-memory fallback:', error.message);
+          console.warn(
+            "[MessageBroker] Failed to connect to Redis, using in-memory fallback:",
+            error.message,
+          );
           this.isRedisEnabled = false;
         });
       } catch (error) {
-        console.warn('[MessageBroker] Redis initialization failed, using in-memory fallback:', (error as Error).message);
+        console.warn(
+          "[MessageBroker] Redis initialization failed, using in-memory fallback:",
+          (error as Error).message,
+        );
         this.isRedisEnabled = false;
       }
     } else {
-      console.log('[MessageBroker] Redis disabled, using in-memory message queue');
+      console.log(
+        "[MessageBroker] Redis disabled, using in-memory message queue",
+      );
       this.isConnected = true; // Mark as "connected" for in-memory mode
     }
   }
@@ -112,68 +122,74 @@ class MessageBroker extends EventEmitter {
 
   private setupConnectionHandlers(): void {
     if (!this.redisPublisher || !this.redisSubscriber) return;
-    
-    this.redisPublisher.on('connect', () => {
-      console.log('[MessageBroker] Publisher connected to Redis');
+
+    this.redisPublisher.on("connect", () => {
+      console.log("[MessageBroker] Publisher connected to Redis");
     });
 
-    this.redisSubscriber.on('connect', () => {
-      console.log('[MessageBroker] Subscriber connected to Redis');
+    this.redisSubscriber.on("connect", () => {
+      console.log("[MessageBroker] Subscriber connected to Redis");
       this.isConnected = true;
     });
 
-    this.redisPublisher.on('error', (err) => {
-      console.error('[MessageBroker] Publisher error:', err.message);
+    this.redisPublisher.on("error", (err) => {
+      console.error("[MessageBroker] Publisher error:", err.message);
       // Don't emit error to prevent uncaught exceptions in tests
-      if (this.listenerCount('error') > 0) {
-        this.emit('error', err);
+      if (this.listenerCount("error") > 0) {
+        this.emit("error", err);
       }
     });
 
-    this.redisSubscriber.on('error', (err) => {
-      console.error('[MessageBroker] Subscriber error:', err.message);
+    this.redisSubscriber.on("error", (err) => {
+      console.error("[MessageBroker] Subscriber error:", err.message);
       // Don't emit error to prevent uncaught exceptions in tests
-      if (this.listenerCount('error') > 0) {
-        this.emit('error', err);
+      if (this.listenerCount("error") > 0) {
+        this.emit("error", err);
       }
     });
 
-    this.redisSubscriber.on('close', () => {
-      console.log('[MessageBroker] Subscriber connection closed');
+    this.redisSubscriber.on("close", () => {
+      console.log("[MessageBroker] Subscriber connection closed");
       this.isConnected = false;
     });
   }
 
   private setupMessageHandlers(): void {
     if (!this.redisSubscriber) return;
-    
-    this.redisSubscriber.on('message', (channel: string, message: string) => {
+
+    this.redisSubscriber.on("message", (channel: string, message: string) => {
       try {
         const parsedMessage: MCPMessage = JSON.parse(message);
         this.handleMessage(channel, parsedMessage);
       } catch (error) {
-        console.error('[MessageBroker] Error parsing message:', error);
+        console.error("[MessageBroker] Error parsing message:", error);
       }
     });
 
-    this.redisSubscriber.on('pmessage', (pattern: string, channel: string, message: string) => {
-      try {
-        const parsedMessage: MCPMessage = JSON.parse(message);
-        this.handleMessage(channel, parsedMessage);
-      } catch (error) {
-        console.error('[MessageBroker] Error parsing pattern message:', error);
-      }
-    });
+    this.redisSubscriber.on(
+      "pmessage",
+      (pattern: string, channel: string, message: string) => {
+        try {
+          const parsedMessage: MCPMessage = JSON.parse(message);
+          this.handleMessage(channel, parsedMessage);
+        } catch (error) {
+          console.error(
+            "[MessageBroker] Error parsing pattern message:",
+            error,
+          );
+        }
+      },
+    );
   }
 
   private handleMessage(channel: string, message: MCPMessage): void {
     const handlers = this.channels.get(channel);
     if (handlers) {
-      handlers.forEach(handler => handler(message));
+      handlers.forEach((handler) => handler(message));
     }
 
     // Emit to generic event listeners
-    this.emit('message', channel, message);
+    this.emit("message", channel, message);
     this.emit(`message:${message.type}`, message);
     this.emit(`agent:${message.agentId}`, message);
   }
@@ -184,23 +200,30 @@ class MessageBroker extends EventEmitter {
   async publish(channel: string, message: MCPMessage): Promise<void> {
     try {
       const messageStr = JSON.stringify(message);
-      
+
       if (this.isRedisEnabled && this.redisPublisher) {
         await this.redisPublisher.publish(channel, messageStr);
-        console.log('[MessageBroker] Published to Redis %s:', channel, message.type);
+        console.log(
+          "[MessageBroker] Published to Redis %s:",
+          channel,
+          message.type,
+        );
       } else {
         // In-memory fallback
         if (!this.messageQueue.has(channel)) {
           this.messageQueue.set(channel, []);
         }
         this.messageQueue.get(channel)!.push(message);
-        console.log(`[MessageBroker] Queued in-memory ${channel}:`, message.type);
-        
+        console.log(
+          `[MessageBroker] Queued in-memory ${channel}:`,
+          message.type,
+        );
+
         // Immediately deliver to subscribers
         this.handleMessage(channel, message);
       }
     } catch (error) {
-      console.error('[MessageBroker] Error publishing message:', error);
+      console.error("[MessageBroker] Error publishing message:", error);
       throw error;
     }
   }
@@ -208,22 +231,29 @@ class MessageBroker extends EventEmitter {
   /**
    * Subscribe to a channel
    */
-  async subscribe(channel: string, handler: (message: MCPMessage) => void): Promise<void> {
+  async subscribe(
+    channel: string,
+    handler: (message: MCPMessage) => void,
+  ): Promise<void> {
     try {
       if (!this.channels.has(channel)) {
         this.channels.set(channel, new Set());
-        
+
         if (this.isRedisEnabled && this.redisSubscriber) {
           await this.redisSubscriber.subscribe(channel);
-          console.log(`[MessageBroker] Subscribed to Redis channel: ${channel}`);
+          console.log(
+            `[MessageBroker] Subscribed to Redis channel: ${channel}`,
+          );
         } else {
-          console.log(`[MessageBroker] Subscribed to in-memory channel: ${channel}`);
+          console.log(
+            `[MessageBroker] Subscribed to in-memory channel: ${channel}`,
+          );
         }
       }
-      
+
       this.channels.get(channel)?.add(handler);
     } catch (error) {
-      console.error('[MessageBroker] Error subscribing:', error);
+      console.error("[MessageBroker] Error subscribing:", error);
       // Don't throw - allow in-memory fallback
       if (!this.channels.has(channel)) {
         this.channels.set(channel, new Set());
@@ -235,19 +265,24 @@ class MessageBroker extends EventEmitter {
   /**
    * Subscribe to a pattern
    */
-  async psubscribe(pattern: string, handler: (message: MCPMessage) => void): Promise<void> {
+  async psubscribe(
+    pattern: string,
+    handler: (message: MCPMessage) => void,
+  ): Promise<void> {
     try {
       if (this.isRedisEnabled && this.redisSubscriber) {
         await this.redisSubscriber.psubscribe(pattern);
         console.log(`[MessageBroker] Subscribed to Redis pattern: ${pattern}`);
       } else {
-        console.log(`[MessageBroker] Pattern subscription not available in in-memory mode: ${pattern}`);
+        console.log(
+          `[MessageBroker] Pattern subscription not available in in-memory mode: ${pattern}`,
+        );
       }
-      
+
       this.channels.set(pattern, this.channels.get(pattern) || new Set());
       this.channels.get(pattern)?.add(handler);
     } catch (error) {
-      console.error('[MessageBroker] Error pattern subscribing:', error);
+      console.error("[MessageBroker] Error pattern subscribing:", error);
       // Allow in-memory fallback
       this.channels.set(pattern, this.channels.get(pattern) || new Set());
       this.channels.get(pattern)?.add(handler);
@@ -257,7 +292,10 @@ class MessageBroker extends EventEmitter {
   /**
    * Unsubscribe from a channel
    */
-  async unsubscribe(channel: string, handler?: (message: MCPMessage) => void): Promise<void> {
+  async unsubscribe(
+    channel: string,
+    handler?: (message: MCPMessage) => void,
+  ): Promise<void> {
     try {
       if (handler) {
         this.channels.get(channel)?.delete(handler);
@@ -273,10 +311,12 @@ class MessageBroker extends EventEmitter {
           await this.redisSubscriber.unsubscribe(channel);
         }
         this.channels.delete(channel);
-        console.log(`[MessageBroker] Unsubscribed all from channel: ${channel}`);
+        console.log(
+          `[MessageBroker] Unsubscribed all from channel: ${channel}`,
+        );
       }
     } catch (error) {
-      console.error('[MessageBroker] Error unsubscribing:', error);
+      console.error("[MessageBroker] Error unsubscribing:", error);
       // Clean up locally even if Redis fails
       if (handler) {
         this.channels.get(channel)?.delete(handler);
@@ -297,15 +337,19 @@ class MessageBroker extends EventEmitter {
   /**
    * Send a command to an agent
    */
-  async sendCommand(agentId: string, command: string, params: any = {}): Promise<void> {
+  async sendCommand(
+    agentId: string,
+    command: string,
+    params: any = {},
+  ): Promise<void> {
     const message: MCPMessage = {
       id: `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'command',
+      type: "command",
       agentId,
       payload: { command, params },
       timestamp: new Date(),
     };
-    
+
     const channel = `agent:${agentId}:commands`;
     await this.publish(channel, message);
   }
@@ -313,56 +357,68 @@ class MessageBroker extends EventEmitter {
   /**
    * Listen for status updates from agents
    */
-  async listenForStatus(callback: (message: StatusMessage) => void): Promise<void> {
-    await this.psubscribe('agent:*:status', callback as any);
+  async listenForStatus(
+    callback: (message: StatusMessage) => void,
+  ): Promise<void> {
+    await this.psubscribe("agent:*:status", callback as any);
   }
 
   /**
    * Listen for results from agents
    */
-  async listenForResults(callback: (message: ResultMessage) => void): Promise<void> {
-    await this.psubscribe('agent:*:results', callback as any);
+  async listenForResults(
+    callback: (message: ResultMessage) => void,
+  ): Promise<void> {
+    await this.psubscribe("agent:*:results", callback as any);
   }
 
   /**
    * Listen for heartbeats from all agents
    */
-  async listenForHeartbeats(callback: (message: MCPMessage) => void): Promise<void> {
-    await this.psubscribe('agent:*:heartbeat', callback as any);
+  async listenForHeartbeats(
+    callback: (message: MCPMessage) => void,
+  ): Promise<void> {
+    await this.psubscribe("agent:*:heartbeat", callback as any);
   }
 
   /**
    * Request/response pattern for synchronous communication
    */
-  async request(agentId: string, payload: any, timeout: number = 30000): Promise<any> {
+  async request(
+    agentId: string,
+    payload: any,
+    timeout: number = 30000,
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const responseChannel = `agent:${agentId}:response:${requestId}`;
 
       const timeoutHandle = setTimeout(() => {
         this.unsubscribe(responseChannel);
-        reject(new Error('Request timeout'));
+        reject(new Error("Request timeout"));
       }, timeout);
 
       const handler = (message: MCPMessage) => {
-        if (message.type === 'response') {
+        if (message.type === "response") {
           clearTimeout(timeoutHandle);
           this.unsubscribe(responseChannel, handler);
           resolve(message.payload);
         }
       };
 
-      this.subscribe(responseChannel, handler).then(() => {
-        const message: MCPMessage = {
-          id: requestId,
-          type: 'command',
-          agentId,
-          payload: { ...payload, responseChannel },
-          timestamp: new Date(),
-        };
-        
-        return this.publish(`agent:${agentId}:commands`, message);
-      }).catch(reject);
+      this.subscribe(responseChannel, handler)
+        .then(() => {
+          const message: MCPMessage = {
+            id: requestId,
+            type: "command",
+            agentId,
+            payload: { ...payload, responseChannel },
+            timestamp: new Date(),
+          };
+
+          return this.publish(`agent:${agentId}:commands`, message);
+        })
+        .catch(reject);
     });
   }
 
@@ -370,7 +426,7 @@ class MessageBroker extends EventEmitter {
    * Broadcast a message to all agents
    */
   async broadcast(message: MCPMessage): Promise<void> {
-    await this.publish('agents:broadcast', message);
+    await this.publish("agents:broadcast", message);
   }
 
   /**
@@ -378,9 +434,11 @@ class MessageBroker extends EventEmitter {
    */
   isHealthy(): boolean {
     if (this.isRedisEnabled) {
-      return this.isConnected && 
-             this.redisPublisher?.status === 'ready' && 
-             this.redisSubscriber?.status === 'ready';
+      return (
+        this.isConnected &&
+        this.redisPublisher?.status === "ready" &&
+        this.redisSubscriber?.status === "ready"
+      );
     }
     // In-memory mode is always healthy when connected
     return this.isConnected;
@@ -397,7 +455,7 @@ class MessageBroker extends EventEmitter {
       await this.redisSubscriber.quit();
     }
     this.isConnected = false;
-    console.log('[MessageBroker] Connections closed');
+    console.log("[MessageBroker] Connections closed");
   }
 
   /**
