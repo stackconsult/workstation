@@ -10,8 +10,8 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
+  globals: {
+    'ts-jest': {
       isolatedModules: true,
       tsconfig: {
         esModuleInterop: true,
@@ -20,14 +20,7 @@ module.exports = {
         module: 'ESNext',
         moduleResolution: 'node',
       },
-    }],
-    '^.+\\.m?js$': ['ts-jest', {
-      tsconfig: {
-        allowJs: true,
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-      },
-    }],
+    },
   },
   extensionsToTreatAsEsm: ['.ts'],
   collectCoverageFrom: [
