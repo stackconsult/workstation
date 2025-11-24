@@ -1,7 +1,7 @@
 # Dependabot Configuration Fix - Completion Summary
 
 ## Issue Resolution
-**Problem Statement**: "make dependabot only ever contact you about this, no body has time to tell dependabot to stop using test/pseudo/mock/example code - you need to the bot to only build live builds, nothing else ever. and fix this mess this bot made."
+**Problem Statement**: "make dependabot only ever contact you about this, nobody has time to tell dependabot to stop using test/pseudo/mock/example code - you need the bot to only build live builds, nothing else ever. and fix this mess this bot made."
 
 **Status**: ✅ RESOLVED
 
