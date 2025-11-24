@@ -5,7 +5,6 @@ updates:
   # It does NOT scan subdirectories (agents/, mcp-containers/, modules/, tools/, examples/, tests/)
   # The 'allow' directive restricts to production dependencies only
   # Development dependencies group is preserved but won't create PRs due to 'allow' restriction
-  # Enable version updates for npm - ROOT PRODUCTION CODE ONLY
   # This monitors ONLY the main package.json at the repository root
   # By specifying directory: "/" without additional entries, Dependabot will:
   # 1. Only check /package.json (the root file)
