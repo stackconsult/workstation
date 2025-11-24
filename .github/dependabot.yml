@@ -33,7 +33,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
-  # Enable version updates for GitHub Actions
+  # GITHUB ACTIONS UPDATES - Workflow dependencies
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

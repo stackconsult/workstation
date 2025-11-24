@@ -131,7 +131,11 @@ updates:
 ### Development Dependencies
 To update dev dependencies manually:
 ```bash
+# Update all dev dependencies
 npm update --save-dev
+
+# Update specific dev dependency
+npm update @types/node --save-dev
 ```
 
 ### Major Versions
