@@ -993,3 +993,405 @@ Default expiration: 24 hours (configurable via `JWT_EXPIRATION` env var)
 - [Express.js Documentation](https://expressjs.com/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [Railway Documentation](https://docs.railway.app/)
+
+---
+
+## Agent Orchestration API
+
+The Agent Orchestration API provides comprehensive management of the 21+ agents and 20+ MCP containers. All endpoints require JWT authentication.
+
+### Get All Agents
+
+Get list of all registered agents with their current status.
+
+**Endpoint**: `GET /api/agents`
+
+**Authentication**: Required (JWT)
+
+**Request**:
+```bash
+curl http://localhost:3000/api/agents \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "agents": [
+      {
+        "id": "1",
+        "name": "browser-automation-agent",
+        "type": "browser",
+        "containerName": "agent-browser-1",
+        "status": "running",
+        "healthStatus": "healthy",
+        "capabilities": ["navigate", "click", "scrape"],
+        "lastHealthCheck": "2024-11-24T18:00:00Z"
+      }
+    ],
+    "total": 21
+  }
+}
+```
+
+---
+
+### Get Agent Details
+
+Get detailed information about a specific agent including statistics.
+
+**Endpoint**: `GET /api/agents/:id`
+
+**Authentication**: Required (JWT)
+
+**Parameters**:
+- `id` (path) - Agent ID
+
+**Request**:
+```bash
+curl http://localhost:3000/api/agents/1 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "agent": {
+      "id": "1",
+      "name": "browser-automation-agent",
+      "type": "browser",
+      "status": "running",
+      "healthStatus": "healthy"
+    },
+    "stats": {
+      "total_tasks": "150",
+      "completed_tasks": "142",
+      "failed_tasks": "5",
+      "active_tasks": "3",
+      "avg_execution_time_ms": 2500
+    }
+  }
+}
+```
+
+---
+
+### Start Agent
+
+Start a stopped agent container.
+
+**Endpoint**: `POST /api/agents/:id/start`
+
+**Authentication**: Required (JWT)
+
+**Parameters**:
+- `id` (path) - Agent ID
+
+**Request**:
+```bash
+curl -X POST http://localhost:3000/api/agents/1/start \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "message": "Agent 1 started successfully"
+}
+```
+
+---
+
+### Stop Agent
+
+Stop a running agent container.
+
+**Endpoint**: `POST /api/agents/:id/stop`
+
+**Authentication**: Required (JWT)
+
+**Parameters**:
+- `id` (path) - Agent ID
+
+**Request**:
+```bash
+curl -X POST http://localhost:3000/api/agents/1/stop \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "message": "Agent 1 stopped successfully"
+}
+```
+
+---
+
+### Update Agent Health
+
+Report agent health status and metrics.
+
+**Endpoint**: `POST /api/agents/:id/health`
+
+**Authentication**: Required (JWT)
+
+**Parameters**:
+- `id` (path) - Agent ID
+
+**Request Body**:
+```json
+{
+  "healthStatus": "healthy",
+  "metadata": {
+    "cpu": "25%",
+    "memory": "512MB",
+    "uptime": 3600
+  }
+}
+```
+
+**Request**:
+```bash
+curl -X POST http://localhost:3000/api/agents/1/health \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "healthStatus": "healthy",
+    "metadata": {"cpu": "25%", "memory": "512MB"}
+  }'
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "message": "Agent 1 health updated to healthy"
+}
+```
+
+---
+
+### Create Agent Task
+
+Create a new task for an agent to execute.
+
+**Endpoint**: `POST /api/agents/tasks`
+
+**Authentication**: Required (JWT)
+
+**Request Body**:
+```json
+{
+  "agentId": "1",
+  "type": "scrape",
+  "payload": {
+    "url": "https://example.com",
+    "selectors": ["h1", ".content"]
+  },
+  "priority": 8
+}
+```
+
+**Request**:
+```bash
+curl -X POST http://localhost:3000/api/agents/tasks \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agentId": "1",
+    "type": "scrape",
+    "payload": {"url": "https://example.com"},
+    "priority": 8
+  }'
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "taskId": "42",
+  "message": "Task created successfully"
+}
+```
+
+---
+
+### Get Task Status
+
+Get current status and result of a task.
+
+**Endpoint**: `GET /api/agents/tasks/:id`
+
+**Authentication**: Required (JWT)
+
+**Parameters**:
+- `id` (path) - Task ID
+
+**Request**:
+```bash
+curl http://localhost:3000/api/agents/tasks/42 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "id": "42",
+    "agent_id": "1",
+    "agent_name": "browser-automation-agent",
+    "type": "scrape",
+    "status": "completed",
+    "result": {
+      "success": true,
+      "data": {
+        "title": "Example Domain",
+        "content": "..."
+      }
+    },
+    "created_at": "2024-11-24T17:00:00Z",
+    "completed_at": "2024-11-24T17:00:03Z"
+  }
+}
+```
+
+---
+
+### Get Agent Tasks
+
+Get all tasks for a specific agent.
+
+**Endpoint**: `GET /api/agents/:id/tasks`
+
+**Authentication**: Required (JWT)
+
+**Parameters**:
+- `id` (path) - Agent ID
+- `limit` (query, optional) - Maximum number of tasks (default: 50)
+
+**Request**:
+```bash
+curl "http://localhost:3000/api/agents/1/tasks?limit=10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "tasks": [
+      {
+        "id": "42",
+        "type": "scrape",
+        "status": "completed",
+        "created_at": "2024-11-24T17:00:00Z"
+      }
+    ],
+    "total": 150
+  }
+}
+```
+
+---
+
+### Get Agent Statistics
+
+Get performance statistics for an agent.
+
+**Endpoint**: `GET /api/agents/:id/statistics`
+
+**Authentication**: Required (JWT)
+
+**Parameters**:
+- `id` (path) - Agent ID
+
+**Request**:
+```bash
+curl http://localhost:3000/api/agents/1/statistics \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "total_tasks": "150",
+    "completed_tasks": "142",
+    "failed_tasks": "5",
+    "active_tasks": "3",
+    "avg_execution_time_ms": 2500
+  }
+}
+```
+
+---
+
+### Get System Overview
+
+Get system-wide overview of all agents and tasks.
+
+**Endpoint**: `GET /api/agents/system/overview`
+
+**Authentication**: Required (JWT)
+
+**Request**:
+```bash
+curl http://localhost:3000/api/agents/system/overview \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response** (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "totalAgents": 21,
+    "runningAgents": 18,
+    "stoppedAgents": 3,
+    "healthyAgents": 17,
+    "degradedAgents": 1,
+    "unhealthyAgents": 0,
+    "pendingTasks": 12,
+    "mcpContainers": 20,
+    "agentsByType": {
+      "browser": 5,
+      "code": 3,
+      "mcp": 20
+    }
+  }
+}
+```
+
+---
+
+## Route Organization
+
+The API routes are organized as follows:
+
+### `/api/v2` Routes
+Multiple subsystems mount at `/api/v2`:
+- **Automation**: `/api/v2/automation/*` - Workflow automation
+- **MCP**: `/api/v2/mcp/*` - Model Context Protocol endpoints
+- **Git**: `/api/v2/git/*` - Git operations
+- **GitOps**: `/api/v2/gitops/*` - Advanced Git automation
+- **Context Memory**: `/api/v2/context/*` - AI context management
+
+### Other Routes
+- **Agent Management**: `/api/agents/*` - Agent orchestration (documented above)
+- **Authentication**: `/api/auth/*` - JWT authentication
+- **Dashboard**: `/api/dashboard/*` - Dashboard data
+- **Workflows**: `/api/workflows/*` - Workflow management
+- **Templates**: `/api/workflow-templates/*` - Workflow templates
+- **Downloads**: `/downloads/*` - Build artifact downloads
+
+For detailed documentation on orchestration, see [docs/ORCHESTRATION.md](docs/ORCHESTRATION.md)
