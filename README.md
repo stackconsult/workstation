@@ -2,6 +2,11 @@
 
 **Privacy-First Browser Automation Platform**
 
+> **⚠️ IMPORTANT - PRODUCTION READINESS STATUS**  
+> This project is in **ACTIVE DEVELOPMENT** with **10.76% test coverage** (target: 45%+).  
+> **NOT RECOMMENDED FOR PRODUCTION USE** until critical gaps are addressed.  
+> See [SYSTEM_AUDIT_COMPLETE.md](SYSTEM_AUDIT_COMPLETE.md) for full audit details.
+
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/stackbrowseragent)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io)
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
@@ -9,13 +14,13 @@
 ![Test Coverage](https://img.shields.io/badge/coverage-20%25-yellow)
 ![License](https://img.shields.io/badge/license-ISC-blue)
 
-> **Local-first automation** with JWT authentication, workflow orchestration, and AI integration. Zero cloud costs. Full control. Production-ready.
+> **Local-first automation** with JWT authentication, workflow orchestration, and AI integration. Zero cloud costs. Full control. **🚧 Active Development** - See [SYSTEM_AUDIT_COMPLETE.md](SYSTEM_AUDIT_COMPLETE.md) for production readiness status.
 
 ---
 
 ## ✨ What is Workstation?
 
-Workstation is a **production-ready** browser automation platform that combines:
+Workstation is a **browser automation platform in active development** that combines:
 - 🤖 **Playwright-based browser control** - Navigate, click, type, extract, screenshot (✅ LIVE)
 - 🔐 **Enterprise JWT authentication** - Secure API with rate limiting and CORS (✅ LIVE)
 - 🔄 **Workflow orchestration** - Multi-step automation with retry logic (✅ LIVE)
@@ -213,14 +218,14 @@ npm run test:chrome
 
 | Feature | Status | Files | Tests | Details |
 |---------|--------|-------|-------|---------|
-| **Browser Agent** | ✅ Production | `src/automation/agents/core/browser.ts` | ✅ Passing | 7 actions, 235 lines |
-| **Workflow Engine** | ✅ Production | `src/automation/orchestrator/engine.ts` | ✅ Passing | 325 lines, full retry logic |
-| **Database Layer** | ✅ Production | `src/automation/db/` | ✅ Passing | 3 tables, 7 indexes |
-| **REST API** | ✅ Production | `src/routes/automation.ts` | ✅ Passing | 7 endpoints |
-| **JWT Auth** | ✅ Production | `src/auth/jwt.ts` | ✅ Passing | HS256/384/512 |
-| **Rate Limiting** | ✅ Production | `src/index.ts` | ✅ Passing | 100 req/15min |
-| **Docker Deploy** | ✅ Production | `Dockerfile`, Railway | ✅ Working | Multi-platform |
-| **Chrome Extension** | ✅ Complete | `chrome-extension/` | ✅ Validated | Natural language automation |
+| **Browser Agent** | ⚠️ Functional | `src/automation/agents/core/browser.ts` | ⚠️ 1.33% coverage | 7 actions, 235 lines |
+| **Workflow Engine** | ⚠️ Functional | `src/automation/orchestrator/engine.ts` | ⚠️ 0% coverage | 325 lines, full retry logic |
+| **Database Layer** | ✅ Tested | `src/automation/db/` | ✅ 88% coverage | 3 tables, 7 indexes |
+| **REST API** | ⚠️ Minimal Validation | `src/routes/automation.ts` | ⚠️ 13% coverage | 7 endpoints |
+| **JWT Auth** | ✅ Production Ready | `src/auth/jwt.ts` | ✅ 84% coverage | HS256/384/512 |
+| **Rate Limiting** | ⚠️ Basic (In-Memory) | `src/index.ts` | ⚠️ 8% coverage | 100 req/15min |
+| **Docker Deploy** | ✅ Working | `Dockerfile`, Railway | ✅ Builds | Multi-platform |
+| **Chrome Extension** | ⏳ Untested | `chrome-extension/` | ⏳ Not verified | Natural language automation |
 
 ### Agent Ecosystem (Phase 2) 🚧 40% Complete
 
