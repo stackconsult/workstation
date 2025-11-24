@@ -1,0 +1,507 @@
+# Agent 15: Workflow Marketplace & Template System
+# Production-ready specification with free, open-source libraries only
+
+agent_identity:
+  name: "Workflow Marketplace & Template System"
+  id: 15
+  role: "Community platform architect - Enables workflow discovery, sharing, and reuse"
+  motto: "Great automation starts with great templates"
+
+mission:
+  primary: "Build a community-driven marketplace where users discover, share, and remix automation workflows"
+  secondary: "Lower the barrier to entry with 20+ pre-built workflow templates"
+  tertiary: "Enable quality control and version tracking for community submissions"
+
+technology_stack:
+  frontend: "React 18 + TypeScript (strict mode)"
+  search: "Fuse.js 7.x (MIT license) - fuzzy search with zero dependencies"
+  validation: "ajv 8.x (MIT license) - JSON Schema validator"
+  markdown: "react-markdown 9.x (MIT license) - render workflow instructions"
+  storage: "localStorage API - browser native, no external service"
+  icons: "Heroicons (MIT license) - already in system"
+  styling: "Tailwind CSS 3.x (MIT license) - already in system"
+
+free_open_source_philosophy:
+  no_external_apis: true
+  no_paid_services: false
+  all_libraries_mit_bsd: true
+  works_offline: true
+  complete_code_ownership: true
+
+marketplace_features:
+  template_library:
+    count: "20+ pre-built workflow templates"
+    categories: ["Web Scraping", "Data Processing", "API Integration", "Testing", "Monitoring"]
+    includes: "name, description, category, tags, instructions, workflow JSON"
+    examples: ["LinkedIn Profile Scraper", "CSV to JSON Converter", "API Health Monitor"]
+  
+  search_discovery:
+    fuzzy_search: "Fuse.js (searches name, description, tags)"
+    category_filter: "Single or multiple categories"
+    sort_options: ["popularity", "rating", "newest", "most installed"]
+    tag_navigation: "Tag-based browsing"
+  
+  publishing_system:
+    submissions: "User workflow submissions"
+    auto_approve: "Authors with rating > 4.0"
+    review_queue: "Manual review for new authors"
+    validation: "Workflow validation before approval"
+    versioning: "Semantic versioning (1.0.0)"
+  
+  rating_reviews:
+    rating_system: "5-star ratings"
+    text_reviews: "With character limits"
+    helpful_votes: "Track helpful reviews"
+    author_response: "Authors can respond"
+  
+  version_control:
+    tracking: "Track workflow iterations"
+    semver: "Semantic versioning"
+    changelog: "Per version"
+    version_install: "Install specific versions"
+  
+  one_click_install:
+    deployment: "Instant workflow deployment"
+    customization: "Customize before installing"
+    tracking: "Track install count"
+
+performance_requirements:
+  search_response: "< 100ms for 100+ templates"
+  fuzzy_search_threshold: "0.4 (balance precision/recall)"
+  localStorage_limit: "5MB (handles 1000+ templates)"
+  render_time: "< 300ms for template grid"
+  modal_load: "< 100ms"
+
+validation_checklist:
+  - "Fuse.js installed and configured"
+  - "JSON Schema validation working"
+  - "localStorage persistence functional"
+  - "Search filters working (query, category, rating, sort)"
+  - "Template install increments counter"
+  - "Review system functional"
+  - "Markdown rendering working"
+  - "Auto-approval logic correct (rating > 4.0)"
+  - "Semantic versioning enforced"
+  - "20+ seed templates loaded"
+
+success_criteria:
+  - "Users can search and discover workflows in < 5 seconds"
+  - "Template installation is one-click"
+  - "Community can submit workflows"
+  - "Quality control prevents malicious submissions"
+  - "System works completely offline after initial load"
+  - "All libraries are free and open-source (MIT/BSD)"
+
+handoff_to_agent_16:
+  provides: "Workflow templates for Agent 16 to schedule and execute"
+  data_format: "WorkflowTemplate JSON with execution instructions"
+  integration_point: "Agent 16 reads from localStorage STORAGE_KEY"
+
+## EXPANDED SPECIFICATIONS
+
+template_schema:
+  workflow_template:
+    required_fields:
+      - "id: string (UUID)"
+      - "name: string (max 100 chars)"
+      - "description: string (max 500 chars)"
+      - "category: enum (predefined categories)"
+      - "tags: array of strings"
+      - "author: object (username, email, rating)"
+      - "version: string (semver format)"
+      - "created_at: ISO timestamp"
+      - "updated_at: ISO timestamp"
+      - "install_count: number"
+      - "rating_avg: number (0-5)"
+      - "rating_count: number"
+    
+    optional_fields:
+      - "icon: string (emoji or icon name)"
+      - "thumbnail: base64 image"
+      - "changelog: array of version notes"
+      - "dependencies: array of other template IDs"
+      - "compatibility: object (min/max versions)"
+      - "license: string (MIT, Apache, etc.)"
+    
+    workflow_definition:
+      - "steps: array of workflow steps"
+      - "triggers: array of trigger conditions"
+      - "schedule: cron expression (optional)"
+      - "variables: object of configurable vars"
+      - "outputs: array of output definitions"
+      - "error_handling: retry/fallback logic"
+
+seed_templates:
+  web_scraping:
+    - name: "LinkedIn Profile Scraper"
+      category: "Web Scraping"
+      description: "Extract profile data from LinkedIn with rate limiting"
+      complexity: "intermediate"
+      estimated_time: "5-10 minutes setup"
+    
+    - name: "Product Price Monitor"
+      category: "Web Scraping"
+      description: "Monitor prices across multiple e-commerce sites"
+      complexity: "beginner"
+      estimated_time: "2-5 minutes setup"
+    
+    - name: "News Aggregator"
+      category: "Web Scraping"
+      description: "Aggregate news from multiple sources with keyword filtering"
+      complexity: "intermediate"
+      estimated_time: "10-15 minutes setup"
+    
+    - name: "Job Posting Crawler"
+      category: "Web Scraping"
+      description: "Crawl job boards and aggregate postings"
+      complexity: "advanced"
+      estimated_time: "15-20 minutes setup"
+  
+  data_processing:
+    - name: "CSV to JSON Converter"
+      category: "Data Processing"
+      description: "Batch convert CSV files to JSON with schema validation"
+      complexity: "beginner"
+      estimated_time: "1-2 minutes setup"
+    
+    - name: "Data Deduplication"
+      category: "Data Processing"
+      description: "Remove duplicates from datasets with fuzzy matching"
+      complexity: "intermediate"
+      estimated_time: "5-10 minutes setup"
+    
+    - name: "ETL Pipeline"
+      category: "Data Processing"
+      description: "Extract, transform, and load data between systems"
+      complexity: "advanced"
+      estimated_time: "20-30 minutes setup"
+    
+    - name: "Excel Report Generator"
+      category: "Data Processing"
+      description: "Generate formatted Excel reports from data"
+      complexity: "intermediate"
+      estimated_time: "10-15 minutes setup"
+  
+  api_integration:
+    - name: "API Health Monitor"
+      category: "API Integration"
+      description: "Monitor API uptime and response times"
+      complexity: "beginner"
+      estimated_time: "2-5 minutes setup"
+    
+    - name: "Webhook Forwarder"
+      category: "API Integration"
+      description: "Forward webhooks between services with transformation"
+      complexity: "intermediate"
+      estimated_time: "5-10 minutes setup"
+    
+    - name: "REST to GraphQL Adapter"
+      category: "API Integration"
+      description: "Wrap REST APIs with GraphQL interface"
+      complexity: "advanced"
+      estimated_time: "30-45 minutes setup"
+    
+    - name: "API Response Cacher"
+      category: "API Integration"
+      description: "Cache API responses to reduce external calls"
+      complexity: "intermediate"
+      estimated_time: "10-15 minutes setup"
+  
+  testing:
+    - name: "Load Test Runner"
+      category: "Testing"
+      description: "Run load tests and generate performance reports"
+      complexity: "intermediate"
+      estimated_time: "10-15 minutes setup"
+    
+    - name: "E2E Test Suite"
+      category: "Testing"
+      description: "End-to-end test automation with screenshots"
+      complexity: "advanced"
+      estimated_time: "20-30 minutes setup"
+    
+    - name: "Visual Regression Tester"
+      category: "Testing"
+      description: "Detect visual changes in web pages"
+      complexity: "intermediate"
+      estimated_time: "15-20 minutes setup"
+    
+    - name: "API Contract Validator"
+      category: "Testing"
+      description: "Validate API contracts against specifications"
+      complexity: "intermediate"
+      estimated_time: "5-10 minutes setup"
+  
+  monitoring:
+    - name: "Server Uptime Monitor"
+      category: "Monitoring"
+      description: "Monitor server uptime with alerts"
+      complexity: "beginner"
+      estimated_time: "2-5 minutes setup"
+    
+    - name: "SSL Certificate Checker"
+      category: "Monitoring"
+      description: "Check SSL certificate expiration dates"
+      complexity: "beginner"
+      estimated_time: "1-2 minutes setup"
+    
+    - name: "Log Aggregator"
+      category: "Monitoring"
+      description: "Aggregate logs from multiple sources"
+      complexity: "advanced"
+      estimated_time: "20-30 minutes setup"
+    
+    - name: "Error Rate Dashboard"
+      category: "Monitoring"
+      description: "Track and visualize error rates"
+      complexity: "intermediate"
+      estimated_time: "10-15 minutes setup"
+
+marketplace_ui:
+  layout:
+    header:
+      - "Logo and branding"
+      - "Search bar (prominent)"
+      - "Category dropdown"
+      - "User account (if logged in)"
+    
+    sidebar:
+      - "Category filters"
+      - "Tag cloud"
+      - "Rating filter (min stars)"
+      - "Sort options"
+      - "Clear all filters button"
+    
+    main_content:
+      - "Template grid (responsive)"
+      - "Pagination or infinite scroll"
+      - "Loading states"
+      - "Empty state (no results)"
+    
+    template_card:
+      - "Template icon/thumbnail"
+      - "Template name (truncated)"
+      - "Author name + avatar"
+      - "Star rating (visual)"
+      - "Install count"
+      - "Category badge"
+      - "Quick install button"
+      - "View details link"
+    
+    detail_modal:
+      - "Full description with markdown"
+      - "Author profile link"
+      - "Version selector"
+      - "Installation instructions"
+      - "Dependencies list"
+      - "Reviews and ratings"
+      - "Related templates"
+      - "Install/Fork buttons"
+  
+  interactions:
+    search:
+      - "Fuzzy search as user types"
+      - "Debounced (300ms)"
+      - "Highlight matching terms"
+      - "Search suggestions"
+    
+    filtering:
+      - "Multi-select categories"
+      - "Tag click to filter"
+      - "Rating threshold slider"
+      - "Instant filter application"
+    
+    sorting:
+      - "Popularity (install count)"
+      - "Rating (avg stars)"
+      - "Newest (created date)"
+      - "Recently updated"
+      - "Name (alphabetical)"
+    
+    installation:
+      - "One-click install"
+      - "Customization modal (optional)"
+      - "Progress indicator"
+      - "Success confirmation"
+      - "Quick start guide"
+
+publishing_workflow:
+  submission_process:
+    step_1:
+      title: "Create Template"
+      actions:
+        - "Fill in basic information"
+        - "Upload workflow JSON"
+        - "Add installation instructions"
+        - "Select category and tags"
+        - "Preview template card"
+    
+    step_2:
+      title: "Validation"
+      checks:
+        - "JSON schema validation"
+        - "Malicious code detection"
+        - "Dependency verification"
+        - "Naming conflicts"
+        - "License compatibility"
+    
+    step_3:
+      title: "Review Queue"
+      auto_approve_if:
+        - "Author rating > 4.0"
+        - "No validation errors"
+        - "Author verified"
+      manual_review_if:
+        - "New author"
+        - "Validation warnings"
+        - "Flagged content"
+    
+    step_4:
+      title: "Publishing"
+      actions:
+        - "Assign version number"
+        - "Generate changelog entry"
+        - "Notify subscribers"
+        - "Add to marketplace"
+        - "Track analytics"
+  
+  moderation_tools:
+    flagging_system:
+      - "Report inappropriate content"
+      - "Report bugs/issues"
+      - "Suggest improvements"
+      - "Request features"
+    
+    quality_control:
+      - "Automated malware scanning"
+      - "Code quality checks"
+      - "Documentation completeness"
+      - "Performance benchmarks"
+    
+    author_reputation:
+      - "Star-based rating system"
+      - "Reviewer badges"
+      - "Contribution history"
+      - "Community standing"
+
+versioning_system:
+  semantic_versioning:
+    major: "Breaking changes (1.0.0 → 2.0.0)"
+    minor: "New features, backwards compatible (1.0.0 → 1.1.0)"
+    patch: "Bug fixes (1.0.0 → 1.0.1)"
+  
+  version_management:
+    - "View all versions"
+    - "Compare versions (diff)"
+    - "Install specific version"
+    - "Upgrade notification"
+    - "Rollback capability"
+  
+  changelog_format:
+    - "Version number + date"
+    - "Added features"
+    - "Changed functionality"
+    - "Deprecated features"
+    - "Removed features"
+    - "Fixed bugs"
+    - "Security patches"
+
+community_features:
+  user_profiles:
+    - "Username and bio"
+    - "Avatar image"
+    - "Templates published"
+    - "Total installs"
+    - "Average rating"
+    - "Followers count"
+    - "Activity feed"
+  
+  social_interactions:
+    - "Follow authors"
+    - "Favorite templates"
+    - "Share templates (URL)"
+    - "Collections (curated lists)"
+    - "Comments on templates"
+  
+  notifications:
+    - "New template from followed author"
+    - "Template update available"
+    - "Review on your template"
+    - "Weekly digest"
+    - "Milestone achievements"
+
+analytics_tracking:
+  template_metrics:
+    - "View count"
+    - "Install count"
+    - "Fork count"
+    - "Success rate (user reported)"
+    - "Average setup time"
+    - "Retention rate (7/30 days)"
+  
+  marketplace_metrics:
+    - "Total templates"
+    - "Active users"
+    - "Search queries"
+    - "Category distribution"
+    - "Top performers"
+    - "Growth trends"
+  
+  author_insights:
+    - "Template performance dashboard"
+    - "User feedback summary"
+    - "Installation geography"
+    - "Version adoption"
+    - "Engagement metrics"
+
+security_measures:
+  code_validation:
+    - "Sanitize all user inputs"
+    - "Validate JSON structure"
+    - "Check for XSS vectors"
+    - "Scan for SQL injection"
+    - "Detect command injection"
+  
+  content_security:
+    - "CSP headers"
+    - "CORS configuration"
+    - "Rate limiting"
+    - "Input size limits"
+    - "Malware scanning"
+  
+  data_protection:
+    - "No PII storage"
+    - "Encrypted localStorage"
+    - "Secure communications"
+    - "GDPR compliance"
+    - "User data export"
+
+offline_capabilities:
+  progressive_web_app:
+    - "Service worker caching"
+    - "Offline template browsing"
+    - "Sync when online"
+    - "Install to home screen"
+  
+  data_synchronization:
+    - "Background sync"
+    - "Conflict resolution"
+    - "Delta updates"
+    - "Version control"
+
+integration_points:
+  agent_16_scheduler:
+    data_flow: "Marketplace → localStorage → Agent 16"
+    format: "WorkflowTemplate JSON"
+    trigger: "Install button click"
+    validation: "Schema check before handoff"
+  
+  agent_13_ui:
+    component_reuse: "Shared React components"
+    styling: "Consistent Tailwind classes"
+    navigation: "Integrated routing"
+  
+  agent_14_analytics:
+    metrics_export: "Template usage data"
+    visualization: "Marketplace health dashboard"
+    reporting: "Monthly summary reports"

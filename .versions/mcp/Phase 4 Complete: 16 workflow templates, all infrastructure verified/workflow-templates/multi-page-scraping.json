@@ -1,0 +1,147 @@
+{
+  "id": "multi-page-scraping",
+  "name": "Multi-Page Scraping Workflow",
+  "description": "Scrape data across multiple pages with pagination. Handles 'Next' buttons, infinite scroll, and URL patterns for comprehensive data collection.",
+  "category": "scraping",
+  "icon": "📚",
+  "tags": ["pagination", "scraping", "multi-page", "bulk"],
+  "complexity": "intermediate",
+  "estimatedDuration": "10-20 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to First Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/products?page=1",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "loop",
+      "label": "For Each Page",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "condition": "{{hasNextButton}}",
+        "maxIterations": 50
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "extract",
+      "label": "Extract Page Data",
+      "x": 200,
+      "y": 400,
+      "params": {
+        "selector": ".product-item",
+        "multiple": true,
+        "fields": {
+          "title": ".product-title",
+          "price": ".product-price",
+          "image": "img@src",
+          "url": "a@href"
+        }
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "check",
+      "label": "Check for Next Button",
+      "x": 200,
+      "y": 500,
+      "params": {
+        "selector": "a.next-page:not(.disabled)",
+        "exists": true,
+        "storeAs": "hasNextButton"
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "click",
+      "label": "Click Next Button",
+      "x": 200,
+      "y": 600,
+      "params": {
+        "selector": "a.next-page",
+        "waitForNavigation": true,
+        "condition": "{{hasNextButton}}"
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "file_write",
+      "label": "Save All Data",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "filename": "scraped_products.json",
+        "format": "json",
+        "mode": "append"
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 800
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    },
+    {
+      "id": "conn-6",
+      "source": "node-6",
+      "target": "node-3",
+      "sourceHandle": "loop"
+    },
+    {
+      "id": "conn-7",
+      "source": "node-3",
+      "target": "node-7",
+      "sourceHandle": "done"
+    },
+    {
+      "id": "conn-8",
+      "source": "node-7",
+      "target": "node-8"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "agent": {
+    "name": "EduGit-CodeAgent",
+    "version": "1.0.0",
+    "purpose": "Educational content research and enhancement",
+    "schedule": "Monday,Saturday 5:00 AM UTC",
+    "mcpContainer": "edugit-codeagent-mcp"
+  },
+  "content": {
+    "writingStyle": "textbook",
+    "technicalLevel": "intermediate-advanced",
+    "targetAudience": ["agencies", "consultants", "developers", "technical-founders"],
+    "contentLength": {
+      "minor": "200-500 words",
+      "medium": "500-1500 words",
+      "major": "1500-3000+ words"
+    },
+    "citationStyle": "inline-with-links",
+    "codeExamples": true,
+    "useCases": {
+      "dev": true,
+      "business": true
+    },
+    "contentDepth": {
+      "enabled": true,
+      "termExplanations": true,
+      "conceptIntroductions": true,
+      "whenToUse": true,
+      "whenNotToUse": true,
+      "howToImplement": true,
+      "groundingContext": true,
+      "backgroundKnowledge": true,
+      "useCaseExamples": true,
+      "linkingStrategy": "comprehensive"
+    }
+  },
+  "agenticHandoff": {
+    "enabled": true,
+    "targetAgent": "wiki-artist",
+    "handoffTiming": "after-content-complete",
+    "handoffData": {
+      "updatedPages": true,
+      "enhancementType": true,
+      "preserveContent": true
+    },
+    "mcpNotification": true
+  },
+  "rssSources": [
+    {
+      "name": "GitHub Blog",
+      "url": "https://github.blog/feed/",
+      "checkInterval": "weekly",
+      "priority": "high"
+    },
+    {
+      "name": "GitHub Changelog",
+      "url": "https://github.blog/changelog/feed/",
+      "checkInterval": "weekly",
+      "priority": "high"
+    },
+    {
+      "name": "GitHub Actions",
+      "type": "api",
+      "endpoint": "https://api.github.com/repos/actions/runner/releases",
+      "priority": "medium"
+    }
+  ],
+  "updateClassification": {
+    "minor": {
+      "keywords": ["tip", "best practice", "optimization", "insight"],
+      "action": "expand-existing",
+      "wordCount": "200-500"
+    },
+    "medium": {
+      "keywords": ["new feature", "capability", "enhancement", "update"],
+      "action": "new-section",
+      "wordCount": "500-1500"
+    },
+    "major": {
+      "keywords": ["paradigm", "revolutionary", "major release", "breaking"],
+      "action": "new-subpage",
+      "wordCount": "1500-3000+"
+    }
+  },
+  "rollback": {
+    "enabled": true,
+    "dockerImagePrefix": "edugit-curriculum",
+    "retention": {
+      "daily": 30,
+      "weekly": 90,
+      "monthly": 365,
+      "major": "indefinite"
+    },
+    "autoCleanup": true
+  },
+  "quality": {
+    "technicalAccuracy": "required",
+    "codeExamplesTested": true,
+    "linksVerified": true,
+    "grammarCheck": true,
+    "pedagogicalFlow": true,
+    "citationsRequired": true,
+    "minQualityScore": 80
+  },
+  "curriculum": {
+    "basePath": "../../curriculum/",
+    "modules": [
+      "module-1-clone-configure",
+      "module-2-architecture",
+      "module-3-browser-agents",
+      "module-4-customization",
+      "module-5-automation",
+      "module-6-packaging"
+    ],
+    "trackMetrics": true,
+    "updateDirectoryMap": true
+  },
+  "selfImprovement": {
+    "enabled": true,
+    "metrics": [
+      "contentQualityScore",
+      "researchEfficiency",
+      "enhancementImpact",
+      "processingTime",
+      "errorRate"
+    ],
+    "reviewFrequency": "every-run",
+    "logToMCP": true
+  }
+}

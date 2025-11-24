@@ -1,0 +1,93 @@
+{
+  "id": "slack-notification",
+  "name": "Slack Notification Workflow",
+  "description": "Send automated notifications to Slack channels. Perfect for alerts, status updates, or integrating browser automation with team communication.",
+  "category": "integration",
+  "icon": "💬",
+  "tags": ["slack", "notification", "webhook", "alert"],
+  "complexity": "beginner",
+  "estimatedDuration": "1-2 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "prepare_data",
+      "label": "Prepare Message",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "message": {
+          "text": "Workflow Completed Successfully",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*Workflow Status*\n:white_check_mark: Completed"
+              }
+            },
+            {
+              "type": "section",
+              "fields": [
+                {
+                  "type": "mrkdwn",
+                  "text": "*Duration:*\n{{duration}}"
+                },
+                {
+                  "type": "mrkdwn",
+                  "text": "*Items Processed:*\n{{itemCount}}"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "http_post",
+      "label": "Send to Slack",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "url": "{{env.SLACK_WEBHOOK_URL}}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "{{message}}"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 400
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    }
+  ]
+}

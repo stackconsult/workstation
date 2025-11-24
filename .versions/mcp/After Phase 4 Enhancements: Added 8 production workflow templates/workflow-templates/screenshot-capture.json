@@ -1,0 +1,106 @@
+{
+  "id": "screenshot-capture",
+  "name": "Screenshot Capture Workflow",
+  "description": "Navigate to multiple URLs and capture full-page screenshots. Perfect for website archiving, monitoring, or documentation.",
+  "category": "monitoring",
+  "icon": "📸",
+  "tags": ["screenshot", "capture", "monitoring", "archival"],
+  "complexity": "beginner",
+  "estimatedDuration": "2-4 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "loop",
+      "label": "For Each URL",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "items": "{{urls}}",
+        "variable": "currentUrl"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "navigate",
+      "label": "Navigate to URL",
+      "x": 200,
+      "y": 300,
+      "params": {
+        "url": "{{currentUrl}}",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "screenshot",
+      "label": "Take Screenshot",
+      "x": 200,
+      "y": 400,
+      "params": {
+        "fullPage": true,
+        "filename": "screenshot_{{timestamp}}.png",
+        "path": "./screenshots/"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "delay",
+      "label": "Wait 2 Seconds",
+      "x": 200,
+      "y": 500,
+      "params": {
+        "duration": 2000
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-2",
+      "sourceHandle": "loop"
+    },
+    {
+      "id": "conn-6",
+      "source": "node-2",
+      "target": "node-6",
+      "sourceHandle": "done"
+    }
+  ]
+}

@@ -1,0 +1,397 @@
+# 📊 AGENT 14: Advanced Analytics & Visualization Specialist
+# Production-ready analytics system with role-based dashboards and insights
+# Uses free, open-source libraries only (Recharts, D3, jsPDF, papaparse)
+
+agent_identity:
+  name: "Advanced Analytics & Visualization Specialist"
+  id: 14
+  role: "Data storyteller - Transforms raw metrics into actionable insights"
+  motto: "A picture is worth a thousand metrics, a good dashboard is priceless"
+  dependencies: 
+    - "Agent 11 (Data Analytics - 52 weeks of metrics)"
+    - "Agent 12 (Intelligence scores)"
+    - "Agent 13 (Web UI framework)"
+
+mission:
+  primary: "Build advanced analytics system with role-based dashboards and automated insights"
+  secondary: "Visualize trends, detect anomalies, predict issues before they occur"
+  tertiary: "Export reports in multiple formats for stakeholders at all levels"
+
+technology_stack:
+  visualization: "Recharts 2.x (MIT license, free)"
+  data_transformation: "D3.js utilities (BSD license, free)"
+  export_pdf: "jsPDF + html2canvas (MIT license, free)"
+  export_csv: "papaparse (MIT license, free)"
+  date_handling: "date-fns (MIT license, free)"
+  runtime: "React 18 + TypeScript strict mode"
+  styling: "Tailwind CSS 3.x"
+
+operating_principles:
+  - "Performance first: Charts render < 500ms for 52 weeks of data"
+  - "Role-based views: Executive, Operations, Developer dashboards"
+  - "Automated insights: Detect patterns without manual analysis"
+  - "Export everything: PDF, CSV, shareable links"
+  - "Free services: No paid APIs, all MIT/BSD licensed libraries"
+
+performance_requirements:
+  chart_render: "< 500ms for 52 weeks of data"
+  dashboard_load: "< 2 seconds total"
+  pdf_export: "< 5 seconds"
+  insight_generation: "< 1 second"
+  memory_usage: "< 200MB"
+
+build_implementation:
+  complete_specification: "See /home/runner/work/workstation/workstation/agents/agent14/IMPLEMENTATION_GUIDE.md for full 2500+ line implementation with all code"
+  
+testing_checklist:
+  - "npm run build succeeds without errors"
+  - "All TypeScript types compile without warnings"
+  - "Charts render smoothly with 52 weeks of data"
+  - "Insights engine generates 3-7 relevant insights"
+  - "PDF export produces readable document"
+  - "CSV export contains all data fields"
+  - "Executive dashboard loads in < 2 seconds"
+  - "Memory usage stays under 200MB with large datasets"
+
+success_criteria:
+  - "Three complete dashboard views (Executive, Operations, Developer)"
+  - "Six chart types implemented (line, area, bar, scatter, pie, radar)"
+  - "Automated insights detect 5+ pattern types"
+  - "Export system supports PDF, CSV, and shareable links"
+  - "All visualizations use free, open-source libraries"
+  - "Performance targets met on production data"
+
+handoff_to_next_agent:
+  artifact_file: ".agent14-analytics-complete.json"
+  required_data:
+    dashboards_implemented: ["executive", "operations", "developer"]
+    charts_available: 6
+    insights_types: 5
+    export_formats: ["pdf", "csv", "shareable_link"]
+    performance_metrics:
+      chart_render_ms: 450
+      dashboard_load_ms: 1800
+      pdf_export_ms: 4200
+
+memory_persistence:
+  location: "agents/agent14/memory/analytics-history.json"
+  structure: |
+    {
+      "dashboards_created": 3,
+      "charts_rendered": 1250,
+      "insights_generated": 847,
+      "exports_completed": 234
+    }
+
+## EXPANDED SPECIFICATIONS
+
+dashboard_architecture:
+  executive_dashboard:
+    purpose: "High-level KPIs for decision makers"
+    metrics:
+      - "System uptime percentage (last 52 weeks)"
+      - "Agent success rate trends"
+      - "Weekly improvement score"
+      - "Critical issues resolved"
+      - "Performance benchmarks"
+    visualizations:
+      - "Trend line chart (weekly aggregates)"
+      - "Success rate area chart"
+      - "KPI scorecards with color coding"
+      - "Top issues pie chart"
+    update_frequency: "Real-time (WebSocket)"
+    export_formats: ["PDF executive summary", "CSV raw data"]
+  
+  operations_dashboard:
+    purpose: "Operational metrics for day-to-day monitoring"
+    metrics:
+      - "Agent cycle completion times"
+      - "Error rates by agent"
+      - "Resource utilization (CPU, memory, disk)"
+      - "Queue depths and backlogs"
+      - "SLA compliance metrics"
+    visualizations:
+      - "Multi-line chart (all agents)"
+      - "Stacked bar chart (errors by type)"
+      - "Resource gauge charts"
+      - "Heat map (hourly patterns)"
+    update_frequency: "Every 5 minutes"
+    alerts:
+      - "SLA breach warnings"
+      - "Error rate spikes"
+      - "Resource exhaustion"
+  
+  developer_dashboard:
+    purpose: "Technical details for debugging and optimization"
+    metrics:
+      - "API response times (p50, p95, p99)"
+      - "Database query performance"
+      - "Code coverage trends"
+      - "Deployment frequency"
+      - "MTTR (Mean Time To Recovery)"
+    visualizations:
+      - "Scatter plot (latency distribution)"
+      - "Box plot (performance variance)"
+      - "Code quality radar chart"
+      - "Deployment timeline"
+    update_frequency: "Every minute"
+    integrations:
+      - "GitHub API (deployment data)"
+      - "Database query logs"
+      - "Application metrics"
+
+chart_implementations:
+  line_chart:
+    library: "Recharts"
+    use_cases: ["Trend analysis", "Time series data"]
+    features:
+      - "Multi-series support"
+      - "Tooltips with timestamps"
+      - "Zoom and pan"
+      - "Reference lines for thresholds"
+    performance: "60fps for 1000+ data points"
+  
+  area_chart:
+    library: "Recharts"
+    use_cases: ["Cumulative metrics", "Volume trends"]
+    features:
+      - "Stacked areas"
+      - "Gradient fills"
+      - "Interactive legends"
+    performance: "< 100ms render for 52 weeks"
+  
+  bar_chart:
+    library: "Recharts"
+    use_cases: ["Comparisons", "Categorical data"]
+    features:
+      - "Grouped bars"
+      - "Stacked bars"
+      - "Horizontal orientation option"
+    performance: "< 50ms for 100 categories"
+  
+  scatter_plot:
+    library: "Recharts"
+    use_cases: ["Correlation analysis", "Outlier detection"]
+    features:
+      - "Color by category"
+      - "Size by value"
+      - "Regression lines"
+    performance: "< 200ms for 5000 points"
+  
+  pie_chart:
+    library: "Recharts"
+    use_cases: ["Proportions", "Distribution"]
+    features:
+      - "Interactive slices"
+      - "Donut variant"
+      - "Percentage labels"
+    performance: "< 30ms for 20 slices"
+  
+  radar_chart:
+    library: "Recharts"
+    use_cases: ["Multi-dimensional comparison"]
+    features:
+      - "Overlay multiple series"
+      - "Configurable axes"
+      - "Area fill"
+    performance: "< 50ms for 10 dimensions"
+
+automated_insights:
+  trend_detection:
+    algorithm: "Linear regression + moving averages"
+    thresholds:
+      - "Upward trend: slope > 0.05"
+      - "Downward trend: slope < -0.05"
+      - "Flat: |slope| < 0.05"
+    output: "Natural language description"
+  
+  anomaly_detection:
+    algorithm: "Statistical outlier detection (z-score)"
+    thresholds:
+      - "Minor anomaly: |z-score| > 2"
+      - "Major anomaly: |z-score| > 3"
+    action: "Flag for review + auto-alert"
+  
+  pattern_recognition:
+    patterns:
+      - "Weekly seasonality"
+      - "Daily cycles"
+      - "Step changes"
+      - "Gradual drift"
+    technique: "Time series decomposition"
+  
+  predictive_insights:
+    models:
+      - "Linear extrapolation (short-term)"
+      - "Moving average forecast"
+      - "Seasonal ARIMA (if patterns detected)"
+    horizon: "Next 4 weeks"
+    confidence: "80% confidence intervals"
+  
+  comparative_insights:
+    comparisons:
+      - "Week over week"
+      - "Month over month"
+      - "Year over year"
+      - "Against SLA targets"
+    output: "Percentage changes with context"
+
+export_system:
+  pdf_export:
+    library: "jsPDF + html2canvas"
+    features:
+      - "Multi-page support"
+      - "Logo and branding"
+      - "Table of contents"
+      - "Chart snapshots"
+      - "Data tables"
+    customization:
+      - "Executive template (summary only)"
+      - "Detailed template (all charts + data)"
+      - "Custom date ranges"
+    file_size: "< 5MB for full report"
+  
+  csv_export:
+    library: "papaparse"
+    features:
+      - "All data points included"
+      - "Metadata headers"
+      - "Timestamp formatting"
+      - "UTF-8 encoding"
+    formats:
+      - "Raw data (all fields)"
+      - "Aggregated data (weekly summaries)"
+      - "Insights data (detected patterns)"
+  
+  shareable_links:
+    storage: "localStorage + URL hash"
+    features:
+      - "Dashboard state serialization"
+      - "Filter preservation"
+      - "Date range bookmarks"
+      - "Chart zoom levels"
+    expiration: "30 days (optional)"
+    security: "Read-only by default"
+
+data_sources:
+  agent_11_metrics:
+    endpoint: "/api/v2/analytics/weekly-metrics"
+    format: "JSON array of weekly data"
+    fields:
+      - "week_number (1-52)"
+      - "agent_id (7-12)"
+      - "success_rate (0-1)"
+      - "avg_duration_ms"
+      - "errors_count"
+      - "intelligence_score (Agent 12)"
+  
+  agent_12_intelligence:
+    endpoint: "/api/v2/analytics/intelligence-scores"
+    format: "JSON with cumulative scores"
+    fields:
+      - "timestamp"
+      - "overall_score (0-100)"
+      - "category_scores (object)"
+      - "improvement_rate"
+  
+  real_time_updates:
+    protocol: "WebSocket"
+    endpoint: "ws://localhost:3000/analytics-stream"
+    update_frequency: "5 seconds"
+    message_format: "JSON delta updates"
+
+ui_components:
+  dashboard_layout:
+    framework: "React 18 with hooks"
+    state_management: "React Context + useReducer"
+    routing: "React Router v6"
+    layout: "CSS Grid with responsive breakpoints"
+  
+  chart_wrapper:
+    component: "ResponsiveContainer from Recharts"
+    features:
+      - "Auto-resize on window change"
+      - "Loading states"
+      - "Error boundaries"
+      - "Empty state handling"
+  
+  date_range_picker:
+    library: "date-fns"
+    presets:
+      - "Last 7 days"
+      - "Last 30 days"
+      - "Last 12 weeks"
+      - "Last 52 weeks"
+      - "Custom range"
+  
+  insight_cards:
+    design: "Material Design cards"
+    categories:
+      - "Success (green border)"
+      - "Warning (yellow border)"
+      - "Critical (red border)"
+      - "Informational (blue border)"
+    actions:
+      - "Dismiss insight"
+      - "Share insight"
+      - "View details"
+
+quality_assurance:
+  performance_testing:
+    tools: "Lighthouse, React Profiler"
+    targets:
+      - "First Contentful Paint < 1s"
+      - "Time to Interactive < 2s"
+      - "Largest Contentful Paint < 2.5s"
+  
+  accessibility:
+    compliance: "WCAG 2.1 Level AA"
+    features:
+      - "Keyboard navigation"
+      - "Screen reader support"
+      - "Color contrast ratios"
+      - "ARIA labels on charts"
+  
+  browser_compatibility:
+    supported:
+      - "Chrome/Edge 90+"
+      - "Firefox 88+"
+      - "Safari 14+"
+    testing: "BrowserStack for cross-browser testing"
+
+deployment_configuration:
+  environment_variables:
+    - "ANALYTICS_API_URL"
+    - "WEBSOCKET_URL"
+    - "EXPORT_MAX_SIZE_MB"
+    - "CACHE_TTL_SECONDS"
+    - "ENABLE_REAL_TIME_UPDATES"
+  
+  caching_strategy:
+    - "Cache weekly data for 24 hours"
+    - "Cache chart renders for 5 minutes"
+    - "Invalidate on data update"
+  
+  cdn_integration:
+    assets: "Host Recharts/D3 via CDN fallback"
+    images: "Optimize chart exports"
+    fonts: "Web fonts for PDF consistency"
+
+monitoring_and_logging:
+  metrics_tracked:
+    - "Dashboard load times"
+    - "Chart render durations"
+    - "Export generation times"
+    - "Insight accuracy rates"
+    - "User interaction patterns"
+  
+  error_tracking:
+    - "Failed chart renders"
+    - "Export errors"
+    - "Data fetch failures"
+    - "WebSocket disconnections"
+  
+  alerting:
+    - "Performance degradation"
+    - "High error rates"
+    - "Data staleness"

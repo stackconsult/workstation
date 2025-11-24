@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2025-11-20T18:00:00Z",
+  "version": "1.0.0",
+  "totalFiles": 37,
+  "totalModules": 6,
+  "curriculum": {
+    "module-1-clone-configure": {
+      "files": 8,
+      "lastUpdated": "2025-11-20",
+      "completeness": 95,
+      "complexity": "intermediate",
+      "topics": ["Setup", "Docker", "Git", "Environment"],
+      "enhancements": [],
+      "needsExpansion": []
+    },
+    "module-2-architecture": {
+      "files": 6,
+      "lastUpdated": "2025-11-18",
+      "completeness": 90,
+      "complexity": "advanced",
+      "topics": ["Registry", "Orchestration", "Capabilities"],
+      "enhancements": [],
+      "needsExpansion": [
+        "Agent registry patterns",
+        "Orchestration strategies"
+      ]
+    },
+    "module-3-browser-agents": {
+      "files": 7,
+      "lastUpdated": "2025-11-19",
+      "completeness": 92,
+      "complexity": "intermediate",
+      "topics": ["Playwright", "Browser Automation", "Extension"],
+      "enhancements": [],
+      "needsExpansion": [
+        "Advanced Playwright features"
+      ]
+    },
+    "module-4-customization": {
+      "files": 5,
+      "lastUpdated": "2025-11-17",
+      "completeness": 88,
+      "complexity": "intermediate",
+      "topics": ["Custom Agents", "Playbooks", "Prompts"],
+      "enhancements": [],
+      "needsExpansion": [
+        "Prompt engineering best practices",
+        "Agent testing strategies"
+      ]
+    },
+    "module-5-automation": {
+      "files": 6,
+      "lastUpdated": "2025-11-20",
+      "completeness": 85,
+      "complexity": "advanced",
+      "topics": ["CI/CD", "Slack", "Monitoring", "Observability"],
+      "enhancements": [],
+      "needsExpansion": [
+        "GitHub Actions workflows",
+        "Monitoring dashboards"
+      ]
+    },
+    "module-6-packaging": {
+      "files": 5,
+      "lastUpdated": "2025-11-16",
+      "completeness": 90,
+      "complexity": "intermediate",
+      "topics": ["Offers", "Pricing", "SLAs", "Client Delivery"],
+      "enhancements": [],
+      "needsExpansion": [
+        "Pricing models",
+        "SLA templates"
+      ]
+    }
+  },
+  "statistics": {
+    "averageCompleteness": 90,
+    "totalEnhancements": 0,
+    "lastGitHubUpdate": null,
+    "nextScheduledCheck": "2025-11-25T05:00:00Z"
+  }
+}

@@ -1,0 +1,674 @@
+# agents/agent17/agent-prompt.yml
+# AI-Powered Project Builder - COMPLETE SPECIFICATION  
+# GitHub Copilot Coding Agent that builds projects using detailed prompts
+
+# ============================================
+# AGENT METADATA
+# ============================================
+
+agent_metadata:
+  name: "AI-Powered Project Builder"
+  id: 17
+  version: "1.0.0"
+  created: "2025-11-16"
+  dependencies: []
+  output_for: ["Developers", "DevOps Engineers", "Product Teams"]
+  philosophy: "Free before paid, BYOK for everything else"
+
+# ============================================
+# CORE PRINCIPLES
+# ============================================
+
+core_principles:
+  free_first:
+    description: "Always prioritize free, open-source solutions"
+    priority_order:
+      1: "Built-in tools (GitHub Actions, npm, Node.js)"
+      2: "Free open-source packages (Playwright, Jest, TypeScript)"
+      3: "Community solutions (public APIs, free tiers)"
+      4: "BYOK services (user provides own API keys)"
+    
+  byok_philosophy:
+    description: "Bring Your Own Key for premium features"
+    approach:
+      - "Never require paid services"
+      - "Always provide free alternatives"
+      - "User chooses to add their own keys"
+      - "Clear setup instructions for BYOK"
+      - "Secure key storage (.env, never committed)"
+    
+  production_ready:
+    description: "Generate production-quality code"
+    requirements:
+      - "80%+ test coverage mandatory"
+      - "TypeScript strict mode"
+      - "Error handling on all operations"
+      - "Security best practices"
+      - "CI/CD with GitHub Actions"
+      - "Complete documentation"
+
+# ============================================
+# PROJECT STRUCTURE
+# ============================================
+
+project_structure: |
+  agents/agent17/
+  ├── src/
+  │   ├── prompt-generator/
+  │   │   ├── templates/          # Reusable prompt templates
+  │   │   ├── validator.ts        # Validate prompt completeness
+  │   │   └── generator.ts        # Generate complete prompts
+  │   ├── project-scaffolder/
+  │   │   ├── scaffolder.ts       # Create project structure
+  │   │   ├── dependencies.ts     # Manage npm dependencies
+  │   │   └── config.ts           # Generate config files
+  │   ├── testing/
+  │   │   ├── test-generator.ts   # Generate test suites
+  │   │   └── coverage.ts         # Ensure 80%+ coverage
+  │   ├── integrations/
+  │   │   ├── github-actions.ts   # Generate workflows
+  │   │   ├── byok/               # BYOK integrations
+  │   │   │   ├── openai.ts       # OpenAI integration
+  │   │   │   ├── anthropic.ts    # Claude integration
+  │   │   │   └── base.ts         # Base BYOK class
+  │   │   └── free-tools/         # Free tool integrations
+  │   │       ├── playwright.ts   # Playwright setup
+  │   │       ├── jest.ts         # Jest configuration
+  │   │       └── eslint.ts       # ESLint setup
+  │   └── index.ts                # Main entry point
+  ├── templates/
+  │   ├── competitor-tracker/     # Price tracking example
+  │   ├── web-scraper/            # General scraper
+  │   ├── api-wrapper/            # API client
+  │   └── automation-suite/       # Test automation
+  ├── examples/
+  │   ├── competitor-tracker.md   # Full working example
+  │   ├── web-scraper.md
+  │   └── api-wrapper.md
+  ├── tests/
+  │   ├── unit/
+  │   └── integration/
+  ├── package.json
+  ├── tsconfig.json
+  ├── jest.config.js
+  └── README.md
+
+# ============================================
+# TECHNOLOGY STACK
+# ============================================
+
+technology_stack:
+  free_tier_default:
+    runtime:
+      node: "18+"
+      typescript: "5.3+"
+    
+    browser_automation:
+      playwright:
+        version: "^1.40.0"
+        why: "Free, powerful, multi-browser support"
+        alternatives: "Puppeteer, Selenium"
+    
+    testing:
+      jest:
+        version: "^29.7.0"
+        coverage_requirement: "80%"
+        why: "Free, comprehensive, widely adopted"
+      
+    code_quality:
+      eslint:
+        version: "^8.0.0"
+        config: "typescript-recommended"
+      prettier:
+        version: "^3.0.0"
+        config: "2 spaces, single quotes"
+    
+    ci_cd:
+      github_actions:
+        why: "Free for public repos, excellent integration"
+        workflows:
+          - "Build and test"
+          - "Scheduled tasks"
+          - "Deployment"
+  
+  byok_optional:
+    ai_services:
+      openai:
+        optional: true
+        requires: "OPENAI_API_KEY environment variable"
+        use_cases:
+          - "Advanced text analysis"
+          - "Content generation"
+          - "Embeddings for search"
+        free_alternative: "Ollama (local LLMs)"
+        setup: |
+          1. Get API key from https://platform.openai.com
+          2. Add to .env: OPENAI_API_KEY=sk-...
+          3. Install: npm install openai
+      
+      anthropic:
+        optional: true
+        requires: "ANTHROPIC_API_KEY environment variable"
+        use_cases:
+          - "Long context analysis"
+          - "Code review"
+          - "Complex reasoning"
+        free_alternative: "GitHub Copilot, local models"
+        setup: |
+          1. Get API key from https://console.anthropic.com
+          2. Add to .env: ANTHROPIC_API_KEY=sk-ant-...
+          3. Install: npm install @anthropic-ai/sdk
+    
+    cloud_services:
+      aws:
+        optional: true
+        requires: "AWS credentials"
+        use_cases:
+          - "S3 storage"
+          - "Lambda functions"
+          - "SQS queues"
+        free_alternative: "GitHub Pages, GitHub Actions, local storage"
+      
+      google_cloud:
+        optional: true
+        requires: "GCP credentials"
+        use_cases:
+          - "Vision API"
+          - "Translation API"
+          - "Natural Language API"
+        free_alternative: "Tesseract OCR, open-source NLP models"
+    
+    notifications:
+      sendgrid:
+        optional: true
+        requires: "SENDGRID_API_KEY"
+        use_case: "Email notifications"
+        free_alternative: "nodemailer with Gmail SMTP (free tier)"
+      
+      twilio:
+        optional: true
+        requires: "TWILIO credentials"
+        use_case: "SMS notifications"
+        free_alternative: "Email or Slack webhooks"
+
+# ============================================
+# PROJECT TEMPLATES
+# ============================================
+
+project_templates:
+  competitor_price_tracker:
+    name: "Competitor Price Tracker"
+    description: "Monitor competitor pricing across e-commerce sites"
+    
+    tech_stack:
+      free:
+        - "Playwright for web scraping"
+        - "SQLite for price history"
+        - "node-cron for scheduling"
+        - "csv-writer for exports"
+        - "GitHub Actions for automation"
+      
+      byok_optional:
+        - "SendGrid for email alerts (user key)"
+        - "Slack webhooks (user webhook)"
+        - "Twilio for SMS (user credentials)"
+    
+    features:
+      core:
+        - "Multi-site scraping (Amazon, Best Buy, Walmart, Target)"
+        - "Price history database"
+        - "Change detection alerts"
+        - "CSV/JSON exports"
+        - "Automated 6-hour runs"
+      
+      optional_byok:
+        - "Email notifications (SendGrid)"
+        - "Slack alerts (Webhook)"
+        - "SMS alerts (Twilio)"
+        - "Cloud storage (S3)"
+    
+    prompt_template: |
+      # 🤖 Build Competitor Price Tracker
+      
+      @workspace Build a complete price tracking system.
+      
+      ## Requirements:
+      - Track 5+ competitors (Amazon, Best Buy, etc.)
+      - Store price history in SQLite
+      - Detect price changes > 5%
+      - Export data to CSV
+      - Run automatically via GitHub Actions every 6 hours
+      - 80%+ test coverage
+      
+      ## Tech Stack (FREE):
+      - Playwright for scraping
+      - TypeScript strict mode
+      - Jest for testing
+      - SQLite for storage
+      - GitHub Actions CI/CD
+      
+      ## Optional BYOK:
+      - SendGrid (email alerts) - user provides API key
+      - Slack webhooks - user provides URL
+      - Free alternative: nodemailer with Gmail
+      
+      ## Project Structure:
+      [Full directory tree here]
+      
+      ## Acceptance Criteria:
+      - ✓ All scrapers work
+      - ✓ Price history stored
+      - ✓ Tests pass (80%+)
+      - ✓ GitHub Actions runs
+      - ✓ README complete
+      - ✓ BYOK optional, documented
+  
+  web_scraper:
+    name: "General Web Scraper"
+    description: "Flexible web scraping framework"
+    
+    tech_stack:
+      free:
+        - "Playwright/Cheerio"
+        - "Axios for HTTP"
+        - "JSON/CSV export"
+      byok_optional:
+        - "ScrapingBee (user key)"
+        - "Proxy services (user credentials)"
+  
+  api_wrapper:
+    name: "Type-Safe API Client"
+    description: "Generate API client wrappers"
+    
+    tech_stack:
+      free:
+        - "TypeScript"
+        - "Axios"
+        - "Zod for validation"
+      byok_optional:
+        - "DataDog monitoring (user key)"
+        - "Sentry error tracking (user DSN)"
+
+# ============================================
+# PROMPT GENERATION ALGORITHM
+# ============================================
+
+prompt_generation_process:
+  step_1_requirements:
+    description: "Gather project requirements"
+    inputs:
+      - "Project type (scraper, API, automation)"
+      - "Target platforms"
+      - "Desired features"
+      - "BYOK services to include"
+    outputs:
+      - "Requirements document"
+      - "Technology recommendations"
+  
+  step_2_template_selection:
+    description: "Choose appropriate template"
+    logic: |
+      if (requirements.includes('scraping')) {
+        template = 'web_scraper'
+      } else if (requirements.includes('API')) {
+        template = 'api_wrapper'
+      } else if (requirements.includes('automation')) {
+        template = 'automation_suite'
+      }
+  
+  step_3_customize_stack:
+    description: "Build technology stack"
+    process:
+      1: "Add all free/open-source tools"
+      2: "List BYOK services as optional"
+      3: "Provide free alternatives for each BYOK"
+      4: "Include version numbers"
+      5: "Add setup instructions"
+  
+  step_4_generate_structure:
+    description: "Create project structure"
+    outputs:
+      - "Directory tree"
+      - "File purposes"
+      - "Module dependencies"
+      - "Configuration files"
+  
+  step_5_code_examples:
+    description: "Generate working code"
+    requirements:
+      - "Syntactically correct TypeScript"
+      - "Comprehensive error handling"
+      - "BYOK integration points clearly marked"
+      - "Free alternatives demonstrated"
+      - "Security best practices"
+  
+  step_6_testing_spec:
+    description: "Define test requirements"
+    coverage:
+      unit_tests: "90%+"
+      integration_tests: "All critical paths"
+      e2e_tests: "Main user workflows"
+  
+  step_7_documentation:
+    description: "Generate complete README"
+    sections:
+      - "Quick start (< 5 min)"
+      - "Features (free vs BYOK)"
+      - "Installation"
+      - "Configuration (.env setup)"
+      - "Usage examples"
+      - "Testing instructions"
+      - "Deployment guide"
+      - "Troubleshooting"
+      - "BYOK setup details"
+  
+  step_8_validation:
+    description: "Validate prompt quality"
+    checks:
+      - "All sections present"
+      - "Code examples valid"
+      - "Dependencies listed with versions"
+      - "Free alternatives for all BYOK"
+      - "Test coverage specified"
+      - "Security reviewed"
+
+# ============================================
+# IMPLEMENTATION REQUIREMENTS
+# ============================================
+
+implementation_requirements:
+  code_quality:
+    typescript:
+      strict_mode: true
+      no_implicit_any: true
+      no_unused_vars: true
+      esModuleInterop: true
+    
+    testing:
+      framework: "Jest"
+      minimum_coverage: 80
+      test_types:
+        - "Unit tests for all functions"
+        - "Integration tests for workflows"
+        - "E2E tests for critical paths"
+        - "Mock external services"
+    
+    linting:
+      eslint: "typescript-recommended"
+      prettier: "2 spaces, single quotes"
+      pre_commit: "Husky + lint-staged"
+  
+  security:
+    secrets_management:
+      - "Use .env for all secrets"
+      - "Never commit .env to git"
+      - "Provide .env.example template"
+      - "Document each variable"
+    
+    api_keys:
+      - "BYOK keys in environment variables"
+      - "Validate keys on startup"
+      - "Clear rotation instructions"
+      - "Minimal permissions required"
+    
+    input_validation:
+      - "Validate all user inputs"
+      - "Sanitize data before storage"
+      - "Use TypeScript types"
+      - "Zod for runtime validation"
+  
+  ci_cd:
+    github_actions:
+      build_workflow:
+        triggers: ["push", "pull_request"]
+        jobs:
+          - "Install dependencies"
+          - "Run linter"
+          - "Run tests with coverage"
+          - "Build TypeScript"
+          - "Upload artifacts"
+      
+      schedule_workflow:
+        triggers: ["cron: '0 */6 * * *'"]
+        jobs:
+          - "Run main script"
+          - "Upload results"
+          - "Send notifications (if BYOK)"
+      
+      deploy_workflow:
+        triggers: ["push to main"]
+        jobs:
+          - "Build production"
+          - "Run smoke tests"
+          - "Deploy to target"
+
+# ============================================
+# EXAMPLE: COMPETITOR TRACKER PROMPT
+# ============================================
+
+example_prompt_competitor_tracker: |
+  # 🤖 Agent Prompt: Build Competitor Price Tracker
+  
+  ## COPY THIS TO GITHUB COPILOT CHAT
+  
+  ```
+  @workspace I need you to build a complete Competitor Price Tracking System.
+  
+  ## 🎯 PROJECT OVERVIEW
+  
+  **Purpose:** Automatically monitor competitor pricing across multiple e-commerce sites.
+  
+  **Business Value:**
+  - Track 10+ competitors simultaneously
+  - Get instant alerts on price drops
+  - Export data for analysis
+  - Run automatically every 6 hours
+  
+  ## 📋 TECHNICAL REQUIREMENTS
+  
+  ### Technology Stack
+  
+  **FREE (Default - No API Keys Required):**
+  - Playwright (v1.40+) - Browser automation
+  - TypeScript (strict mode) - Type safety
+  - Node.js 18+ - Runtime
+  - SQLite - Price history storage
+  - node-cron - Scheduling
+  - csv-writer - Data export
+  - Jest - Testing (80%+ coverage)
+  - GitHub Actions - CI/CD (free for public repos)
+  
+  **BYOK (Optional - Bring Your Own Key):**
+  - SendGrid - Email alerts (provide SENDGRID_API_KEY)
+    FREE ALTERNATIVE: nodemailer with Gmail SMTP
+  - Slack - Notifications (provide SLACK_WEBHOOK_URL)
+    FREE ALTERNATIVE: GitHub issue comments
+  - Twilio - SMS alerts (provide TWILIO credentials)
+    FREE ALTERNATIVE: Email or Slack
+  
+  ### Project Structure
+  ```
+  competitor-tracker/
+  ├── src/
+  │   ├── scrapers/
+  │   │   ├── amazon.ts
+  │   │   ├── bestbuy.ts
+  │   │   ├── walmart.ts
+  │   │   └── base.ts
+  │   ├── services/
+  │   │   ├── database.ts      # SQLite (free)
+  │   │   ├── notifier.ts      # Free + optional BYOK
+  │   │   └── reporter.ts
+  │   └── index.ts
+  ├── tests/                    # 80%+ coverage required
+  ├── .github/workflows/
+  │   └── scrape-schedule.yml  # Free GitHub Actions
+  ├── .env.example             # Template for secrets
+  ├── package.json
+  └── README.md
+  ```
+  
+  ### Implementation Details
+  
+  1. **Scraping with Playwright (FREE)**
+  ```typescript
+  import { chromium } from 'playwright';
+  
+  async function scrapeAmazon(asin: string) {
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    
+    try {
+      await page.goto(\`https://amazon.com/dp/\${asin}\`);
+      const price = await page.locator('[data-testid="price"]').textContent();
+      return parsePrice(price);
+    } finally {
+      await browser.close();
+    }
+  }
+  ```
+  
+  2. **Notifications (FREE + Optional BYOK)**
+  ```typescript
+  // FREE: Console logging (always included)
+  function logPriceChange(change: PriceChange) {
+    console.log(\`Price changed: \${change.product} from \${change.old} to \${change.new}\`);
+  }
+  
+  // BYOK Optional: Email via SendGrid
+  async function sendEmailAlert(change: PriceChange) {
+    if (!process.env.SENDGRID_API_KEY) {
+      console.log('SendGrid not configured, skipping email');
+      return;
+    }
+    // Send email with user's API key
+  }
+  
+  // FREE Alternative: Gmail SMTP (no API key needed)
+  async function sendGmailAlert(change: PriceChange) {
+    // Use nodemailer with Gmail app password (free)
+  }
+  ```
+  
+  3. **Testing Requirements (80%+ Coverage)**
+  ```typescript
+  describe('Amazon Scraper', () => {
+    it('should extract product data', async () => {
+      const data = await scrapeAmazon('B08L5VN58M');
+      expect(data).toMatchObject({
+        price: expect.any(Number),
+        availability: expect.stringMatching(/in_stock|out_of_stock/)
+      });
+    });
+  });
+  ```
+  
+  4. **GitHub Actions (FREE)**
+  ```yaml
+  name: Scrape Prices
+  on:
+    schedule:
+      - cron: '0 */6 * * *'  # Every 6 hours
+  
+  jobs:
+    scrape:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - uses: actions/setup-node@v3
+        - run: npm ci
+        - run: npm test
+        - run: npm run scrape
+          env:
+            SENDGRID_API_KEY: \${{ secrets.SENDGRID_API_KEY }}  # Optional BYOK
+  ```
+  
+  ## ✅ ACCEPTANCE CRITERIA
+  
+  1. ✅ All 5 competitor scrapers work
+  2. ✅ Price history stored in SQLite (free)
+  3. ✅ GitHub Actions runs every 6 hours (free)
+  4. ✅ Notifications work (free console + optional BYOK)
+  5. ✅ CSV exports generated
+  6. ✅ Test coverage > 80%
+  7. ✅ README has complete setup instructions
+  8. ✅ BYOK services clearly marked as optional
+  9. ✅ Free alternatives documented
+  10. ✅ No crashes on missing API keys
+  
+  ## 📚 SETUP INSTRUCTIONS
+  
+  **Quick Start (FREE - No API Keys):**
+  ```bash
+  git clone <repo>
+  cd competitor-tracker
+  npm install
+  npm test          # Run tests
+  npm run scrape    # Run once
+  ```
+  
+  **Optional BYOK Setup:**
+  1. Copy .env.example to .env
+  2. Add your API keys (if desired)
+  3. Free alternatives work without keys
+  
+  ```
+  
+  ## 🎬 USAGE
+  
+  Paste the entire prompt above into GitHub Copilot Chat and watch it build your project!
+  ```
+
+# ============================================
+# SUCCESS CRITERIA
+# ============================================
+
+success_criteria:
+  prompt_quality:
+    - "AI can build complete project from prompt alone"
+    - "All dependencies specified with versions"
+    - "Free alternatives listed for every BYOK service"
+    - "Test coverage requirement explicit (80%+)"
+    - "Error handling patterns included"
+    - "Security best practices followed"
+  
+  project_quality:
+    - "npm install works without errors"
+    - "npm test passes with 80%+ coverage"
+    - "npm run build succeeds"
+    - "eslint passes with no errors"
+    - "GitHub Actions workflows valid"
+    - "README complete and accurate"
+  
+  byok_implementation:
+    - "All BYOK services are optional"
+    - "Free alternatives provided"
+    - "Project works without any API keys"
+    - "Clear setup instructions for each BYOK"
+    - "Secrets never committed"
+    - "Graceful degradation when keys missing"
+
+# ============================================
+# MAINTENANCE
+# ============================================
+
+maintenance:
+  update_frequency: "Monthly"
+  tasks:
+    - "Update dependency versions"
+    - "Add new project templates"
+    - "Improve prompt examples"
+    - "Add more free tool alternatives"
+    - "Update BYOK service documentation"
+    - "Validate all code examples"
+    - "Refresh external links"
+  
+  monitoring:
+    - "Track projects generated"
+    - "Measure build success rate"
+    - "Monitor test coverage achieved"
+    - "Analyze free vs BYOK adoption"
+
+# ============================================
+# END OF AGENT 17 SPECIFICATION
+# ============================================

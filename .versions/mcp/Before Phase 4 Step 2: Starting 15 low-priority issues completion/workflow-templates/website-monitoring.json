@@ -1,0 +1,125 @@
+{
+  "id": "website-monitoring",
+  "name": "Website Monitoring Workflow",
+  "description": "Navigate to a website, take a screenshot, check for specific content changes, and send notifications. Ideal for monitoring website uptime, content updates, or price changes.",
+  "category": "monitoring",
+  "icon": "📊",
+  "tags": ["monitoring", "screenshot", "notification", "alerts", "intermediate"],
+  "complexity": "intermediate",
+  "estimatedDuration": "2-4 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to Website",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "extract",
+      "label": "Extract Content",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "selector": ".main-content",
+        "screenshot": true,
+        "fullPage": false
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "condition",
+      "label": "Check for Changes",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "type": "contains",
+        "value": "Expected Content",
+        "compareWith": "previous_run"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "email_send",
+      "label": "Send Alert Email",
+      "x": 250,
+      "y": 500,
+      "params": {
+        "to": "admin@example.com",
+        "subject": "Website Change Detected",
+        "body": "Changes detected on monitored website"
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "file_write",
+      "label": "Save Screenshot",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "filename": "screenshot_{timestamp}.png",
+        "format": "png"
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "end",
+      "label": "End",
+      "x": 175,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5",
+      "sourceHandle": "true"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-4",
+      "target": "node-6",
+      "sourceHandle": "false"
+    },
+    {
+      "id": "conn-6",
+      "source": "node-5",
+      "target": "node-7"
+    },
+    {
+      "id": "conn-7",
+      "source": "node-6",
+      "target": "node-7"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "timestamp": "2025-11-15T08:29:15.760Z",
+    "week": 46,
+    "year": 2025,
+    "validations": {
+      "Loop Protection": {
+        "issues_found": 0,
+        "auto_fixed": 0,
+        "status": "pass"
+      },
+      "Timeout Protection": {
+        "issues_found": 5,
+        "auto_fixed": 0,
+        "status": "warning"
+      },
+      "Edge Case Coverage": {
+        "issues_found": 1,
+        "auto_fixed": 0,
+        "status": "warning"
+      }
+    },
+    "guard_rails_added": [],
+    "all_passed": false
+  },
+  {
+    "timestamp": "2025-11-15T08:29:36.500Z",
+    "week": 46,
+    "year": 2025,
+    "validations": {
+      "Loop Protection": {
+        "issues_found": 0,
+        "auto_fixed": 0,
+        "status": "pass"
+      },
+      "Timeout Protection": {
+        "issues_found": 5,
+        "auto_fixed": 0,
+        "status": "warning"
+      },
+      "Edge Case Coverage": {
+        "issues_found": 1,
+        "auto_fixed": 0,
+        "status": "warning"
+      }
+    },
+    "guard_rails_added": [],
+    "all_passed": false
+  }
+]

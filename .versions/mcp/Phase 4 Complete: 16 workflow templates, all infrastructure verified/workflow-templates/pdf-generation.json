@@ -1,0 +1,92 @@
+{
+  "id": "pdf-generation",
+  "name": "PDF Generation Workflow",
+  "description": "Convert web pages to PDF documents with custom formatting. Great for archiving, reporting, or creating documentation from web content.",
+  "category": "reporting",
+  "icon": "📄",
+  "tags": ["pdf", "export", "document", "conversion"],
+  "complexity": "intermediate",
+  "estimatedDuration": "3-6 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/report",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "modify_page",
+      "label": "Remove Ads/Navigation",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "removeSelectors": [".ads", ".navigation", ".sidebar", "header", "footer"]
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "pdf",
+      "label": "Generate PDF",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "filename": "report_{{timestamp}}.pdf",
+        "format": "A4",
+        "margin": {
+          "top": "1cm",
+          "right": "1cm",
+          "bottom": "1cm",
+          "left": "1cm"
+        },
+        "printBackground": true,
+        "displayHeaderFooter": true,
+        "headerTemplate": "<div style='font-size:10px; width:100%; text-align:center;'>Generated on {{date}}</div>",
+        "footerTemplate": "<div style='font-size:10px; width:100%; text-align:center;'>Page <span class='pageNumber'></span> of <span class='totalPages'></span></div>"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 500
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    }
+  ]
+}
