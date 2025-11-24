@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - Dependabot Configuration Scope Restriction (2025-11-24)
+
+#### Configuration Updates
+- **Restricted Dependabot to monitor root package.json only**
+  - Reduced open-pull-requests-limit from 10 to 5 for better focus
+  - Added "production" label to distinguish from subdirectory dependencies
+  - Documented explicit scope in configuration comments
+  - Resolves issue: Dependabot creating PRs for test/example code
+
+#### Rationale
+- Repository contains 36 package.json files across subdirectories:
+  - 9 in agents/ (individual agent implementations)
+  - 20 in mcp-containers/ (MCP server containers)
+  - 4 in modules/ (module implementations)
+  - 1 in tools/ (coding agent)
+  - 1 in agent-server/ (agent server)
+  - 1 at root (production code)
+- Only the root package.json represents production code that requires dependency monitoring
+- Subdirectories contain experimental, test, and example code with independent lifecycles
+- This change eliminates noise and focuses Dependabot on production dependencies only
+
+#### Technical Details
+- Dependabot's `directory: "/"` configuration only scans /package.json, not subdirectories
+- No additional configuration needed to exclude subdirectories
+- GitHub Actions monitoring remains active and unchanged
+- Weekly schedule maintained for predictable updates
+
 ### Fixed - GitHub Actions Docker Compose Compatibility (2025-11-20)
 
 #### Workflow Updates
