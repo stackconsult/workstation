@@ -1,25 +1,24 @@
 {
-  "generated": "2025-11-23T15:46:59.311Z",
   "version": "1.0.0",
-  "repository": "git+https://github.com/stackconsult/stackBrowserAgent.git",
-  "downloads": [
+  "generated": "2025-11-25T16:00:44.310Z",
+  "files": [
     {
-      "name": "chrome-extension.zip",
-      "description": "Workstation AI Agent Chrome Extension - Browser automation with natural language",
-      "size": 74766,
-      "sizeFormatted": "73.01 KB",
-      "checksum": "4f49db6bb006f0478dcb994d093918ec911a230438922af459eb6dc23711bdf9",
-      "url": "/downloads/chrome-extension.zip",
-      "version": "1.0.0"
+      "name": "Chrome Extension",
+      "filename": "workstation-chrome-extension-v1.0.0.zip",
+      "size": 76613,
+      "type": "application/zip",
+      "description": "Workstation Chrome Extension for browser automation",
+      "installUrl": "/downloads/workstation-chrome-extension-v1.0.0.zip",
+      "docsUrl": "/downloads/CHROME_EXTENSION_INSTALL.md"
     },
     {
-      "name": "workflow-builder.zip",
-      "description": "Workflow Builder - Visual automation workflow designer",
-      "size": 21928,
-      "sizeFormatted": "21.41 KB",
-      "checksum": "21d69beb0f5e1438a3053fa7235745c04aa70f1bcb52bac27ae6307220d7dafc",
-      "url": "/downloads/workflow-builder.zip",
-      "version": "1.0.0"
+      "name": "Workflow Builder",
+      "filename": "workstation-workflow-builder-v1.0.0.zip",
+      "size": 28521,
+      "type": "application/zip",
+      "description": "Visual workflow builder for creating browser automation workflows",
+      "installUrl": "/downloads/workstation-workflow-builder-v1.0.0.zip",
+      "docsUrl": "https://github.com/creditXcredit/workstation#workflow-builder"
     }
   ]
 }
