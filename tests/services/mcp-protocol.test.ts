@@ -16,7 +16,7 @@
  * Target: 60%+ coverage, 40+ tests
  */
 
-import { MCPProtocol, getMCPProtocol, MCPRequest, MCPResponse } from '../../src/services/mcp-protocol';
+import { MCPProtocol, getMCPProtocol, MCPRequest } from '../../src/services/mcp-protocol';
 
 // Mock dependencies
 jest.mock('../../src/services/message-broker');
