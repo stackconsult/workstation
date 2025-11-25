@@ -174,6 +174,6 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Installation Date:** Mon Nov 24 23:49:50 UTC 2025
+**Installation Date:** $(date)
 **Version:** v1.0.0
-**Platform:** Linux x86_64
+**Platform:** $(uname -s) $(uname -m)
