@@ -1,0 +1,116 @@
+{
+  "id": "database-export",
+  "name": "Database Export Workflow",
+  "description": "Extract data from web tables and export to database. Supports MySQL, PostgreSQL, and SQLite for automated data collection and storage.",
+  "category": "data-processing",
+  "icon": "🗄️",
+  "tags": ["database", "export", "sql", "table"],
+  "complexity": "advanced",
+  "estimatedDuration": "5-15 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to Data Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/data-table",
+        "waitUntil": "load"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "extract_table",
+      "label": "Extract Table Data",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "selector": "table.data-table",
+        "includeHeaders": true,
+        "skipRows": 0
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "transform",
+      "label": "Transform Data",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "operations": [
+          {
+            "type": "trim",
+            "fields": "*"
+          },
+          {
+            "type": "convert",
+            "field": "price",
+            "to": "number"
+          },
+          {
+            "type": "parse_date",
+            "field": "date",
+            "format": "MM/DD/YYYY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "database_insert",
+      "label": "Insert to Database",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "connection": "{{env.DATABASE_URL}}",
+        "table": "scraped_data",
+        "mode": "upsert",
+        "uniqueKey": "id"
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    }
+  ]
+}

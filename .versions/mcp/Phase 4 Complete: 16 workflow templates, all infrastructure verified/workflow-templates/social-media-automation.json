@@ -1,0 +1,180 @@
+{
+  "id": "social-media-automation",
+  "name": "Social Media Automation",
+  "description": "Log into a social media platform, create and publish a post, and then log out. Useful for scheduled posting, content distribution, or social media management.",
+  "category": "social-media",
+  "icon": "📱",
+  "tags": ["social-media", "automation", "posting", "login", "advanced"],
+  "complexity": "advanced",
+  "estimatedDuration": "3-7 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Go to Login Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://social-platform.com/login",
+        "waitUntil": "domcontentloaded"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "fill",
+      "label": "Enter Credentials",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "fields": {
+          "#username": "your_username",
+          "#password": "your_password"
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "click",
+      "label": "Click Login",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "selector": "button[type='submit']"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "wait",
+      "label": "Wait for Dashboard",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "type": "selector",
+        "selector": ".dashboard",
+        "timeout": 10000
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "click",
+      "label": "Click New Post",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "selector": ".create-post-button"
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "fill",
+      "label": "Write Post Content",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "fields": {
+          ".post-textarea": "Your post content here! #automation #productivity"
+        }
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "click",
+      "label": "Publish Post",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "selector": ".publish-button"
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "wait",
+      "label": "Wait for Confirmation",
+      "x": 100,
+      "y": 900,
+      "params": {
+        "type": "selector",
+        "selector": ".success-message",
+        "timeout": 5000
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "click",
+      "label": "Logout",
+      "x": 100,
+      "y": 1000,
+      "params": {
+        "selector": ".logout-button"
+      }
+    },
+    {
+      "id": "node-11",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 1100
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    },
+    {
+      "id": "conn-6",
+      "source": "node-6",
+      "target": "node-7"
+    },
+    {
+      "id": "conn-7",
+      "source": "node-7",
+      "target": "node-8"
+    },
+    {
+      "id": "conn-8",
+      "source": "node-8",
+      "target": "node-9"
+    },
+    {
+      "id": "conn-9",
+      "source": "node-9",
+      "target": "node-10"
+    },
+    {
+      "id": "conn-10",
+      "source": "node-10",
+      "target": "node-11"
+    }
+  ]
+}

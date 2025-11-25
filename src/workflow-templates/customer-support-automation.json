@@ -1,0 +1,40 @@
+{
+  "id": "customer-support-automation",
+  "name": "Customer Support Ticket Automation",
+  "description": "Automate customer support workflows. Categorizes tickets, routes to appropriate teams, sends auto-responses, escalates based on priority, and tracks resolution metrics.",
+  "category": "business-process",
+  "icon": "🎫",
+  "tags": ["business", "support", "customer-service", "automation", "ticketing"],
+  "complexity": "intermediate",
+  "estimatedDuration": "2-5 minutes per ticket",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {"id": "node-1", "type": "start", "label": "New Ticket Received", "x": 100, "y": 100},
+    {"id": "node-2", "type": "classify_ticket", "label": "Classify Using AI", "x": 100, "y": 200, "params": {"categories": ["technical", "billing", "general"], "urgency": ["low", "medium", "high", "critical"]}},
+    {"id": "node-3", "type": "check_knowledge_base", "label": "Search Knowledge Base", "x": 100, "y": 300, "params": {"similarity_threshold": 0.8}},
+    {"id": "node-4", "type": "condition", "label": "Auto-Resolvable?", "x": 100, "y": 400, "params": {"condition": "kb_match_confidence > 0.9"}},
+    {"id": "node-5", "type": "send_auto_response", "label": "Send Auto-Response", "x": 200, "y": 500, "params": {"include_kb_article": true, "request_confirmation": true}},
+    {"id": "node-6", "type": "assign_to_team", "label": "Assign to Team", "x": 50, "y": 500, "params": {"routing_rules": "category_based"}},
+    {"id": "node-7", "type": "check_sla", "label": "Check SLA", "x": 100, "y": 600, "params": {"levels": {"critical": "1h", "high": "4h", "medium": "24h", "low": "48h"}}},
+    {"id": "node-8", "type": "notify_agent", "label": "Notify Assigned Agent", "x": 100, "y": 700, "params": {"method": "email_and_slack"}},
+    {"id": "node-9", "type": "wait_for_resolution", "label": "Wait for Resolution", "x": 100, "y": 800, "params": {"timeout": "sla_deadline"}},
+    {"id": "node-10", "type": "send_satisfaction_survey", "label": "Send Survey", "x": 100, "y": 900, "params": {"template": "nps_survey"}},
+    {"id": "node-11", "type": "update_metrics", "label": "Update Metrics Dashboard", "x": 100, "y": 1000, "params": {"metrics": ["resolution_time", "first_response_time", "satisfaction_score"]}},
+    {"id": "node-12", "type": "end", "label": "End", "x": 100, "y": 1100}
+  ],
+  "connections": [
+    {"id": "conn-1", "source": "node-1", "target": "node-2"},
+    {"id": "conn-2", "source": "node-2", "target": "node-3"},
+    {"id": "conn-3", "source": "node-3", "target": "node-4"},
+    {"id": "conn-4", "source": "node-4", "target": "node-5", "label": "true"},
+    {"id": "conn-5", "source": "node-4", "target": "node-6", "label": "false"},
+    {"id": "conn-6", "source": "node-5", "target": "node-10"},
+    {"id": "conn-7", "source": "node-6", "target": "node-7"},
+    {"id": "conn-8", "source": "node-7", "target": "node-8"},
+    {"id": "conn-9", "source": "node-8", "target": "node-9"},
+    {"id": "conn-10", "source": "node-9", "target": "node-10"},
+    {"id": "conn-11", "source": "node-10", "target": "node-11"},
+    {"id": "conn-12", "source": "node-11", "target": "node-12"}
+  ]
+}

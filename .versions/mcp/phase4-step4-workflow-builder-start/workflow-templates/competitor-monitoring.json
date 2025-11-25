@@ -1,0 +1,165 @@
+{
+  "id": "competitor-monitoring",
+  "name": "Competitor Monitoring Workflow",
+  "description": "Monitor competitor websites for price changes, product launches, or content updates. Automatically detect changes and send alerts.",
+  "category": "monitoring",
+  "icon": "👀",
+  "tags": ["monitoring", "competitor", "price-tracking", "alerts"],
+  "complexity": "advanced",
+  "estimatedDuration": "8-15 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "load_previous",
+      "label": "Load Previous Snapshot",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "filename": "competitor_snapshot.json",
+        "defaultValue": {}
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "navigate",
+      "label": "Navigate to Competitor Site",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "url": "https://competitor.com/products",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "extract",
+      "label": "Extract Current Data",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "selector": ".product",
+        "multiple": true,
+        "fields": {
+          "name": ".product-name",
+          "price": ".price",
+          "availability": ".stock-status",
+          "rating": ".rating"
+        }
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "compare",
+      "label": "Detect Changes",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "previous": "{{previousSnapshot}}",
+        "current": "{{extractedData}}",
+        "compareFields": ["price", "availability"],
+        "storeAs": "changes"
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "condition",
+      "label": "Changes Detected?",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "condition": "{{changes.length > 0}}"
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "http_post",
+      "label": "Send Alert",
+      "x": 200,
+      "y": 700,
+      "params": {
+        "url": "{{env.WEBHOOK_URL}}",
+        "body": {
+          "message": "Competitor changes detected",
+          "changes": "{{changes}}",
+          "timestamp": "{{timestamp}}"
+        }
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "file_write",
+      "label": "Save New Snapshot",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "filename": "competitor_snapshot.json",
+        "data": "{{extractedData}}"
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 900
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    },
+    {
+      "id": "conn-6",
+      "source": "node-6",
+      "target": "node-7",
+      "sourceHandle": "true"
+    },
+    {
+      "id": "conn-7",
+      "source": "node-6",
+      "target": "node-8",
+      "sourceHandle": "false"
+    },
+    {
+      "id": "conn-8",
+      "source": "node-7",
+      "target": "node-8"
+    },
+    {
+      "id": "conn-9",
+      "source": "node-8",
+      "target": "node-9"
+    }
+  ]
+}

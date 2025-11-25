@@ -1,0 +1,181 @@
+{
+  "id": "load-performance-testing",
+  "name": "Load and Performance Testing",
+  "description": "Comprehensive performance testing workflow. Measures page load times, resource loading, rendering performance, and generates Lighthouse scores. Tests under different network conditions and provides optimization recommendations.",
+  "category": "testing",
+  "icon": "⚡",
+  "tags": ["testing", "performance", "load-testing", "lighthouse", "optimization"],
+  "complexity": "advanced",
+  "estimatedDuration": "20-40 minutes",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "loop_start",
+      "label": "For Each Network Profile",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "items": [
+          { "name": "Fast 3G", "download": 1600, "upload": 750, "latency": 150 },
+          { "name": "Slow 3G", "download": 400, "upload": 400, "latency": 400 },
+          { "name": "4G", "download": 4000, "upload": 3000, "latency": 20 }
+        ]
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "set_network",
+      "label": "Set Network Conditions",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "downloadThroughput": "{{loop.item.download}}",
+        "uploadThroughput": "{{loop.item.upload}}",
+        "latency": "{{loop.item.latency}}"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "navigate_with_metrics",
+      "label": "Navigate and Measure",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "url": "{{testUrl}}",
+        "waitUntil": "networkidle",
+        "collectMetrics": true
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "collect_performance",
+      "label": "Collect Performance Metrics",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "metrics": [
+          "DOMContentLoaded",
+          "FirstContentfulPaint",
+          "LargestContentfulPaint",
+          "TimeToInteractive",
+          "TotalBlockingTime",
+          "CumulativeLayoutShift",
+          "SpeedIndex"
+        ]
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "analyze_resources",
+      "label": "Analyze Resource Loading",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "categories": ["scripts", "stylesheets", "images", "fonts", "xhr"],
+        "collectSizes": true,
+        "collectTimings": true
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "run_lighthouse",
+      "label": "Run Lighthouse Audit",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "categories": ["performance", "accessibility", "best-practices", "seo"],
+        "formFactor": "desktop",
+        "throttling": "{{loop.item.name}}"
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "save_results",
+      "label": "Save Test Results",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "filename": "perf_{{loop.item.name}}_{{timestamp}}.json",
+        "format": "json"
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "loop_end",
+      "label": "End Network Loop",
+      "x": 100,
+      "y": 900
+    },
+    {
+      "id": "node-10",
+      "type": "aggregate_results",
+      "label": "Aggregate Results",
+      "x": 100,
+      "y": 1000,
+      "params": {
+        "operations": ["average", "min", "max", "median"],
+        "groupBy": "network_profile"
+      }
+    },
+    {
+      "id": "node-11",
+      "type": "generate_recommendations",
+      "label": "Generate Optimization Recommendations",
+      "x": 100,
+      "y": 1100,
+      "params": {
+        "thresholds": {
+          "LCP": 2500,
+          "FID": 100,
+          "CLS": 0.1,
+          "TTI": 3800,
+          "TBT": 300
+        }
+      }
+    },
+    {
+      "id": "node-12",
+      "type": "generate_report",
+      "label": "Generate Performance Report",
+      "x": 100,
+      "y": 1200,
+      "params": {
+        "filename": "performance_report_{{timestamp}}.html",
+        "includeCharts": true,
+        "includeLighthouseScores": true,
+        "includeRecommendations": true
+      }
+    },
+    {
+      "id": "node-13",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 1300
+    }
+  ],
+  "connections": [
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-9" },
+    { "id": "conn-9", "source": "node-9", "target": "node-2" },
+    { "id": "conn-10", "source": "node-9", "target": "node-10", "label": "complete" },
+    { "id": "conn-11", "source": "node-10", "target": "node-11" },
+    { "id": "conn-12", "source": "node-11", "target": "node-12" },
+    { "id": "conn-13", "source": "node-12", "target": "node-13" }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "agent": {
+    "name": "Wikibrarian",
+    "version": "1.0.0",
+    "schedule": "0 6 * * *",
+    "timezone": "UTC",
+    "description": "Autonomous wiki content creation and maintenance agent"
+  },
+  "content": {
+    "style": "journalistic",
+    "tone": "professional-approachable",
+    "voice": "helpful-expert",
+    "target_audience": "all-levels",
+    "article_length": {
+      "basic": "500-1000 words",
+      "intermediate": "1000-2000 words",
+      "advanced": "2000-3000 words"
+    }
+  },
+  "visuals": {
+    "diagrams_per_article": 2,
+    "tables_vs_lists_ratio": 0.5,
+    "chart_types": ["mermaid", "pie", "bar", "flow", "gantt"],
+    "screenshot_when_helpful": true
+  },
+  "wiki_tabs": [
+    {
+      "name": "Quick-Start",
+      "description": "Fast-track onboarding for new contributors",
+      "purpose": "Enable rapid contribution",
+      "complexity": "basic",
+      "category": "Onboarding"
+    },
+    {
+      "name": "Development-Guide",
+      "description": "Comprehensive development workflows and patterns",
+      "purpose": "Enable developers to build efficiently",
+      "complexity": "intermediate",
+      "category": "Development"
+    },
+    {
+      "name": "Automation-Best-Practices",
+      "description": "Automation patterns and workflow optimization",
+      "purpose": "Guide creation of robust automations",
+      "complexity": "intermediate",
+      "category": "Automation"
+    },
+    {
+      "name": "Security-Guidelines",
+      "description": "Security best practices and compliance",
+      "purpose": "Ensure secure development",
+      "complexity": "intermediate",
+      "category": "Security"
+    },
+    {
+      "name": "Chrome-Extension-Guide",
+      "description": "Complete browser automation documentation",
+      "purpose": "Document browser capabilities",
+      "complexity": "advanced",
+      "category": "Development"
+    },
+    {
+      "name": "Agent-Catalog",
+      "description": "Complete agent documentation with usage examples",
+      "purpose": "Provide searchable agent reference",
+      "complexity": "intermediate",
+      "category": "Automation"
+    },
+    {
+      "name": "Repository-Analytics",
+      "description": "Metrics and growth analytics",
+      "purpose": "Track repository progress",
+      "complexity": "intermediate",
+      "category": "Analytics"
+    },
+    {
+      "name": "Problem-Solving",
+      "description": "Common issues and solutions",
+      "purpose": "Reduce debugging time",
+      "complexity": "basic",
+      "category": "Support"
+    },
+    {
+      "name": "API-Documentation",
+      "description": "Complete API reference",
+      "purpose": "Enable API integration",
+      "complexity": "advanced",
+      "category": "Development"
+    },
+    {
+      "name": "Business-Processes",
+      "description": "Business logic and operational guidelines",
+      "purpose": "Document business processes",
+      "complexity": "intermediate",
+      "category": "Business"
+    }
+  ],
+  "complexity_rating": {
+    "auto_shuffle": true,
+    "primary_sort": "complexity",
+    "secondary_sort": "relevance",
+    "tertiary_sort": "category",
+    "levels": {
+      "basic": {
+        "symbol": "⭐",
+        "target": "Beginners, new contributors",
+        "time": "5-15 minutes"
+      },
+      "intermediate": {
+        "symbol": "⭐⭐",
+        "target": "Regular contributors",
+        "time": "15-30 minutes"
+      },
+      "advanced": {
+        "symbol": "⭐⭐⭐",
+        "target": "Expert contributors",
+        "time": "30+ minutes"
+      }
+    }
+  },
+  "mcp_container": {
+    "name": "wikibrarian-mcp",
+    "memory_persistence": true,
+    "learning_enabled": true,
+    "batch_learning": {
+      "github_docs": true,
+      "wiki_best_practices": true,
+      "efficiency_optimization": true
+    },
+    "memory_file": "agents/wikibrarian/mcp-memory.json"
+  },
+  "ai_model": {
+    "primary": "gpt-4.1-turbo",
+    "fallback": "gpt-5.1-mini",
+    "context_window": 128000,
+    "temperature": 0.7,
+    "max_tokens": 4000
+  },
+  "quality_standards": {
+    "article_structure": [
+      "Headline",
+      "Lede",
+      "Nut Graf",
+      "Body",
+      "Conclusion",
+      "Resources"
+    ],
+    "writing_principles": [
+      "Clarity",
+      "Conciseness",
+      "Accuracy",
+      "Actionability",
+      "Engagement"
+    ],
+    "minimum_quality_score": 80
+  },
+  "update_schedule": {
+    "primary": "0 6 * * *",
+    "description": "Daily at 6:00 AM UTC",
+    "coordination": {
+      "after": ["backup"],
+      "before": ["code-timeline-agent"]
+    }
+  },
+  "agentic_handoff": {
+    "enabled": true,
+    "target_agent": "wiki-artist",
+    "handoff_time": "06:45:00Z",
+    "trigger_mechanism": "mcp-signal",
+    "signal_format": {
+      "event": "content_complete",
+      "source_agent": "wikibrarian",
+      "target_agent": "wiki-artist",
+      "preserve_content": true,
+      "enhancement_priority": ["diagrams", "badges", "callouts", "tables"]
+    },
+    "completion_notification": true
+  }
+}

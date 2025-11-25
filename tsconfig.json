@@ -17,5 +17,12 @@
     "types": ["node"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/ui/**/*"
+  ]
 }

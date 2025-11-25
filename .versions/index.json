@@ -1,0 +1,46 @@
+{
+  "versions": [
+    {
+      "version": "Before Phase 4 Step 2: Starting 15 low-priority issues completion",
+      "created": "2025-11-24T21:01:58+00:00",
+      "description": "Automated version snapshot",
+      "docker_path": ".versions/docker/Before Phase 4 Step 2: Starting 15 low-priority issues completion",
+      "mcp_path": ".versions/mcp/Before Phase 4 Step 2: Starting 15 low-priority issues completion"
+    },
+    {
+      "version": "After Phase 4 Step 2: Verified all 15 issues already complete",
+      "created": "2025-11-24T21:05:33+00:00",
+      "description": "Automated version snapshot",
+      "docker_path": ".versions/docker/After Phase 4 Step 2: Verified all 15 issues already complete",
+      "mcp_path": ".versions/mcp/After Phase 4 Step 2: Verified all 15 issues already complete"
+    },
+    {
+      "version": "Before Phase 4 Step 3-8: Starting production enhancements",
+      "created": "2025-11-24T21:07:18+00:00",
+      "description": "Automated version snapshot",
+      "docker_path": ".versions/docker/Before Phase 4 Step 3-8: Starting production enhancements",
+      "mcp_path": ".versions/mcp/Before Phase 4 Step 3-8: Starting production enhancements"
+    },
+    {
+      "version": "After Phase 4 Enhancements: Added 8 production workflow templates",
+      "created": "2025-11-24T21:10:14+00:00",
+      "description": "Automated version snapshot",
+      "docker_path": ".versions/docker/After Phase 4 Enhancements: Added 8 production workflow templates",
+      "mcp_path": ".versions/mcp/After Phase 4 Enhancements: Added 8 production workflow templates"
+    },
+    {
+      "version": "Phase 4 Complete: 16 workflow templates, all infrastructure verified",
+      "created": "2025-11-24T21:11:38+00:00",
+      "description": "Automated version snapshot",
+      "docker_path": ".versions/docker/Phase 4 Complete: 16 workflow templates, all infrastructure verified",
+      "mcp_path": ".versions/mcp/Phase 4 Complete: 16 workflow templates, all infrastructure verified"
+    },
+    {
+      "version": "phase4-step4-workflow-builder-start",
+      "created": "2025-11-24T21:48:24+00:00",
+      "description": "Before Phase 4 Step 4: Workflow Builder rebuild - 30+ templates, visual builder, real-time preview",
+      "docker_path": ".versions/docker/phase4-step4-workflow-builder-start",
+      "mcp_path": ".versions/mcp/phase4-step4-workflow-builder-start"
+    }
+  ]
+}

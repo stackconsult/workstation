@@ -44,8 +44,11 @@ import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import workflowsRoutes from './routes/workflows';
 import workflowTemplatesRoutes from './routes/workflow-templates';
+import workflowRoutes from './routes/workflow-routes';
 import agentsRoutes from './routes/agents';
 import downloadsRoutes from './routes/downloads';
+import backupsRoutes from './routes/backups';
+import workflowStateRoutes from './routes/workflow-state';
 import { initializeDatabase } from './automation/db/database';
 // Context-Memory Intelligence Layer
 import { initializeContextMemory } from './intelligence/context-memory';
@@ -55,6 +58,8 @@ import {
   globalRateLimiter 
 } from './middleware/advanced-rate-limit';
 import { initializeMonitoring } from './services/monitoring';
+// Phase 4: Import backup service
+import { initializeBackupService } from './services/backup';
 
 // Validate environment configuration
 const envConfig = validateEnvironment();
@@ -68,6 +73,10 @@ async function initialize() {
     
     await initializeContextMemory();
     logger.info('Context-Memory Intelligence Layer initialized successfully');
+    
+    // Phase 4: Initialize backup service
+    initializeBackupService();
+    logger.info('Phase 4: Backup service initialized successfully');
   } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);
@@ -276,12 +285,23 @@ app.use('/api/workflows', workflowsRoutes);
 // Workflow templates routes
 app.use('/api/workflow-templates', workflowTemplatesRoutes);
 
+// Workflow execution and template routes (v2.0)
+app.use('/api/v2', workflowRoutes);
+
 // Agents management routes
 app.use('/api/agents', agentsRoutes);
 
 // Downloads routes for build artifacts
 app.use('/downloads', downloadsRoutes);
 logger.info('Downloads routes registered for build artifacts');
+
+// Phase 4: Backup management routes
+app.use('/api/backups', backupsRoutes);
+logger.info('Backup management routes registered');
+
+// Phase 4: Workflow state management routes
+app.use('/api/workflow-state', workflowStateRoutes);
+logger.info('Workflow state management routes registered');
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);
@@ -297,6 +317,9 @@ import contextMemoryRoutes from './routes/context-memory';
 app.use('/api/v2/context', contextMemoryRoutes);
 logger.info('Context-Memory Intelligence Layer routes registered');
 
+// Import WebSocket server for real-time updates
+import { workflowWebSocketServer } from './services/workflow-websocket';
+
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
 
@@ -305,7 +328,7 @@ app.use(errorHandler);
 
 // Start server only if not in test mode
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     logger.info(`Server started`, {
       port: PORT,
       environment: envConfig.nodeEnv,
@@ -315,7 +338,12 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`📍 Environment: ${envConfig.nodeEnv}`);
     console.log(`🏥 Health check: http://localhost:${PORT}/health`);
     console.log(`🔑 Demo token: http://localhost:${PORT}/auth/demo-token`);
+    console.log(`🌐 WebSocket: ws://localhost:${PORT}/ws/executions`);
   });
+  
+  // Initialize WebSocket server for real-time workflow updates
+  workflowWebSocketServer.initialize(server);
+  logger.info('WebSocket server initialized for real-time workflow updates');
 }
 
 export default app;

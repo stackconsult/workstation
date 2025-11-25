@@ -1,0 +1,24 @@
+# Versioned Docker Image: Phase 4 Complete: 16 workflow templates, all infrastructure verified
+# Created: 2025-11-24T21:11:38+00:00
+# Description: Automated version snapshot
+
+FROM node:18-alpine
+
+LABEL version="Phase 4 Complete: 16 workflow templates, all infrastructure verified"
+LABEL created="2025-11-24T21:11:38+00:00"
+LABEL description="Automated version snapshot"
+
+# Copy entire workstation codebase
+WORKDIR /workstation
+COPY . .
+
+# Install dependencies
+RUN npm install
+
+# Build application
+RUN npm run build || true
+
+# Expose ports
+EXPOSE 3000
+
+CMD ["npm", "start"]

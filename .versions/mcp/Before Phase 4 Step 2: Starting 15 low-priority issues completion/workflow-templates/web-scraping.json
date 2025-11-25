@@ -1,0 +1,87 @@
+{
+  "id": "web-scraping-basic",
+  "name": "Web Scraping Workflow",
+  "description": "Navigate to a website, extract data from the page, and save it to a file. Perfect for extracting product information, article content, or any structured data from web pages.",
+  "category": "scraping",
+  "icon": "🌐",
+  "tags": ["scraping", "extraction", "data", "basic"],
+  "complexity": "beginner",
+  "estimatedDuration": "2-5 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to Website",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "extract",
+      "label": "Extract Data",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "selector": "article.content",
+        "fields": {
+          "title": "h1",
+          "content": ".article-body",
+          "author": ".author-name"
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "file_write",
+      "label": "Save to File",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "filename": "scraped_data.json",
+        "format": "json"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 500
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    }
+  ]
+}

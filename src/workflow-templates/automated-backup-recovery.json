@@ -1,0 +1,35 @@
+{
+  "id": "automated-backup-recovery",
+  "name": "Automated Backup and Recovery",
+  "description": "Automated backup workflow for databases, files, and configurations with versioning and recovery testing. Supports multiple storage backends and automated restore validation.",
+  "category": "devops",
+  "icon": "💾",
+  "tags": ["devops", "backup", "recovery", "disaster-recovery", "automation"],
+  "complexity": "intermediate",
+  "estimatedDuration": "20-45 minutes",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {"id": "node-1", "type": "start", "label": "Start Backup", "x": 100, "y": 100},
+    {"id": "node-2", "type": "db_backup", "label": "Backup Database", "x": 100, "y": 200, "params": {"database": "{{env.DB_NAME}}", "format": "dump", "compress": true}},
+    {"id": "node-3", "type": "file_backup", "label": "Backup Files", "x": 100, "y": 300, "params": {"paths": ["/var/www", "/etc/config"], "exclude": ["*.log", "temp/*"]}},
+    {"id": "node-4", "type": "encrypt", "label": "Encrypt Backups", "x": 100, "y": 400, "params": {"algorithm": "AES-256", "key": "{{env.BACKUP_KEY}}"}},
+    {"id": "node-5", "type": "upload_s3", "label": "Upload to S3", "x": 100, "y": 500, "params": {"bucket": "{{env.BACKUP_BUCKET}}", "prefix": "backups/{{date}}"}},
+    {"id": "node-6", "type": "verify_backup", "label": "Verify Backup Integrity", "x": 100, "y": 600, "params": {"checksum": true}},
+    {"id": "node-7", "type": "cleanup_old", "label": "Cleanup Old Backups", "x": 100, "y": 700, "params": {"retentionDays": 30, "keepWeekly": 12, "keepMonthly": 6}},
+    {"id": "node-8", "type": "test_restore", "label": "Test Restore (Weekly)", "x": 100, "y": 800, "params": {"schedule": "weekly", "environment": "test"}},
+    {"id": "node-9", "type": "notify", "label": "Send Completion Notification", "x": 100, "y": 900, "params": {"channels": ["slack"], "includeStats": true}},
+    {"id": "node-10", "type": "end", "label": "End", "x": 100, "y": 1000}
+  ],
+  "connections": [
+    {"id": "conn-1", "source": "node-1", "target": "node-2"},
+    {"id": "conn-2", "source": "node-2", "target": "node-3"},
+    {"id": "conn-3", "source": "node-3", "target": "node-4"},
+    {"id": "conn-4", "source": "node-4", "target": "node-5"},
+    {"id": "conn-5", "source": "node-5", "target": "node-6"},
+    {"id": "conn-6", "source": "node-6", "target": "node-7"},
+    {"id": "conn-7", "source": "node-7", "target": "node-8"},
+    {"id": "conn-8", "source": "node-8", "target": "node-9"},
+    {"id": "conn-9", "source": "node-9", "target": "node-10"}
+  ]
+}

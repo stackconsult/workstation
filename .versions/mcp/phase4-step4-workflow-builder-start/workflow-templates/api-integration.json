@@ -1,0 +1,102 @@
+{
+  "id": "api-integration-workflow",
+  "name": "API Integration Workflow",
+  "description": "Fetch data from an external API, transform the response, and store it in your database. Perfect for integrating third-party services or syncing external data.",
+  "category": "integration",
+  "icon": "🔌",
+  "tags": ["api", "integration", "database", "rest", "intermediate"],
+  "complexity": "intermediate",
+  "estimatedDuration": "2-5 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Fetch API Data",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://api.example.com/data",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer YOUR_API_KEY"
+        }
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "json_parse",
+      "label": "Parse Response",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "selector": "body"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "json_query",
+      "label": "Transform Data",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "query": "data[*].{id: id, name: name, value: price}",
+        "operation": "map"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "database_insert",
+      "label": "Store in Database",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "table": "api_data",
+        "columns": ["id", "name", "value"],
+        "onConflict": "update"
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    }
+  ]
+}

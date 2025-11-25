@@ -1,0 +1,451 @@
+# Agent 21: Universal Automation Builder
+# Live system generator for MCP servers and automation workflows
+
+name: Agent 21 - Universal Automation Builder
+version: 1.0.0
+tier: 3
+category: Platform & Advanced
+status: active
+
+## Core Identity
+description: |
+  Agent 21 is a live, working automation system generator that creates personalized 
+  MCP servers and automation systems based on user requirements. It generates complete,
+  production-ready code (not templates or examples) through an interactive 7-question CLI.
+
+purpose: |
+  Transform user requirements into fully functional automation systems with MCP integration,
+  complete documentation, and deployment configurations. Handles ANY use case through
+  universal template system.
+
+## Capabilities
+
+primary_functions:
+  - Interactive requirement gathering via 7-question CLI
+  - Real-time MCP server generation
+  - Complete project structure creation
+  - Automatic documentation generation
+  - Deployment configuration setup
+  - Type-safe TypeScript code generation
+  - Test framework setup
+  - CI/CD workflow creation
+
+supported_features:
+  browser_automation:
+    enabled: true
+    technology: Playwright
+    use_cases:
+      - Web scraping
+      - E2E testing
+      - Form automation
+      - Page monitoring
+  
+  database_support:
+    enabled: true
+    technology: SQLite
+    use_cases:
+      - Data persistence
+      - Task queuing
+      - Analytics storage
+      - Configuration management
+  
+  file_processing:
+    enabled: true
+    formats:
+      - CSV
+      - Excel
+      - PDF
+      - JSON
+      - XML
+    operations:
+      - Read/Write
+      - Transform
+      - Validate
+      - Export
+  
+  api_integration:
+    enabled: true
+    protocols:
+      - REST
+      - GraphQL
+      - WebSocket
+    features:
+      - Request handling
+      - Response parsing
+      - Error handling
+      - Rate limiting
+  
+  email_notifications:
+    enabled: true
+    providers:
+      - SendGrid
+      - SMTP
+      - AWS SES
+    features:
+      - Template support
+      - Attachment handling
+      - Bulk sending
+  
+  scheduled_tasks:
+    enabled: true
+    technology: Cron
+    features:
+      - Recurring jobs
+      - One-time tasks
+      - Error recovery
+      - Job monitoring
+  
+  webhook_support:
+    enabled: true
+    features:
+      - Endpoint creation
+      - Signature verification
+      - Event handling
+      - Retry logic
+  
+  rest_api_server:
+    enabled: true
+    framework: Express
+    features:
+      - Route generation
+      - Middleware support
+      - Authentication
+      - Documentation
+
+supported_integrations:
+  - name: GitHub
+    features: [Repositories, Issues, PRs, Actions]
+  - name: Slack
+    features: [Messages, Webhooks, Bot API]
+  - name: Discord
+    features: [Messages, Webhooks, Commands]
+  - name: Stripe
+    features: [Payments, Subscriptions, Webhooks]
+  - name: SendGrid
+    features: [Email, Templates, Lists]
+  - name: Twilio
+    features: [SMS, Voice, WhatsApp]
+  - name: AWS
+    features: [S3, Lambda, SQS, SNS]
+  - name: Google Cloud
+    features: [Storage, Functions, Pub/Sub]
+
+## Technical Specifications
+
+implementation:
+  language: TypeScript
+  runtime: Node.js 18+
+  package_manager: npm
+  build_tool: tsc
+  
+  dependencies:
+    required:
+      - inquirer: ^9.2.12  # Interactive CLI
+      - chalk: ^4.1.2      # Terminal styling
+      - ora: ^5.4.1        # Spinner animations
+      - fs-extra: ^11.2.0  # File system utilities
+      - mustache: ^4.2.0   # Template engine
+      - js-yaml: ^4.1.0    # YAML parsing
+    
+    dev:
+      - typescript: ^5.3.3
+      - ts-node: ^10.9.2
+      - "@types/node": ^20.10.0
+      - "@types/inquirer": ^9.0.7
+      - "@types/mustache": ^4.2.5
+
+  scripts:
+    build: tsc
+    start: node dist/index.js
+    dev: ts-node src/index.ts
+    generate: ts-node src/cli.ts
+    test: jest
+
+architecture:
+  components:
+    - name: CLI Interface
+      file: src/cli.ts
+      purpose: Interactive requirement gathering
+      
+    - name: Template Engine
+      file: src/generator/template-engine.ts
+      purpose: Process templates with user data
+      
+    - name: MCP Generator
+      file: src/generator/mcp-generator.ts
+      purpose: Create MCP server structure
+      
+    - name: Builder
+      file: src/generator/builder.ts
+      purpose: Assemble complete project
+      
+    - name: Docs Generator
+      file: src/generator/docs-generator.ts
+      purpose: Generate documentation files
+      
+    - name: Main Entry
+      file: src/index.ts
+      purpose: Export public API
+
+  generation_process:
+    1_requirements:
+      step: Gather Requirements
+      method: 7-question CLI
+      questions:
+        - Project name and description
+        - Primary features needed
+        - Integration requirements
+        - Database needs
+        - Deployment target
+        - Team size
+        - Free vs BYOK preference
+    
+    2_structure:
+      step: Create Project Structure
+      creates:
+        - src/ directory with organized code
+        - tests/ directory with test setup
+        - docs/ directory with documentation
+        - examples/ directory with usage examples
+        - Root configuration files
+    
+    3_mcp_server:
+      step: Generate MCP Server
+      creates:
+        - MCP protocol implementation
+        - Tool definitions
+        - Tool handlers
+        - Type definitions
+        - Server configuration
+    
+    4_documentation:
+      step: Generate Documentation
+      creates:
+        - README.md with quick start
+        - API.md with tool reference
+        - ARCHITECTURE.md with design
+        - CONTRIBUTING.md for developers
+        - CHANGELOG.md for versions
+    
+    5_configuration:
+      step: Create Configuration
+      creates:
+        - package.json with dependencies
+        - tsconfig.json for TypeScript
+        - .gitignore with exclusions
+        - .env.example with variables
+        - .eslintrc for code quality
+    
+    6_deployment:
+      step: Setup Deployment
+      creates:
+        - GitHub Actions workflow
+        - Docker configuration (optional)
+        - Railway config (optional)
+        - Vercel config (optional)
+        - README deployment section
+
+## Output Structure
+
+generated_project:
+  structure: |
+    project-name/
+    ├── src/
+    │   ├── index.ts              # Main entry point
+    │   ├── server.ts             # MCP server implementation
+    │   ├── tools/                # Tool implementations
+    │   │   ├── tool1.ts
+    │   │   └── tool2.ts
+    │   ├── handlers/             # Request handlers
+    │   ├── utils/                # Utility functions
+    │   └── types/                # Type definitions
+    ├── tests/
+    │   ├── tools.test.ts
+    │   └── server.test.ts
+    ├── docs/
+    │   ├── README.md
+    │   ├── API.md
+    │   ├── ARCHITECTURE.md
+    │   └── CONTRIBUTING.md
+    ├── examples/
+    │   └── basic-usage.ts
+    ├── .github/
+    │   └── workflows/
+    │       └── ci.yml
+    ├── package.json
+    ├── tsconfig.json
+    ├── .gitignore
+    ├── .env.example
+    └── README.md
+
+  documentation_quality:
+    - Complete quick start guide
+    - All tools documented with examples
+    - Architecture diagrams
+    - Deployment instructions
+    - API reference
+    - Troubleshooting guide
+
+## Use Cases
+
+supported_scenarios:
+  - E-commerce Automation
+  - Data Processing & Analytics
+  - Web Scraping & Monitoring
+  - Team Collaboration Tools
+  - Content Management Systems
+  - Notification Systems
+  - Report Generation
+  - Task Management
+  - Customer Support Automation
+  - Marketing Automation
+  - CI/CD Pipeline Tools
+  - Testing Frameworks
+  - Documentation Generators
+  - Code Analysis Tools
+  - Development Utilities
+
+## Quality Standards
+
+code_generation:
+  - Type-safe TypeScript throughout
+  - ESLint configuration included
+  - Prettier for code formatting
+  - Comprehensive error handling
+  - Logging with structured data
+  - Environment variable validation
+  - Input sanitization
+  - Rate limiting (when applicable)
+  - Security best practices
+  - Performance optimization
+
+testing:
+  - Jest test framework setup
+  - Example tests included
+  - 80%+ coverage target
+  - Unit and integration tests
+  - Mocking utilities configured
+
+documentation:
+  - Clear installation steps
+  - Quick start examples
+  - API reference complete
+  - Architecture explained
+  - Contributing guidelines
+  - License information
+  - Changelog maintained
+
+## Integration Points
+
+mcp_protocol:
+  version: 1.0
+  transport: stdio
+  capabilities:
+    - tools
+    - resources
+    - prompts
+  
+  tool_format:
+    name: string
+    description: string
+    inputSchema:
+      type: object
+      properties: {}
+      required: []
+    
+workflow_integration:
+  - Can be called by other agents
+  - Generates systems that work with other MCP servers
+  - Compatible with workstation ecosystem
+  - Supports multi-agent workflows
+
+## Deployment
+
+targets:
+  - Local development (npm run dev)
+  - Docker container
+  - Railway app
+  - Vercel serverless
+  - AWS Lambda
+  - Google Cloud Functions
+  - Self-hosted server
+
+requirements:
+  - Node.js 18+
+  - npm or yarn
+  - Git (for version control)
+  - Optional: Docker (for containerization)
+
+## Success Metrics
+
+generation_speed:
+  - Complete project in under 60 seconds
+  - No manual editing required
+  - Ready to deploy immediately
+
+quality_metrics:
+  - 100% TypeScript compilation
+  - All linting rules pass
+  - Tests included and passing
+  - Documentation complete
+  - Deployment config working
+
+user_experience:
+  - Only 7 questions needed
+  - Clear progress indicators
+  - Helpful error messages
+  - Example outputs shown
+  - Next steps explained
+
+## Maintenance
+
+updates:
+  - Templates versioned
+  - Dependencies kept current
+  - Security patches applied
+  - New features added based on usage
+  - Bug fixes prioritized
+
+support:
+  - Generated projects include troubleshooting
+  - Common issues documented
+  - Example projects provided
+  - Community forum available
+
+## Future Enhancements
+
+planned_features:
+  - Web UI for generation (in addition to CLI)
+  - Pre-built template marketplace
+  - Team collaboration features
+  - Version upgrade automation
+  - Analytics dashboard
+  - A/B testing capabilities
+  - Multi-language support
+  - Custom plugin system
+
+## Notes
+
+philosophy: |
+  Agent 21 follows the "free-first, BYOK optional" philosophy. All generated
+  projects work with free, open-source tools by default. Users can optionally
+  bring their own API keys for premium services.
+
+best_practices: |
+  - Always validate user input
+  - Generate production-ready code
+  - Include comprehensive documentation
+  - Follow TypeScript best practices
+  - Implement proper error handling
+  - Use environment variables for config
+  - Create examples for all features
+  - Setup automated testing
+  - Configure CI/CD pipelines
+  - Include security measures
+
+## Contact
+
+maintainer: Workstation Team
+repository: creditXcredit/workstation
+documentation: agents/agent21/README.md
+issues: https://github.com/creditXcredit/workstation/issues

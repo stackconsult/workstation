@@ -21,12 +21,15 @@ export interface Workflow {
 }
 
 export interface WorkflowDefinition {
-  tasks: WorkflowTask[];
+  tasks?: WorkflowTask[];
+  steps?: any[]; // For template-based workflows
+  triggers?: any[];
   variables?: Record<string, unknown>;
   on_error?: 'stop' | 'continue' | 'retry';
 }
 
 export interface WorkflowTask {
+  id?: string;
   name: string;
   agent_type: string;
   action: string;

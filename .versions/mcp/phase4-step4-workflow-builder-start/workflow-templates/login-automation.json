@@ -1,0 +1,101 @@
+{
+  "id": "login-automation",
+  "name": "Login Automation Workflow",
+  "description": "Automate login to websites with username/password authentication. Handles form filling, submission, and session management.",
+  "category": "automation",
+  "icon": "🔐",
+  "tags": ["login", "authentication", "form", "session"],
+  "complexity": "beginner",
+  "estimatedDuration": "1-2 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Go to Login Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/login",
+        "waitUntil": "domcontentloaded"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "fill_form",
+      "label": "Fill Login Form",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "fields": {
+          "username": "{{env.USERNAME}}",
+          "password": "{{env.PASSWORD}}"
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "click",
+      "label": "Click Login Button",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "selector": "button[type='submit']",
+        "waitForNavigation": true
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "wait",
+      "label": "Wait for Dashboard",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "selector": ".dashboard",
+        "timeout": 5000
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    }
+  ]
+}

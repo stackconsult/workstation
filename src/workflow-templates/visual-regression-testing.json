@@ -1,0 +1,169 @@
+{
+  "id": "visual-regression-testing",
+  "name": "Visual Regression Testing",
+  "description": "Automated visual regression testing across multiple browsers and viewports. Compares screenshots against baselines, detects visual changes, and generates diff reports. Perfect for detecting UI bugs.",
+  "category": "testing",
+  "icon": "👁️",
+  "tags": ["testing", "visual", "regression", "screenshots", "qa"],
+  "complexity": "intermediate",
+  "estimatedDuration": "15-30 minutes",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "load_baselines",
+      "label": "Load Baseline Screenshots",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "baselineDir": "./baselines",
+        "createIfMissing": true
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "loop_start",
+      "label": "For Each Viewport",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "items": [
+          { "name": "desktop", "width": 1920, "height": 1080 },
+          { "name": "tablet", "width": 768, "height": 1024 },
+          { "name": "mobile", "width": 375, "height": 667 }
+        ]
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "set_viewport",
+      "label": "Set Viewport",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "width": "{{loop.item.width}}",
+        "height": "{{loop.item.height}}"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "navigate",
+      "label": "Navigate to Page",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "url": "{{testPage}}",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "wait",
+      "label": "Wait for Animations",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "duration": 2000
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "screenshot",
+      "label": "Capture Screenshot",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "filename": "current_{{loop.item.name}}_{{timestamp}}.png",
+        "fullPage": true
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "compare_images",
+      "label": "Compare with Baseline",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "current": "{{screenshot}}",
+        "baseline": "./baselines/{{loop.item.name}}.png",
+        "threshold": 0.1,
+        "outputDiff": "./diffs/{{loop.item.name}}_diff.png"
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "condition",
+      "label": "Has Changes?",
+      "x": 100,
+      "y": 900,
+      "params": {
+        "condition": "difference_percentage > threshold"
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "log_regression",
+      "label": "Log Visual Regression",
+      "x": 200,
+      "y": 1000,
+      "params": {
+        "severity": "warning",
+        "details": {
+          "viewport": "{{loop.item.name}}",
+          "difference": "{{difference_percentage}}%",
+          "diffImage": "{{diffPath}}"
+        }
+      }
+    },
+    {
+      "id": "node-11",
+      "type": "loop_end",
+      "label": "End Viewport Loop",
+      "x": 100,
+      "y": 1100
+    },
+    {
+      "id": "node-12",
+      "type": "generate_report",
+      "label": "Generate Regression Report",
+      "x": 100,
+      "y": 1200,
+      "params": {
+        "filename": "visual_regression_report_{{timestamp}}.html",
+        "includeScreenshots": true,
+        "includeDiffs": true
+      }
+    },
+    {
+      "id": "node-13",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 1300
+    }
+  ],
+  "connections": [
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-9" },
+    { "id": "conn-9", "source": "node-9", "target": "node-10", "label": "true" },
+    { "id": "conn-10", "source": "node-9", "target": "node-11", "label": "false" },
+    { "id": "conn-11", "source": "node-10", "target": "node-11" },
+    { "id": "conn-12", "source": "node-11", "target": "node-3" },
+    { "id": "conn-13", "source": "node-11", "target": "node-12", "label": "complete" },
+    { "id": "conn-14", "source": "node-12", "target": "node-13" }
+  ]
+}

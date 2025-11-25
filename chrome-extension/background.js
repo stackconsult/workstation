@@ -1,12 +1,18 @@
 /**
  * Workstation Chrome Extension - Background Service Worker
+ * v2.0.0 - Enhanced with 25+ Agent Integration, MCP Sync, and Performance Monitoring
  * Handles JWT authentication and API communication with Workstation backend
- * Enhanced with Playwright execution capabilities and auto-connect
- * Enhanced with Playwright execution capabilities and full backend integration
+ * Enterprise-grade browser automation with connection pooling and health monitoring
  */
 
 // Import API Bridge
 import { getAPIBridge } from './api-bridge.js';
+
+// Import Agent Registry
+import agentRegistry from './agent-registry.js';
+
+// Import MCP Sync Manager
+import { mcpSyncManager } from './mcp-sync-manager.js';
 
 // Import Playwright execution engine
 import { PlaywrightExecution } from './playwright/execution.js';
@@ -15,6 +21,8 @@ import { PlaywrightNetworkMonitor } from './playwright/network.js';
 import { SelfHealingSelectors } from './playwright/self-healing.js';
 import { AgenticContextLearner } from './playwright/context-learning.js';
 import { AgenticNetworkMonitor } from './playwright/agentic-network.js';
+import { connectionPool } from './playwright/connection-pool.js';
+import { performanceMonitor } from './playwright/performance-monitor.js';
 
 let workstationToken = '';
 let backendUrl = 'http://localhost:3000';
@@ -42,7 +50,39 @@ agenticContextLearner.initialize().then(() => {
   console.error('❌ Failed to initialize context learner:', error);
 });
 
-console.log('🚀 Workstation extension with full backend integration initialized');
+// Initialize Agent Registry
+agentRegistry.initialize(backendUrl).then((result) => {
+  console.log(`🤖 Agent Registry initialized: ${result.count} agents (${result.mode} mode)`);
+  if (result.mode === 'discovered') {
+    console.log('✅ Agents:', result.agents.join(', '));
+  }
+}).catch((error) => {
+  console.error('❌ Failed to initialize agent registry:', error);
+});
+
+// Initialize MCP Sync Manager
+mcpSyncManager.initialize().then(() => {
+  console.log('🔄 MCP Sync Manager initialized');
+}).catch((error) => {
+  console.error('❌ Failed to initialize MCP sync:', error);
+});
+
+// Log performance and connection pool stats
+setInterval(() => {
+  const perfStats = performanceMonitor.getSummary();
+  const poolStats = connectionPool.getStats();
+  const agentStats = agentRegistry.getStats();
+  const syncStats = mcpSyncManager.getStats();
+  
+  console.log('📊 System Stats:', {
+    performance: `${perfStats.successRate.toFixed(1)}% success, ${perfStats.completedOperations} ops`,
+    connections: `${poolStats.inUseConnections}/${poolStats.totalConnections} in use`,
+    agents: `${agentStats.totalAgents} total, ${agentStats.systemHealth.healthyAgents} healthy`,
+    sync: `${syncStats.syncedEntries}/${syncStats.totalEntries} synced, ${syncStats.pendingSync} pending`
+  });
+}, 60000); // Log every minute
+
+console.log('🚀 Workstation extension v2.0.0 with 25+ agents and MCP sync initialized');
 
 // Auto-connect functionality
 async function autoConnectToBackend() {
@@ -385,6 +425,120 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       sendResponse({ success: false, error: 'API bridge not initialized' });
     }
+    return true;
+  }
+
+  // ========== Agent Registry ==========
+  if (request.action === 'getAgentRegistry') {
+    sendResponse({
+      success: true,
+      agents: agentRegistry.getAllAgents(),
+      stats: agentRegistry.getStats()
+    });
+    return true;
+  }
+
+  if (request.action === 'getAgentsByType') {
+    sendResponse({
+      success: true,
+      agents: agentRegistry.getAgentsByType(request.agentType)
+    });
+    return true;
+  }
+
+  if (request.action === 'searchAgents') {
+    sendResponse({
+      success: true,
+      agents: agentRegistry.searchAgents(request.query)
+    });
+    return true;
+  }
+
+  if (request.action === 'getAgentHealth') {
+    sendResponse({
+      success: true,
+      health: agentRegistry.getAgentHealth(request.agentId)
+    });
+    return true;
+  }
+
+  if (request.action === 'getSystemHealth') {
+    sendResponse({
+      success: true,
+      health: agentRegistry.getSystemHealth()
+    });
+    return true;
+  }
+
+  // ========== MCP Sync ==========
+  if (request.action === 'mcpSync') {
+    mcpSyncManager.handleIncomingSync(
+      request.key,
+      request.value,
+      request.timestamp,
+      request.source
+    ).then(sendResponse).catch(error => {
+      sendResponse({ success: false, error: error.message });
+    });
+    return true;
+  }
+
+  if (request.action === 'mcpSyncNow') {
+    mcpSyncManager.syncNow().then(sendResponse).catch(error => {
+      sendResponse({ success: false, error: error.message });
+    });
+    return true;
+  }
+
+  if (request.action === 'getMCPSyncStats') {
+    sendResponse({
+      success: true,
+      stats: mcpSyncManager.getStats()
+    });
+    return true;
+  }
+
+  if (request.action === 'getMCPConflicts') {
+    sendResponse({
+      success: true,
+      conflicts: mcpSyncManager.getConflicts()
+    });
+    return true;
+  }
+
+  if (request.action === 'resolveMCPConflict') {
+    mcpSyncManager.resolveConflict(request.conflictId, request.resolution).then(sendResponse).catch(error => {
+      sendResponse({ success: false, error: error.message });
+    });
+    return true;
+  }
+
+  // ========== Performance Monitoring ==========
+  if (request.action === 'getPerformanceStats') {
+    sendResponse({
+      success: true,
+      summary: performanceMonitor.getSummary(),
+      insights: performanceMonitor.getInsights(),
+      health: performanceMonitor.getHealthStatus()
+    });
+    return true;
+  }
+
+  if (request.action === 'getPerformanceAlerts') {
+    sendResponse({
+      success: true,
+      alerts: performanceMonitor.getAlerts(request.count || 10)
+    });
+    return true;
+  }
+
+  // ========== Connection Pool ==========
+  if (request.action === 'getConnectionPoolStats') {
+    sendResponse({
+      success: true,
+      stats: connectionPool.getStats(),
+      health: connectionPool.healthCheck()
+    });
     return true;
   }
 });

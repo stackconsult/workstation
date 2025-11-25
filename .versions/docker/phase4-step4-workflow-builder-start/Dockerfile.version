@@ -1,0 +1,24 @@
+# Versioned Docker Image: phase4-step4-workflow-builder-start
+# Created: 2025-11-24T21:48:24+00:00
+# Description: Before Phase 4 Step 4: Workflow Builder rebuild - 30+ templates, visual builder, real-time preview
+
+FROM node:18-alpine
+
+LABEL version="phase4-step4-workflow-builder-start"
+LABEL created="2025-11-24T21:48:24+00:00"
+LABEL description="Before Phase 4 Step 4: Workflow Builder rebuild - 30+ templates, visual builder, real-time preview"
+
+# Copy entire workstation codebase
+WORKDIR /workstation
+COPY . .
+
+# Install dependencies
+RUN npm install
+
+# Build application
+RUN npm run build || true
+
+# Expose ports
+EXPOSE 3000
+
+CMD ["npm", "start"]

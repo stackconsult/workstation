@@ -1,0 +1,102 @@
+{
+  "id": "form-automation-basic",
+  "name": "Form Automation Workflow",
+  "description": "Navigate to a website, fill out a form with data, submit it, and wait for confirmation. Ideal for automating repetitive form submissions, data entry, or registration processes.",
+  "category": "automation",
+  "icon": "📝",
+  "tags": ["automation", "forms", "data-entry", "basic"],
+  "complexity": "beginner",
+  "estimatedDuration": "1-3 minutes",
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to Form",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/contact",
+        "waitUntil": "domcontentloaded"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "fill",
+      "label": "Fill Form Fields",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "fields": {
+          "#name": "John Doe",
+          "#email": "john@example.com",
+          "#message": "Hello from automation!"
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "click",
+      "label": "Submit Form",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "selector": "button[type='submit']"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "wait",
+      "label": "Wait for Confirmation",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "type": "selector",
+        "selector": ".success-message",
+        "timeout": 5000
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    }
+  ]
+}

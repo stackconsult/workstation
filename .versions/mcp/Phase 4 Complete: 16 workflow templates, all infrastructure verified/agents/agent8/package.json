@@ -1,0 +1,29 @@
+{
+  "name": "agent8-auditor",
+  "version": "1.0.0",
+  "description": "Agent 8: Error Assessment & Documentation Auditor",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "assess": "node dist/assessment-engine.js",
+    "report": "node dist/generate-report.js",
+    "dev": "ts-node src/assessment-engine.ts"
+  },
+  "keywords": [
+    "agent8",
+    "assessment",
+    "auditor",
+    "documentation"
+  ],
+  "author": "stackconsult",
+  "license": "ISC",
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.19.25",
+    "js-yaml": "^4.1.1",
+    "typescript": "^5.3.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "id": "e2e-testing-automation",
+  "name": "End-to-End Testing Automation",
+  "description": "Comprehensive E2E testing workflow for web applications. Covers user journeys, form validations, API interactions, and visual regression testing. Generates detailed test reports with screenshots and performance metrics.",
+  "category": "testing",
+  "icon": "🧪",
+  "tags": ["testing", "e2e", "qa", "automation", "validation"],
+  "complexity": "intermediate",
+  "estimatedDuration": "10-20 minutes",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start Test Suite",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "test_setup",
+      "label": "Initialize Test Environment",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "clearCache": true,
+        "viewport": { "width": 1920, "height": 1080 },
+        "userAgent": "Mozilla/5.0 (Test Runner)"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "navigate",
+      "label": "Navigate to Application",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "url": "https://example.com",
+        "waitUntil": "load"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "screenshot",
+      "label": "Baseline Screenshot",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "filename": "baseline_{{timestamp}}.png",
+        "fullPage": true
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "test_group",
+      "label": "Run Navigation Tests",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "tests": [
+          {
+            "name": "Home Page Load",
+            "assertions": [
+              { "type": "element_exists", "selector": "header" },
+              { "type": "element_visible", "selector": ".main-content" },
+              { "type": "title_contains", "value": "Home" }
+            ]
+          },
+          {
+            "name": "Navigation Links",
+            "assertions": [
+              { "type": "element_count", "selector": "nav a", "expected": 5 },
+              { "type": "all_links_valid", "selector": "nav a" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "test_group",
+      "label": "Run Form Tests",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "tests": [
+          {
+            "name": "Contact Form Validation",
+            "steps": [
+              { "action": "click", "selector": "a[href='/contact']" },
+              { "action": "fill", "selector": "input[name='email']", "value": "invalid" },
+              { "action": "click", "selector": "button[type='submit']" },
+              { "assertion": "element_visible", "selector": ".error-message" }
+            ]
+          },
+          {
+            "name": "Valid Form Submission",
+            "steps": [
+              { "action": "fill", "selector": "input[name='name']", "value": "Test User" },
+              { "action": "fill", "selector": "input[name='email']", "value": "test@example.com" },
+              { "action": "fill", "selector": "textarea[name='message']", "value": "Test message" },
+              { "action": "click", "selector": "button[type='submit']" },
+              { "assertion": "element_visible", "selector": ".success-message" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "test_group",
+      "label": "Run Performance Tests",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "tests": [
+          {
+            "name": "Page Load Performance",
+            "metrics": [
+              { "name": "DOMContentLoaded", "maxMs": 2000 },
+              { "name": "FullyLoaded", "maxMs": 5000 },
+              { "name": "FirstContentfulPaint", "maxMs": 1500 }
+            ]
+          },
+          {
+            "name": "Resource Loading",
+            "assertions": [
+              { "type": "max_requests", "value": 50 },
+              { "type": "max_transfer_size", "value": 5242880 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "test_group",
+      "label": "Run Accessibility Tests",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "tests": [
+          {
+            "name": "WCAG 2.1 AA Compliance",
+            "standard": "WCAG21AA",
+            "rules": ["color-contrast", "alt-text", "form-labels", "heading-order"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "screenshot",
+      "label": "Final Screenshot",
+      "x": 100,
+      "y": 900,
+      "params": {
+        "filename": "final_{{timestamp}}.png",
+        "fullPage": true
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "generate_report",
+      "label": "Generate Test Report",
+      "x": 100,
+      "y": 1000,
+      "params": {
+        "format": "html",
+        "filename": "test_report_{{timestamp}}.html",
+        "includeScreenshots": true,
+        "includeMetrics": true,
+        "sendEmail": true,
+        "emailTo": "qa-team@example.com"
+      }
+    },
+    {
+      "id": "node-11",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 1100
+    }
+  ],
+  "connections": [
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-9" },
+    { "id": "conn-9", "source": "node-9", "target": "node-10" },
+    { "id": "conn-10", "source": "node-10", "target": "node-11" }
+  ]
+}

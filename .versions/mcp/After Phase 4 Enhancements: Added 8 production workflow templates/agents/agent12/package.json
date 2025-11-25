@@ -1,0 +1,17 @@
+{
+  "name": "agent12-qa-intelligence",
+  "version": "1.0.0",
+  "description": "Agent 12: Quality Assurance & Intelligence Tracker",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "qa": "node dist/qa-engine.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@types/node": "^20.19.25"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.2"
+  }
+}

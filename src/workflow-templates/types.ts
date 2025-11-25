@@ -24,7 +24,7 @@ export interface WorkflowTemplate {
   id: string;
   name: string;
   description: string;
-  category: 'scraping' | 'automation' | 'data-processing' | 'integration' | 'monitoring' | 'ecommerce' | 'social-media' | 'reporting';
+  category: 'scraping' | 'automation' | 'data-processing' | 'integration' | 'monitoring' | 'ecommerce' | 'social-media' | 'reporting' | 'testing' | 'devops' | 'business-process';
   icon?: string;
   thumbnail?: string;
   tags: string[];

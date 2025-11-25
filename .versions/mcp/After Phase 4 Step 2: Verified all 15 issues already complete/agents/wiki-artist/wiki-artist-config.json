@@ -1,0 +1,223 @@
+{
+  "agentName": "Wiki-Artist",
+  "version": "1.0.0",
+  "purpose": "Visual design enhancement for GitHub repositories and wikis",
+  "mcpContainer": "wiki-artist-mcp",
+  
+  "agenticHandoff": {
+    "enabled": true,
+    "sourceAgent": "wikibrarian",
+    "handoffTime": "06:45:00Z",
+    "triggerMechanism": "mcp-signal",
+    "preserveContent": true,
+    "priority": ["diagrams", "badges", "callouts", "tables"]
+  },
+  
+  "designSettings": {
+    "style": "professional",
+    "theme": "github-compatible",
+    "diagramEngine": "mermaid",
+    "badgeProvider": "shields.io",
+    "colorPalette": "github-default",
+    "typography": "system-ui",
+    "iconSet": "octicons"
+  },
+  
+  "enhancementRules": {
+    "maxBadgesPerPage": 8,
+    "diagramsPerSection": 2,
+    "tableEnhancement": true,
+    "calloutBoxes": true,
+    "emojiUsage": "moderate",
+    "codeBlockStyling": true,
+    "collapsibleSections": true,
+    "heroSections": true
+  },
+  
+  "contentPreservation": {
+    "critical": true,
+    "validation": "strict",
+    "preCommitChecks": [
+      "word-diff",
+      "text-extraction",
+      "link-verification",
+      "code-block-integrity",
+      "heading-structure"
+    ]
+  },
+  
+  "visualEnhancements": {
+    "badges": {
+      "enabled": true,
+      "style": "flat-square",
+      "provider": "shields.io",
+      "types": ["status", "version", "build", "coverage", "license", "technology"]
+    },
+    "diagrams": {
+      "enabled": true,
+      "engine": "mermaid",
+      "types": ["flowchart", "sequence", "gantt", "pie", "architecture"],
+      "theme": "default",
+      "maxNodesPerDiagram": 10
+    },
+    "callouts": {
+      "enabled": true,
+      "types": {
+        "note": "ℹ️",
+        "warning": "⚠️",
+        "tip": "💡",
+        "important": "❗"
+      }
+    },
+    "tables": {
+      "enabled": true,
+      "emojiHeaders": true,
+      "centerAlign": ["status", "icon"],
+      "leftAlign": ["description", "text"],
+      "rightAlign": ["number", "percentage"]
+    },
+    "collapsible": {
+      "enabled": true,
+      "useFor": ["code-examples", "detailed-explanations", "troubleshooting", "advanced-config"]
+    }
+  },
+  
+  "colorPalette": {
+    "primary": {
+      "githubBlue": "#0366d6",
+      "successGreen": "#28a745",
+      "warningYellow": "#ffd33d",
+      "dangerRed": "#d73a49",
+      "infoBlue": "#0366d6",
+      "neutralGray": "#586069"
+    },
+    "darkTheme": {
+      "background": "#0d1117",
+      "text": "#c9d1d9",
+      "border": "#30363d"
+    },
+    "lightTheme": {
+      "background": "#ffffff",
+      "text": "#24292f",
+      "border": "#d0d7de"
+    }
+  },
+  
+  "accessibility": {
+    "wcagCompliance": "AA",
+    "minContrastRatio": 4.5,
+    "colorBlindSafe": true,
+    "screenReaderFriendly": true,
+    "keyboardNavigable": true
+  },
+  
+  "freeDependencies": {
+    "badges": ["shields.io", "badgen.net"],
+    "icons": ["octicons", "font-awesome-free", "material-design-icons", "simple-icons"],
+    "diagrams": ["mermaid", "plantuml", "graphviz"],
+    "imageOptimization": ["imageoptim", "tinypng", "svgo"]
+  },
+  
+  "qualityAssurance": {
+    "preCommitValidation": true,
+    "checks": [
+      "content-preservation",
+      "diagram-rendering",
+      "badge-display",
+      "mobile-responsiveness",
+      "accessibility-audit",
+      "link-verification"
+    ],
+    "tools": [
+      "git diff --word-diff",
+      "mermaid-cli validate",
+      "markdown-link-check",
+      "markdownlint",
+      "pa11y-ci"
+    ]
+  },
+  
+  "mcpContainerConfig": {
+    "name": "wiki-artist-mcp",
+    "persistence": true,
+    "tracked": {
+      "designHistory": true,
+      "styleGuidelines": true,
+      "collaborationLog": true,
+      "learningData": true
+    },
+    "learning": {
+      "designPatternAnalysis": true,
+      "visualHierarchyOptimization": true,
+      "accessibilityImprovements": true,
+      "crossWikiConsistency": true,
+      "trendAdaptation": true
+    }
+  },
+  
+  "schedule": {
+    "dailyRun": "06:46:00Z",
+    "duration": "13 minutes",
+    "completeBy": "06:59:00Z",
+    "timezone": "UTC"
+  },
+  
+  "workflow": {
+    "steps": [
+      {
+        "time": "06:46",
+        "action": "Receive handoff from Wikibrarian"
+      },
+      {
+        "time": "06:47",
+        "action": "Load MCP container memory"
+      },
+      {
+        "time": "06:48",
+        "action": "Read completed wiki pages"
+      },
+      {
+        "time": "06:49",
+        "action": "Analyze content structure"
+      },
+      {
+        "time": "06:50",
+        "action": "Plan visual enhancements"
+      },
+      {
+        "time": "06:51",
+        "action": "Generate Mermaid diagrams"
+      },
+      {
+        "time": "06:53",
+        "action": "Add badges and callouts"
+      },
+      {
+        "time": "06:55",
+        "action": "Enhance tables and lists"
+      },
+      {
+        "time": "06:57",
+        "action": "Validate content preservation"
+      },
+      {
+        "time": "06:58",
+        "action": "Commit visual improvements"
+      },
+      {
+        "time": "06:59",
+        "action": "Update MCP container, complete"
+      }
+    ]
+  },
+  
+  "successMetrics": {
+    "contentPreservation": "100%",
+    "visualEnhancement": "80%+",
+    "diagramCoverage": "1-2 per page",
+    "badgeConsistency": "uniform",
+    "accessibility": "WCAG 2.1 AA",
+    "mobileFriendly": "responsive",
+    "loadTime": "<2s on 3G"
+  }
+}

@@ -1,0 +1,63 @@
+[
+  {
+    "timestamp": "2025-11-15T07:22:41.644Z",
+    "week": 45,
+    "optimizations": [
+      {
+        "finding_id": "EH-01",
+        "file": "src/index.ts:74, src/auth/jwt.ts:45",
+        "type": "error_handling",
+        "description": "Logged for manual review: Async functions should have proper error handling",
+        "before": "Async functions should have proper error handling",
+        "after": "Requires manual implementation with proper error context",
+        "reason": "Error handling patterns vary by context and require human judgment"
+      },
+      {
+        "finding_id": "CQ-03",
+        "file": "src/index.ts:12",
+        "type": "refactor",
+        "description": "Hardcoded values identified: Hardcoded values found in source files",
+        "before": "Hardcoded values in source",
+        "after": "Logged for extraction to configuration",
+        "reason": "Configuration extraction requires context about deployment patterns"
+      },
+      {
+        "finding_id": "CQ-01",
+        "file": "src/index.ts",
+        "type": "refactor",
+        "description": "Long function identified for refactoring",
+        "before": "executeWorkflow (58 lines)",
+        "after": "Marked for manual refactoring",
+        "reason": "Automated refactoring risks logic changes - flagged for developer review"
+      },
+      {
+        "finding_id": "DOC-01",
+        "file": "src/auth/jwt.ts:generateToken, src/auth/jwt.ts:verifyToken",
+        "type": "documentation",
+        "description": "Documentation gap: Public functions missing JSDoc comments",
+        "before": "Missing or incomplete documentation",
+        "after": "Logged for documentation update",
+        "reason": "Documentation requires domain knowledge and context"
+      },
+      {
+        "finding_id": "PERF-01",
+        "file": "src/middleware/validation.ts",
+        "type": "performance",
+        "description": "Performance issue: Potential performance bottlenecks identified",
+        "before": "Potential performance bottleneck",
+        "after": "Logged for performance optimization",
+        "reason": "Performance improvements require profiling and testing"
+      }
+    ],
+    "summary": {
+      "total_optimizations": 5,
+      "by_type": {
+        "error_handling": 1,
+        "refactor": 2,
+        "documentation": 1,
+        "performance": 1
+      },
+      "files_modified": 5
+    }
+  }
+]

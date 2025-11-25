@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Workstation AI Agent",
-  "version": "1.0.0",
-  "description": "Control browser automation with natural language",
+  "version": "2.0.0",
+  "description": "Enterprise browser automation with 25+ AI agents and MCP sync",
   "permissions": [
     "activeTab",
     "storage",
@@ -42,6 +42,8 @@
       "resources": [
         "injected-styles.css",
         "api-bridge.js",
+        "agent-registry.js",
+        "mcp-sync-manager.js",
         "playwright/auto-wait.js",
         "playwright/network.js",
         "playwright/retry.js",
@@ -50,7 +52,9 @@
         "playwright/form-filling.js",
         "playwright/trace-recorder.js",
         "playwright/agentic-network.js",
-        "playwright/context-learning.js"
+        "playwright/context-learning.js",
+        "playwright/connection-pool.js",
+        "playwright/performance-monitor.js"
       ],
       "matches": ["<all_urls>"]
     }

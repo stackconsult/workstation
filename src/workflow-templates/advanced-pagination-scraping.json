@@ -1,0 +1,191 @@
+{
+  "id": "advanced-pagination-scraping",
+  "name": "Advanced Pagination Web Scraping",
+  "description": "Automatically scrape data from multi-page websites with intelligent pagination detection. Handles dynamic loading, infinite scroll, and numbered pagination. Includes data deduplication and incremental updates.",
+  "category": "scraping",
+  "icon": "🔄",
+  "tags": ["scraping", "pagination", "advanced", "dynamic-content", "deduplication"],
+  "complexity": "advanced",
+  "estimatedDuration": "10-30 minutes",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to First Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/products?page=1",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "detect_pagination",
+      "label": "Detect Pagination Type",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "strategies": ["numbered", "next_button", "infinite_scroll", "load_more"],
+        "maxPages": 100,
+        "paginationSelectors": {
+          "next": "a.next, button.next, [aria-label*='next']",
+          "pageNumbers": ".pagination a, .page-numbers a",
+          "loadMore": "button.load-more, a.load-more"
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "loop_start",
+      "label": "Start Page Loop",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "maxIterations": 100,
+        "continueWhile": "has_next_page"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "wait_dynamic",
+      "label": "Wait for Content Load",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "selector": ".product-item, .listing-item",
+        "timeout": 10000,
+        "minCount": 1
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "extract",
+      "label": "Extract Page Data",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "selector": ".product-item",
+        "multiple": true,
+        "fields": {
+          "id": "[data-product-id]",
+          "title": "h3.product-title",
+          "price": ".price",
+          "image": "img.product-image@src",
+          "url": "a.product-link@href",
+          "rating": ".rating@data-rating",
+          "availability": ".stock-status"
+        }
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "deduplicate",
+      "label": "Remove Duplicates",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "uniqueKey": "id",
+        "strategy": "keep_first"
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "condition",
+      "label": "Check if More Pages",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "condition": "has_next_page && current_page < max_pages"
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "navigate_next",
+      "label": "Navigate to Next Page",
+      "x": 100,
+      "y": 900,
+      "params": {
+        "method": "auto",
+        "waitAfter": 2000
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "loop_end",
+      "label": "End Page Loop",
+      "x": 100,
+      "y": 1000
+    },
+    {
+      "id": "node-11",
+      "type": "transform",
+      "label": "Clean and Validate Data",
+      "x": 100,
+      "y": 1100,
+      "params": {
+        "operations": [
+          {
+            "type": "trim_whitespace",
+            "fields": ["title", "availability"]
+          },
+          {
+            "type": "parse_currency",
+            "field": "price"
+          },
+          {
+            "type": "validate_url",
+            "field": "url"
+          },
+          {
+            "type": "parse_number",
+            "field": "rating"
+          }
+        ]
+      }
+    },
+    {
+      "id": "node-12",
+      "type": "file_write",
+      "label": "Save Results",
+      "x": 100,
+      "y": 1200,
+      "params": {
+        "filename": "scraped_products_{{timestamp}}.json",
+        "format": "json",
+        "append": false
+      }
+    },
+    {
+      "id": "node-13",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 1300
+    }
+  ],
+  "connections": [
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-9", "label": "true" },
+    { "id": "conn-9", "source": "node-9", "target": "node-10" },
+    { "id": "conn-10", "source": "node-10", "target": "node-5" },
+    { "id": "conn-11", "source": "node-8", "target": "node-11", "label": "false" },
+    { "id": "conn-12", "source": "node-11", "target": "node-12" },
+    { "id": "conn-13", "source": "node-12", "target": "node-13" }
+  ]
+}

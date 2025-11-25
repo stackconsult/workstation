@@ -1,0 +1,42 @@
+{
+  "id": "ml-model-training-pipeline",
+  "name": "ML Model Training Pipeline",
+  "description": "End-to-end machine learning pipeline. Prepares datasets, trains models, validates performance, deploys to production, and monitors model drift. Includes A/B testing and rollback capabilities.",
+  "category": "data-processing",
+  "icon": "🤖",
+  "tags": ["ml", "ai", "training", "deployment", "mlops"],
+  "complexity": "advanced",
+  "estimatedDuration": "1-4 hours",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {"id": "node-1", "type": "start", "label": "Start Training Pipeline", "x": 100, "y": 100},
+    {"id": "node-2", "type": "load_dataset", "label": "Load Training Data", "x": 100, "y": 200, "params": {"source": "s3://ml-data/training/", "format": "parquet"}},
+    {"id": "node-3", "type": "feature_engineering", "label": "Feature Engineering", "x": 100, "y": 300, "params": {"operations": ["scaling", "encoding", "feature_selection"]}},
+    {"id": "node-4", "type": "split_data", "label": "Train/Val/Test Split", "x": 100, "y": 400, "params": {"ratios": [0.7, 0.15, 0.15], "stratify": true}},
+    {"id": "node-5", "type": "train_model", "label": "Train Model", "x": 100, "y": 500, "params": {"algorithm": "xgboost", "hyperparameters": {"max_depth": 10, "learning_rate": 0.1}}},
+    {"id": "node-6", "type": "evaluate_model", "label": "Evaluate on Validation Set", "x": 100, "y": 600, "params": {"metrics": ["accuracy", "precision", "recall", "f1", "auc"]}},
+    {"id": "node-7", "type": "condition", "label": "Performance Acceptable?", "x": 100, "y": 700, "params": {"condition": "auc > 0.85 && f1 > 0.80"}},
+    {"id": "node-8", "type": "hyperparameter_tuning", "label": "Hyperparameter Tuning", "x": 50, "y": 800, "params": {"method": "bayesian", "trials": 50}},
+    {"id": "node-9", "type": "test_model", "label": "Test on Hold-out Set", "x": 200, "y": 800, "params": {"generateReport": true}},
+    {"id": "node-10", "type": "version_model", "label": "Version and Register Model", "x": 200, "y": 900, "params": {"registry": "mlflow", "tags": {"environment": "production"}}},
+    {"id": "node-11", "type": "deploy_model", "label": "Deploy to Production", "x": 200, "y": 1000, "params": {"strategy": "canary", "traffic": "10%"}},
+    {"id": "node-12", "type": "setup_monitoring", "label": "Setup Model Monitoring", "x": 200, "y": 1100, "params": {"metrics": ["prediction_latency", "drift_score", "data_quality"]}},
+    {"id": "node-13", "type": "end", "label": "End", "x": 150, "y": 1200}
+  ],
+  "connections": [
+    {"id": "conn-1", "source": "node-1", "target": "node-2"},
+    {"id": "conn-2", "source": "node-2", "target": "node-3"},
+    {"id": "conn-3", "source": "node-3", "target": "node-4"},
+    {"id": "conn-4", "source": "node-4", "target": "node-5"},
+    {"id": "conn-5", "source": "node-5", "target": "node-6"},
+    {"id": "conn-6", "source": "node-6", "target": "node-7"},
+    {"id": "conn-7", "source": "node-7", "target": "node-8", "label": "false"},
+    {"id": "conn-8", "source": "node-7", "target": "node-9", "label": "true"},
+    {"id": "conn-9", "source": "node-8", "target": "node-5"},
+    {"id": "conn-10", "source": "node-9", "target": "node-10"},
+    {"id": "conn-11", "source": "node-10", "target": "node-11"},
+    {"id": "conn-12", "source": "node-11", "target": "node-12"},
+    {"id": "conn-13", "source": "node-12", "target": "node-13"}
+  ]
+}

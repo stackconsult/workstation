@@ -1,0 +1,101 @@
+{
+  "id": "email-automation",
+  "name": "Email Automation Workflow",
+  "description": "Automatically collect email addresses from a website, validate them, and export to CSV. Ideal for lead generation and contact list building.",
+  "category": "automation",
+  "icon": "📧",
+  "tags": ["email", "automation", "leads", "csv"],
+  "complexity": "intermediate",
+  "estimatedDuration": "5-10 minutes",
+  "createdAt": "2025-11-24T21:10:00Z",
+  "updatedAt": "2025-11-24T21:10:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to Contact Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/contact",
+        "waitUntil": "load"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "extract",
+      "label": "Extract Emails",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "selector": "a[href^='mailto:']",
+        "attribute": "href",
+        "transform": "removePrefix:mailto:"
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "validate",
+      "label": "Validate Email Format",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "field": "email",
+        "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "file_write",
+      "label": "Export to CSV",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "filename": "email_list.csv",
+        "format": "csv",
+        "headers": ["email", "source_url", "extracted_at"]
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 600
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "source": "node-1",
+      "target": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "source": "node-2",
+      "target": "node-3"
+    },
+    {
+      "id": "conn-3",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "conn-4",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "conn-5",
+      "source": "node-5",
+      "target": "node-6"
+    }
+  ]
+}

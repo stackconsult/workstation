@@ -1,0 +1,166 @@
+{
+  "id": "authenticated-scraping",
+  "name": "Authenticated Web Scraping",
+  "description": "Scrape data from websites requiring authentication. Handles login flows, session management, cookie persistence, and multi-step authentication including 2FA. Supports OAuth, form-based, and token-based authentication.",
+  "category": "scraping",
+  "icon": "🔐",
+  "tags": ["scraping", "authentication", "login", "session", "advanced"],
+  "complexity": "advanced",
+  "estimatedDuration": "5-15 minutes",
+  "createdAt": "2025-11-24T00:00:00Z",
+  "updatedAt": "2025-11-24T00:00:00Z",
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "navigate",
+      "label": "Navigate to Login Page",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "https://example.com/login",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "fill_form",
+      "label": "Fill Login Form",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "fields": {
+          "username": {
+            "selector": "input[name='username'], input[type='email']",
+            "value": "{{env.USERNAME}}"
+          },
+          "password": {
+            "selector": "input[name='password'], input[type='password']",
+            "value": "{{env.PASSWORD}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "click",
+      "label": "Click Login Button",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "selector": "button[type='submit'], input[type='submit'], .login-button",
+        "waitForNavigation": true
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "wait_condition",
+      "label": "Wait for Login Success",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "conditions": [
+          {
+            "type": "url_contains",
+            "value": "dashboard"
+          },
+          {
+            "type": "element_visible",
+            "selector": ".user-profile, .logout-button"
+          }
+        ],
+        "timeout": 15000
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "save_cookies",
+      "label": "Save Session Cookies",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "filename": "session_cookies.json",
+        "encrypt": true
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "navigate",
+      "label": "Navigate to Target Page",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "url": "https://example.com/protected-data",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "extract",
+      "label": "Extract Protected Data",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "selector": ".data-container",
+        "fields": {
+          "records": {
+            "selector": ".record-item",
+            "multiple": true,
+            "fields": {
+              "id": "[data-id]",
+              "value": ".value",
+              "timestamp": ".timestamp"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "file_write",
+      "label": "Save Scraped Data",
+      "x": 100,
+      "y": 900,
+      "params": {
+        "filename": "protected_data_{{timestamp}}.json",
+        "format": "json"
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "navigate",
+      "label": "Logout",
+      "x": 100,
+      "y": 1000,
+      "params": {
+        "url": "https://example.com/logout",
+        "waitUntil": "networkidle"
+      }
+    },
+    {
+      "id": "node-11",
+      "type": "end",
+      "label": "End",
+      "x": 100,
+      "y": 1100
+    }
+  ],
+  "connections": [
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-9" },
+    { "id": "conn-9", "source": "node-9", "target": "node-10" },
+    { "id": "conn-10", "source": "node-10", "target": "node-11" }
+  ]
+}

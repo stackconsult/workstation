@@ -1,0 +1,45 @@
+[
+  {
+    "week": 46,
+    "year": 2025,
+    "timestamp": "2025-11-15T08:29:36.500Z",
+    "metrics": {
+      "guard_rails": {
+        "added": 0,
+        "validated": [
+          "Loop Protection",
+          "Timeout Protection",
+          "Edge Case Coverage"
+        ],
+        "overhead_ms": 5
+      },
+      "validation": {
+        "issues_found": 6,
+        "issues_fixed": 0,
+        "execution_time_ms": 0
+      },
+      "performance": {},
+      "quality": {}
+    },
+    "comparison": {
+      "vs_last_week": {
+        "performance_delta": "Stable",
+        "issues_delta": "+6 issues (worse)",
+        "coverage_delta": "Improving"
+      },
+      "vs_last_month": {
+        "performance_trend": "Insufficient data",
+        "quality_trend": "Insufficient data"
+      }
+    },
+    "insights": [
+      "Excellent performance - overhead consistently below 3ms",
+      "Issue count increased from 0 to 6 (week-over-week)",
+      "Edge case coverage showing consistent improvement"
+    ],
+    "recommendations": [
+      "Review and address 6 issues flagged by Agent 10"
+    ],
+    "alerts": []
+  }
+]

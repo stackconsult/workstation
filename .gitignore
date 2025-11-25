@@ -113,3 +113,7 @@ agents/*/dist/
 # Agent Server
 agent-server/nodejs/node_modules/
 agent-server/nodejs/logs/*.log
+# .gitignore additions for chrome extension
+workstation-extension-*.zip
+deployment-report-*.md
+deploy-*.log
