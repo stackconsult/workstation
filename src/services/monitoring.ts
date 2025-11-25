@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction, Application } from 'express';
 import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
 import { getDatabase } from '../automation/db/database';
+import { redisHealthCheck } from './redis';
 import os from 'os';
 
 // Collect default metrics (CPU, memory, etc.)
@@ -116,6 +117,26 @@ export async function getHealthStatus(): Promise<HealthStatus> {
       error: (error as Error).message
     };
     health.status = 'degraded';
+  }
+
+  // Redis health check
+  try {
+    const redisStart = Date.now();
+    const redisHealth = await redisHealthCheck();
+    health.checks.redis = {
+      status: redisHealth.connected ? 'up' : (redisHealth.usingRedis ? 'down' : 'disabled'),
+      latency: redisHealth.connected ? Date.now() - redisStart : undefined,
+      error: redisHealth.usingRedis && !redisHealth.connected ? 'Connection failed' : undefined
+    };
+    // Redis being down is not critical - we fall back to memory
+    if (redisHealth.usingRedis && !redisHealth.connected) {
+      console.warn('Redis unavailable, using in-memory fallback');
+    }
+  } catch (error) {
+    health.checks.redis = {
+      status: 'error',
+      error: (error as Error).message
+    };
   }
 
   // Disk space check
