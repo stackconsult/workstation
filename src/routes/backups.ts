@@ -197,12 +197,22 @@ router.put('/config', authenticateToken, async (req: Request, res: Response) => 
       return;
     }
 
-    if (updates.autoBackupInterval !== undefined && updates.autoBackupInterval < 3600000) {
-      res.status(400).json({
-        success: false,
-        error: 'autoBackupInterval must be at least 1 hour (3600000ms)',
-      });
-      return;
+    if (updates.autoBackupInterval !== undefined) {
+      if (updates.autoBackupInterval < 3600000) {
+        res.status(400).json({
+          success: false,
+          error: 'autoBackupInterval must be at least 1 hour (3600000ms)',
+        });
+        return;
+      }
+      // Maximum allowed interval is 1 week (604800000 ms)
+      if (updates.autoBackupInterval > 604800000) {
+        res.status(400).json({
+          success: false,
+          error: 'autoBackupInterval must be no more than 1 week (604800000ms)',
+        });
+        return;
+      }
     }
 
     updateBackupConfig(updates);
