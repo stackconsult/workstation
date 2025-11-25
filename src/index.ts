@@ -297,6 +297,9 @@ import contextMemoryRoutes from './routes/context-memory';
 app.use('/api/v2/context', contextMemoryRoutes);
 logger.info('Context-Memory Intelligence Layer routes registered');
 
+// Import WebSocket server for real-time updates
+import { workflowWebSocketServer } from './services/workflow-websocket';
+
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
 
@@ -305,7 +308,7 @@ app.use(errorHandler);
 
 // Start server only if not in test mode
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     logger.info(`Server started`, {
       port: PORT,
       environment: envConfig.nodeEnv,
@@ -315,7 +318,12 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`📍 Environment: ${envConfig.nodeEnv}`);
     console.log(`🏥 Health check: http://localhost:${PORT}/health`);
     console.log(`🔑 Demo token: http://localhost:${PORT}/auth/demo-token`);
+    console.log(`🌐 WebSocket: ws://localhost:${PORT}/ws/executions`);
   });
+  
+  // Initialize WebSocket server for real-time workflow updates
+  workflowWebSocketServer.initialize(server);
+  logger.info('WebSocket server initialized for real-time workflow updates');
 }
 
 export default app;
