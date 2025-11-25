@@ -68,6 +68,9 @@ class RedisService {
   private client: Redis | null = null;
   private isConnected = false;
   private useRedis = REDIS_ENABLED;
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
 
   constructor() {
     if (this.useRedis) {
@@ -92,6 +95,7 @@ class RedisService {
         if (times > 3) {
           console.error('❌ Redis connection failed after 3 retries, falling back to memory store');
           this.useRedis = false;
+          this.scheduleReconnect();
           return null;
         }
         return Math.min(times * 50, 200); // Exponential backoff
@@ -100,6 +104,12 @@ class RedisService {
 
     this.client.on('connect', () => {
       this.isConnected = true;
+      this.useRedis = true;
+      this.reconnectAttempts = 0;
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
       console.log('✅ Redis client connected');
     });
 
@@ -112,6 +122,58 @@ class RedisService {
       this.isConnected = false;
       console.warn('⚠️  Redis connection closed');
     });
+  }
+
+  /**
+   * Schedule a reconnection attempt
+   */
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer || this.reconnectAttempts >= this.maxReconnectAttempts) {
+      return;
+    }
+
+    // Exponential backoff: 30s, 1m, 2m, 4m, 8m, etc., max 30m
+    const delay = Math.min(30000 * Math.pow(2, this.reconnectAttempts), 1800000);
+    
+    console.log(`🔄 Scheduling Redis reconnect attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts} in ${delay/1000}s`);
+    
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.reconnectAttempts++;
+      console.log(`🔄 Attempting to reconnect to Redis (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      
+      if (this.client) {
+        this.client.disconnect();
+      }
+      
+      this.useRedis = true;
+      this.initializeClient();
+    }, delay);
+  }
+
+  /**
+   * Manual reconnect attempt (can be called via API)
+   */
+  reconnect(): void {
+    if (this.isConnected) {
+      console.log('✅ Redis already connected');
+      return;
+    }
+
+    console.log('🔄 Manual Redis reconnection initiated');
+    this.reconnectAttempts = 0;
+    
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
+    if (this.client) {
+      this.client.disconnect();
+    }
+
+    this.useRedis = true;
+    this.initializeClient();
   }
 
   /**

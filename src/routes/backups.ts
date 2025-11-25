@@ -71,6 +71,46 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 /**
+ * Get backup statistics
+ * GET /api/backups/stats
+ */
+router.get('/stats', authenticateToken, async (_req: Request, res: Response) => {
+  try {
+    const stats = await getBackupStatistics();
+
+    res.json({
+      success: true,
+      statistics: stats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * Get backup configuration
+ * GET /api/backups/config
+ */
+router.get('/config', authenticateToken, async (_req: Request, res: Response) => {
+  try {
+    const config = getBackupConfig();
+
+    res.json({
+      success: true,
+      config,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
  * Get backup by ID
  * GET /api/backups/:id
  */
@@ -141,46 +181,6 @@ router.post('/:id/verify', authenticateToken, async (req: Request, res: Response
 });
 
 /**
- * Get backup statistics
- * GET /api/backups/stats
- */
-router.get('/stats', authenticateToken, async (_req: Request, res: Response) => {
-  try {
-    const stats = await getBackupStatistics();
-
-    res.json({
-      success: true,
-      statistics: stats,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
-/**
- * Get backup configuration
- * GET /api/backups/config
- */
-router.get('/config', authenticateToken, async (_req: Request, res: Response) => {
-  try {
-    const config = getBackupConfig();
-
-    res.json({
-      success: true,
-      config,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
-/**
  * Update backup configuration
  * PUT /api/backups/config
  */
@@ -206,10 +206,10 @@ router.put('/config', authenticateToken, async (req: Request, res: Response) => 
         return;
       }
       // Maximum allowed interval is 1 week (604800000 ms)
-      if (updates.autoBackupInterval > 604800000) {
+      if (updates.autoBackupInterval >= 604800000) {
         res.status(400).json({
           success: false,
-          error: 'autoBackupInterval must be no more than 1 week (604800000ms)',
+          error: 'autoBackupInterval must be less than 1 week (604800000ms)',
         });
         return;
       }

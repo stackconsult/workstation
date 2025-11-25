@@ -193,14 +193,32 @@ export async function createBackup(
 async function copyDatabaseFile(sourcePath: string, destPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
+      let finished = false;
       // For SQLite, we can use VACUUM INTO for a clean backup
       // But for now, use simple file copy which works well for SQLite
       const readStream = fs.createReadStream(sourcePath);
       const writeStream = fs.createWriteStream(destPath);
 
-      readStream.on('error', reject);
-      writeStream.on('error', reject);
-      writeStream.on('finish', () => resolve());
+      function cleanupAndReject(err: Error) {
+        if (finished) return;
+        finished = true;
+        // Destroy both streams if not already closed
+        if (readStream && !readStream.destroyed) {
+          readStream.destroy();
+        }
+        if (writeStream && !writeStream.destroyed) {
+          writeStream.destroy();
+        }
+        reject(err);
+      }
+
+      readStream.on('error', cleanupAndReject);
+      writeStream.on('error', cleanupAndReject);
+      writeStream.on('finish', () => {
+        if (finished) return;
+        finished = true;
+        resolve();
+      });
 
       readStream.pipe(writeStream);
     } catch (error) {
@@ -254,11 +272,15 @@ export async function verifyBackup(backupId: number): Promise<boolean> {
     }
 
     // Try to open the backup database to verify it's not corrupted
-    const testDb = new sqlite3.Database(backup.filePath, sqlite3.OPEN_READONLY, (err: Error | null) => {
-      if (err) {
-        console.error(`Backup database is corrupted: ${err.message}`);
-        return false;
-      }
+    const testDb: sqlite3.Database = await new Promise((resolve, reject) => {
+      const db = new sqlite3.Database(backup.filePath, sqlite3.OPEN_READONLY, (err: Error | null) => {
+        if (err) {
+          console.error(`Backup database is corrupted: ${err.message}`);
+          reject(err);
+        } else {
+          resolve(db);
+        }
+      });
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -502,6 +524,7 @@ export function getBackupConfig(): BackupConfig {
  */
 export function updateBackupConfig(config: Partial<BackupConfig>): void {
   const wasAutoBackupEnabled = currentConfig.autoBackupEnabled;
+  const oldInterval = currentConfig.autoBackupInterval;
   currentConfig = { ...currentConfig, ...config };
 
   // Restart auto backup if interval changed
@@ -512,7 +535,7 @@ export function updateBackupConfig(config: Partial<BackupConfig>): void {
   } else if (
     currentConfig.autoBackupEnabled &&
     config.autoBackupInterval &&
-    config.autoBackupInterval !== currentConfig.autoBackupInterval
+    config.autoBackupInterval !== oldInterval
   ) {
     stopAutoBackup();
     startAutoBackup();

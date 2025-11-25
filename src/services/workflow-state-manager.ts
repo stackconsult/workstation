@@ -121,6 +121,7 @@ export async function updateWorkflowProgress(
   }
 
   // Estimate completion time based on current progress
+  // Note: progress > 0 check prevents division by zero
   if (state.progress > 0 && state.progress < 100) {
     const elapsed = Date.now() - state.startedAt;
     const estimatedTotal = (elapsed / state.progress) * 100;
@@ -231,11 +232,14 @@ export async function cleanupStaleWorkflows(): Promise<{ cleaned: number; errors
       const state = await fetchWorkflowState(id);
       
       // If state doesn't exist or workflow is stuck for > 1 hour
-      if (!state || (Date.now() - state.updatedAt > 3600000 && state.status === 'running')) {
+      if (!state) {
+        // State doesn't exist but execution is in active set - remove it
         await removeActiveExecution(id);
-        if (state) {
-          await completeWorkflowTracking(id, 'failed', 'Workflow timed out or became unresponsive');
-        }
+        cleaned++;
+      } else if (Date.now() - state.updatedAt > 3600000 && state.status === 'running') {
+        // Workflow is stuck - mark as failed and remove from active
+        await completeWorkflowTracking(id, 'failed', 'Workflow timed out or became unresponsive');
+        await removeActiveExecution(id);
         cleaned++;
       }
     } catch (error) {
