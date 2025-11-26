@@ -78,6 +78,13 @@ export class Validator {
       return '';
     }
 
+    return input
+      .replace(/[<>]/g, '') // Remove angle brackets
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/data:/gi, '') // Remove data: protocol
+      .replace(/vbscript:/gi, '') // Remove vbscript: protocol
+      .replace(/on\w+=/gi, '') // Remove event handlers
+      .trim();
     // Remove angle brackets, javascript: protocol, and repeatedly remove event handlers
     let sanitized = input.replace(/[<>]/g, '') // Remove angle brackets
       .replace(/javascript:/gi, ''); // Remove javascript: protocol
@@ -98,6 +105,35 @@ export class Validator {
   static sanitizeHtml(input: string, allowedTags: string[] = []): string {
     if (typeof input !== 'string') {
       return '';
+    }
+
+    let sanitized = input;
+    
+    // If no tags allowed, strip all HTML
+    if (allowedTags.length === 0) {
+      // Repeat until no more tags are present (fixes incomplete multi-character sanitization)
+      let prevSanitized;
+      do {
+        prevSanitized = sanitized;
+        sanitized = sanitized.replace(/<[^>]*>/g, '');
+      } while (sanitized !== prevSanitized);
+    } else {
+      // Remove script tags and their content (loop until gone)
+      let prevSanitized;
+      do {
+        prevSanitized = sanitized;
+        sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      } while (sanitized !== prevSanitized);
+      
+      // Remove iframe tags (loop until gone)
+      do {
+        prevSanitized = sanitized;
+        sanitized = sanitized.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
+      } while (sanitized !== prevSanitized);
+      
+      // Remove dangerous attributes
+      sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+      sanitized = sanitized.replace(/(?:javascript:|data:|vbscript:)/gi, '');
     }
 
     // Use sanitize-html library for robust sanitization
@@ -131,6 +167,11 @@ export class Validator {
   }
 
   /**
+   * Validate email address
+   */
+  static isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
    * Validate email address using Joi for RFC 5322 compliance
    */
   static isValidEmail(email: string): boolean {
@@ -329,6 +370,11 @@ export function sanitizeRequest(req: Request, _res: Response, next: NextFunction
   }
   
   if (req.query) {
+    req.query = Validator.sanitizeObject(req.query);
+  }
+  
+  if (req.params) {
+    req.params = Validator.sanitizeObject(req.params);
     Object.assign(req.query, Validator.sanitizeObject(req.query));
   }
   

@@ -75,6 +75,10 @@ export class HealthCheckManager {
       const startTime = Date.now();
       try {
         const timeout = check.timeout || 5000;
+        let timeoutId: NodeJS.Timeout;
+        
+        const result = await Promise.race([
+          check.check(),
         let timeoutId: NodeJS.Timeout | undefined;
         
         const result = await Promise.race([
@@ -87,6 +91,8 @@ export class HealthCheckManager {
           })
         ]);
 
+        // Clear timeout to prevent memory leak
+        clearTimeout(timeoutId!);
         // Clear timeout to prevent memory leak (redundant but safe)
         if (timeoutId) {
           clearTimeout(timeoutId);
