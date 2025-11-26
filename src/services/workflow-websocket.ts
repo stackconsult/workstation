@@ -1,15 +1,15 @@
 /**
  * Workflow WebSocket Service
- * 
+ *
  * Provides real-time updates for workflow execution progress.
- * 
+ *
  * @module services/workflow-websocket
  * @version 2.0.0
  */
 
-import { Server as WebSocketServer, WebSocket, RawData } from 'ws';
-import { Server } from 'http';
-import { logger } from '../utils/logger';
+import { Server as WebSocketServer, WebSocket, RawData } from "ws";
+import { Server } from "http";
+import { logger } from "../utils/logger";
 
 interface ExecutionClient {
   ws: WebSocket;
@@ -26,46 +26,48 @@ class WorkflowWebSocketServer {
    * Initialize WebSocket server
    */
   initialize(server: Server): void {
-    this.wss = new WebSocketServer({ 
-      server, 
-      path: '/ws/executions',
-      clientTracking: true
+    this.wss = new WebSocketServer({
+      server,
+      path: "/ws/executions",
+      clientTracking: true,
     });
 
-    this.wss.on('connection', (ws: WebSocket, req) => {
-      logger.info('WebSocket client connected', { 
+    this.wss.on("connection", (ws: WebSocket, req) => {
+      logger.info("WebSocket client connected", {
         path: req.url,
         origin: req.headers.origin,
-        ip: req.socket.remoteAddress 
+        ip: req.socket.remoteAddress,
       });
 
       // Handle messages from client
-      ws.on('message', (data: RawData) => {
+      ws.on("message", (data: RawData) => {
         try {
           const message = JSON.parse(data.toString());
           this.handleClientMessage(ws, message);
         } catch (error) {
-          logger.error('Failed to parse WebSocket message', { error });
-          this.sendError(ws, 'Invalid message format');
+          logger.error("Failed to parse WebSocket message", { error });
+          this.sendError(ws, "Invalid message format");
         }
       });
 
       // Handle client disconnect
-      ws.on('close', () => {
+      ws.on("close", () => {
         this.removeClient(ws);
-        logger.info('WebSocket client disconnected');
+        logger.info("WebSocket client disconnected");
       });
 
-      ws.on('error', (error) => {
-        logger.error('WebSocket error', { error: error.message });
+      ws.on("error", (error) => {
+        logger.error("WebSocket error", { error: error.message });
       });
 
       // Send initial connection success message
-      ws.send(JSON.stringify({ 
-        type: 'connected', 
-        message: 'Workflow WebSocket connected',
-        timestamp: new Date().toISOString()
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "connected",
+          message: "Workflow WebSocket connected",
+          timestamp: new Date().toISOString(),
+        }),
+      );
     });
 
     // Start ping interval to keep connections alive
@@ -77,7 +79,7 @@ class WorkflowWebSocketServer {
       });
     }, 30000); // Ping every 30 seconds
 
-    logger.info('WebSocket server initialized on /ws/executions');
+    logger.info("WebSocket server initialized on /ws/executions");
   }
 
   /**
@@ -85,16 +87,19 @@ class WorkflowWebSocketServer {
    */
   private handleClientMessage(ws: WebSocket, message: any): void {
     switch (message.type) {
-      case 'subscribe':
+      case "subscribe":
         this.subscribeToExecution(ws, message.executionId);
         break;
 
-      case 'unsubscribe':
+      case "unsubscribe":
         this.unsubscribeFromExecution(ws, message.executionId);
         break;
 
-      case 'ping':
-        this.sendMessage(ws, { type: 'pong', timestamp: new Date().toISOString() });
+      case "ping":
+        this.sendMessage(ws, {
+          type: "pong",
+          timestamp: new Date().toISOString(),
+        });
         break;
 
       default:
@@ -107,7 +112,7 @@ class WorkflowWebSocketServer {
    */
   private subscribeToExecution(ws: WebSocket, executionId: string): void {
     if (!executionId) {
-      this.sendError(ws, 'Execution ID is required');
+      this.sendError(ws, "Execution ID is required");
       return;
     }
 
@@ -116,23 +121,23 @@ class WorkflowWebSocketServer {
     }
 
     const clients = this.clients.get(executionId)!;
-    
+
     // Remove existing client entry if present (to avoid duplicates)
-    const existingIndex = clients.findIndex(c => c.ws === ws);
+    const existingIndex = clients.findIndex((c) => c.ws === ws);
     if (existingIndex !== -1) {
       clients.splice(existingIndex, 1);
     }
-    
+
     // Add fresh client subscription
     clients.push({ ws, executionId, subscribed: true });
 
-    this.sendMessage(ws, { 
-      type: 'subscribed', 
+    this.sendMessage(ws, {
+      type: "subscribed",
       executionId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
-    logger.info('Client subscribed to execution', { executionId });
+    logger.info("Client subscribed to execution", { executionId });
   }
 
   /**
@@ -141,7 +146,7 @@ class WorkflowWebSocketServer {
   private removeClientFromExecution(ws: WebSocket, executionId: string): void {
     const clients = this.clients.get(executionId);
     if (clients) {
-      const index = clients.findIndex(c => c.ws === ws);
+      const index = clients.findIndex((c) => c.ws === ws);
       if (index !== -1) {
         clients.splice(index, 1);
         // Clean up empty execution arrays
@@ -157,19 +162,19 @@ class WorkflowWebSocketServer {
    */
   private unsubscribeFromExecution(ws: WebSocket, executionId: string): void {
     if (!executionId) {
-      this.sendError(ws, 'Execution ID is required');
+      this.sendError(ws, "Execution ID is required");
       return;
     }
 
     this.removeClientFromExecution(ws, executionId);
 
-    this.sendMessage(ws, { 
-      type: 'unsubscribed', 
+    this.sendMessage(ws, {
+      type: "unsubscribed",
       executionId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
-    logger.info('Client unsubscribed from execution', { executionId });
+    logger.info("Client unsubscribed from execution", { executionId });
   }
 
   /**
@@ -194,10 +199,10 @@ class WorkflowWebSocketServer {
    * Send error to WebSocket client
    */
   private sendError(ws: WebSocket, error: string): void {
-    this.sendMessage(ws, { 
-      type: 'error', 
+    this.sendMessage(ws, {
+      type: "error",
       error,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -211,13 +216,13 @@ class WorkflowWebSocketServer {
     }
 
     const message = {
-      type: 'execution_update',
+      type: "execution_update",
       executionId,
       data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    clients.forEach(client => {
+    clients.forEach((client) => {
       if (client.subscribed && client.ws.readyState === WebSocket.OPEN) {
         this.sendMessage(client.ws, message);
       }
@@ -234,13 +239,13 @@ class WorkflowWebSocketServer {
     }
 
     const message = {
-      type: 'task_update',
+      type: "task_update",
       executionId,
       data: taskUpdate,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    clients.forEach(client => {
+    clients.forEach((client) => {
       if (client.subscribed && client.ws.readyState === WebSocket.OPEN) {
         this.sendMessage(client.ws, message);
       }
@@ -257,18 +262,18 @@ class WorkflowWebSocketServer {
     }
 
     const message = {
-      type: 'execution_complete',
+      type: "execution_complete",
       executionId,
       data: result,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    clients.forEach(client => {
+    clients.forEach((client) => {
       if (client.subscribed && client.ws.readyState === WebSocket.OPEN) {
         this.sendMessage(client.ws, message);
       }
     });
-    
+
     // Delay cleanup to allow clients to process the completion message
     setTimeout(() => {
       this.clients.delete(executionId);
@@ -285,13 +290,13 @@ class WorkflowWebSocketServer {
     }
 
     this.wss?.clients.forEach((ws) => {
-      ws.close(1001, 'Server shutting down');
+      ws.close(1001, "Server shutting down");
     });
 
     this.wss?.close();
     this.clients.clear();
 
-    logger.info('WebSocket server shut down');
+    logger.info("WebSocket server shut down");
   }
 }
 
