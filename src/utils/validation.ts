@@ -80,6 +80,8 @@ export class Validator {
     return input
       .replace(/[<>]/g, '') // Remove angle brackets
       .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/data:/gi, '') // Remove data: protocol
+      .replace(/vbscript:/gi, '') // Remove vbscript: protocol
       .replace(/on\w+=/gi, '') // Remove event handlers
       .trim();
   }
