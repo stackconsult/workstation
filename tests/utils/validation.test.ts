@@ -719,7 +719,8 @@ describe('Validation Utilities', () => {
         { startDate: 'not-a-date' },
         { endDate: 'not-a-date' },
         { startDate: '2024-13-01T00:00:00Z' }, // Invalid month
-        { startDate: '2024-12-31T00:00:00Z', endDate: '2024-01-01T00:00:00Z' } // End before start
+        { startDate: '2024-12-31T00:00:00Z', endDate: '2024-01-01T00:00:00Z' }, // End before start
+        { endDate: '2024-12-31T23:59:59Z' } // endDate without startDate fails due to min() reference
       ];
       
       invalidRanges.forEach(range => {
@@ -884,8 +885,8 @@ describe('Validation Utilities', () => {
       
       attacks.forEach(attack => {
         const sanitized = Validator.sanitizeString(attack);
-        expect(sanitized).not.toContain('onclick=');
-        expect(sanitized).not.toContain('onmouseover=');
+        expect(sanitized).not.toContain('onclick');
+        expect(sanitized).not.toContain('onmouseover');
       });
     });
   });
@@ -1022,7 +1023,7 @@ describe('Validation Utilities', () => {
       });
     });
 
-    it('should handle SSRF attempts', () => {
+    it('should not block SSRF attempts (requires additional validation)', () => {
       const attacks = [
         'http://localhost/admin',
         'http://127.0.0.1/admin',
@@ -1072,19 +1073,10 @@ describe('Validation Utilities', () => {
       obj.self = obj; // Create circular reference
       
       // Current implementation will hit max stack - this is a known limitation
-      // Testing that we acknowledge this edge case exists
-      expect(() => {
-        try {
-          Validator.sanitizeObject(obj);
-        } catch (error: any) {
-          // Circular references cause RangeError: Maximum call stack size exceeded
-          expect(error.name).toBe('RangeError');
-          throw error;
-        }
-      }).toThrow();
+      expect(() => Validator.sanitizeObject(obj)).toThrow(RangeError);
     });
 
-    it('should protect against __proto__ pollution', () => {
+    it('should not crash when processing __proto__ keys', () => {
       const malicious = JSON.parse('{"__proto__": {"polluted": "yes"}}');
       const sanitized = Validator.sanitizeObject(malicious);
       
@@ -1094,7 +1086,7 @@ describe('Validation Utilities', () => {
       expect(sanitized).toBeDefined();
     });
 
-    it('should protect against constructor pollution', () => {
+    it('should not crash when processing constructor keys', () => {
       const malicious = {
         constructor: {
           prototype: {
@@ -1109,7 +1101,7 @@ describe('Validation Utilities', () => {
       expect(sanitized).toBeDefined();
     });
 
-    it('should protect against prototype pollution via constructor', () => {
+    it('should not crash when processing constructor.prototype keys', () => {
       const malicious = JSON.parse('{"constructor": {"prototype": {"polluted": "yes"}}}');
       const sanitized = Validator.sanitizeObject(malicious);
       
@@ -1118,7 +1110,7 @@ describe('Validation Utilities', () => {
       expect(sanitized).toBeDefined();
     });
 
-    it('should handle deeply nested circular structures', () => {
+    it('should throw RangeError on deeply nested circular structures (known limitation)', () => {
       const obj: any = {
         level1: {
           level2: {
@@ -1129,29 +1121,15 @@ describe('Validation Utilities', () => {
       obj.level1.level2.level3.circular = obj;
       
       // Current implementation will hit max stack with circular references
-      expect(() => {
-        try {
-          Validator.sanitizeObject(obj);
-        } catch (error: any) {
-          expect(error.name).toBe('RangeError');
-          throw error;
-        }
-      }).toThrow();
+      expect(() => Validator.sanitizeObject(obj)).toThrow(RangeError);
     });
 
-    it('should sanitize array with circular reference', () => {
+    it('should throw RangeError on array with circular reference (known limitation)', () => {
       const arr: any[] = [1, 2, 3];
       arr.push(arr); // Create circular reference
       
       // Current implementation will hit max stack with circular references
-      expect(() => {
-        try {
-          Validator.sanitizeObject(arr);
-        } catch (error: any) {
-          expect(error.name).toBe('RangeError');
-          throw error;
-        }
-      }).toThrow();
+      expect(() => Validator.sanitizeObject(arr)).toThrow(RangeError);
     });
 
     it('should handle Object.create(null) objects', () => {
@@ -1202,7 +1180,15 @@ describe('Validation Utilities', () => {
     });
   });
 
-  describe('SQL Injection Attack Vectors', () => {
+  // ---------------------------------------------------------------------------
+  // Known Limitations: The following tests document attack vectors that are NOT
+  // specifically protected against by Validator.sanitizeString. These tests
+  // ensure that the sanitizer returns a defined value, but do not assert that
+  // the attack vector is neutralized. Use appropriate context-specific protection
+  // (e.g., parameterized queries for SQL, proper header handling for CRLF).
+  // ---------------------------------------------------------------------------
+
+  describe('SQL Injection - Not Protected (Use Parameterized Queries)', () => {
     it('should handle classic SQL injection patterns', () => {
       const attacks = [
         "' OR '1'='1",
@@ -1262,7 +1248,7 @@ describe('Validation Utilities', () => {
     });
   });
 
-  describe('CRLF Injection Attack Vectors', () => {
+  describe('CRLF Injection - Not Protected (Use Proper Header Handling)', () => {
     it('should handle CRLF injection attempts', () => {
       const attacks = [
         "test\r\nSet-Cookie: sessionId=abc123",
