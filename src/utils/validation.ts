@@ -9,6 +9,7 @@
 
 import Joi from 'joi';
 import { ErrorHandler } from './error-handler';
+import { Request, Response, NextFunction } from 'express';
 
 /**
  * Validation result interface
@@ -298,7 +299,7 @@ export const commonSchemas = {
  * Request validation middleware factory
  */
 export function validateRequest(schema: Joi.Schema, property: 'body' | 'query' | 'params' = 'body') {
-  return (req: any, res: any, next: any) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     const result = Validator.validate(req[property], schema);
     
     if (!result.valid) {
@@ -321,7 +322,7 @@ export function validateRequest(schema: Joi.Schema, property: 'body' | 'query' |
 /**
  * Sanitize request middleware
  */
-export function sanitizeRequest(req: any, _res: any, next: any) {
+export function sanitizeRequest(req: Request, _res: Response, next: NextFunction) {
   if (req.body) {
     req.body = Validator.sanitizeObject(req.body);
   }

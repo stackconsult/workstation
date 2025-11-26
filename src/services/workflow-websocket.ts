@@ -18,6 +18,15 @@ interface ExecutionClient {
   subscribed: boolean;
 }
 
+export interface ExecutionStatus {
+  state: 'pending' | 'running' | 'completed' | 'failed';
+  progress?: number;
+  message?: string;
+  error?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
 /**
  * WebSocket server for real-time workflow execution updates
  */
@@ -197,7 +206,7 @@ class WorkflowWebSocketServer {
   /**
    * Broadcast execution status to subscribed clients
    */
-  broadcastExecutionStatus(executionId: string, status: any): void {
+  broadcastExecutionStatus(executionId: string, status: ExecutionStatus): void {
     try {
       const clients = this.clients.get(executionId);
       if (!clients || clients.length === 0) {

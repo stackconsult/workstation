@@ -147,8 +147,8 @@ export class ErrorHandler {
   static normalize(error: unknown, context?: Record<string, unknown>): AppError {
     if (error instanceof AppError) {
       // Add additional context if provided
-      if (context) {
-        error.context && Object.assign(error.context, context);
+      if (context && error.context) {
+        Object.assign(error.context, context);
       }
       return error;
     }
