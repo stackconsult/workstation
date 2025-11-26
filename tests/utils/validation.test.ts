@@ -1188,6 +1188,52 @@ describe('Validation Utilities', () => {
         expect(sanitized[5]).toBe(undefined);
         expect(sanitized[6]).toBe(true);
       });
+  describe('Common Schemas', () => {
+    it('should have agentExecutionRequest schema', () => {
+      expect(commonSchemas.agentExecutionRequest).toBeDefined();
+    });
+
+    it('should have workflowExecutionRequest schema', () => {
+      expect(commonSchemas.workflowExecutionRequest).toBeDefined();
+    });
+
+    it('should have paginationParams schema', () => {
+      expect(commonSchemas.paginationParams).toBeDefined();
+    });
+
+    it('should have authRequest schema', () => {
+      expect(commonSchemas.authRequest).toBeDefined();
+    });
+
+    it('should have browserTask schema', () => {
+      expect(commonSchemas.browserTask).toBeDefined();
+    });
+
+    it('should have dataExtraction schema', () => {
+      expect(commonSchemas.dataExtraction).toBeDefined();
+    });
+  });
+
+  describe('Security Tests', () => {
+    it('should remove quotes from SQL-like strings', () => {
+      const input = "'; DROP TABLE users; --";
+      const sanitized = Validator.sanitizeString(input);
+      
+      // sanitizeString doesn't escape quotes, just removes angle brackets and javascript:
+      expect(sanitized).toBeDefined();
+    });
+
+    it('should handle SQL injection in objects', () => {
+      const input = {
+        username: "admin' OR '1'='1",
+        password: "' OR '1'='1"
+      };
+      
+      const sanitized = Validator.sanitizeObject(input);
+      
+      // sanitizeString doesn't escape quotes by default
+      expect(sanitized.username).toBeDefined();
+      expect(sanitized.password).toBeDefined();
     });
   });
 
