@@ -854,8 +854,10 @@ describe('Validation Utilities', () => {
         
         attacks.forEach(attack => {
           const sanitized = Validator.sanitizeString(attack);
-          // Encoded entities are preserved but angle brackets in any form should be removed
-          expect(sanitized).toBeDefined();
+          // sanitizeString removes angle brackets but doesn't decode HTML entities
+          // So encoded entities are preserved (which is safe since they won't execute)
+          expect(sanitized).not.toContain('<');
+          expect(sanitized).not.toContain('>');
         });
       });
     });
@@ -1032,7 +1034,7 @@ describe('Validation Utilities', () => {
         expect(() => {
           const sanitized = Validator.sanitizeObject(obj);
           // Will cause infinite recursion - this is a known limitation
-        }).toThrow(); // Expects stack overflow
+        }).toThrow(RangeError); // Expects stack overflow (RangeError: Maximum call stack size exceeded)
       });
 
       it('should handle deeply nested circular references', () => {
@@ -1042,7 +1044,7 @@ describe('Validation Utilities', () => {
         // Document current behavior with circular references
         expect(() => {
           Validator.sanitizeObject(obj);
-        }).toThrow(); // Expects stack overflow
+        }).toThrow(RangeError); // Expects stack overflow (RangeError: Maximum call stack size exceeded)
       });
 
       it('should handle arrays with circular references', () => {
@@ -1053,7 +1055,7 @@ describe('Validation Utilities', () => {
         
         expect(() => {
           Validator.sanitizeObject(obj);
-        }).toThrow(); // Expects stack overflow
+        }).toThrow(RangeError); // Expects stack overflow (RangeError: Maximum call stack size exceeded)
       });
     });
 
@@ -1087,9 +1089,13 @@ describe('Validation Utilities', () => {
         
         const sanitized = Validator.sanitizeObject(malicious);
         
-        // Verify keys are sanitized (angle brackets removed from key names)
+        // Verify normal key is preserved
         expect(sanitized).toBeDefined();
         expect(sanitized.normal).toBe('value');
+        
+        // Verify __proto__ key handling - it should not pollute the prototype
+        expect(Object.getOwnPropertyNames(sanitized)).not.toContain('__proto__');
+        expect((Object.prototype as any).polluted).toBeUndefined();
       });
 
       it('should handle nested prototype pollution attempts', () => {
@@ -1188,6 +1194,9 @@ describe('Validation Utilities', () => {
         expect(sanitized[5]).toBe(undefined);
         expect(sanitized[6]).toBe(true);
       });
+    });  // Close 'sanitizeObject Special Cases'
+  });    // Close 'Security Tests - Object Sanitization Edge Cases'
+
   describe('Common Schemas', () => {
     it('should have agentExecutionRequest schema', () => {
       expect(commonSchemas.agentExecutionRequest).toBeDefined();

@@ -145,7 +145,7 @@ export class Validator {
       allowVulnerableTags: false,
       allowedSchemes: ['http', 'https', 'mailto'],
     };
-    const sanitized = sanitizeHtmlLib(input, config);
+    sanitized = sanitizeHtmlLib(input, config);
     return sanitized.trim();
   }
 
@@ -167,11 +167,6 @@ export class Validator {
   }
 
   /**
-   * Validate email address
-   */
-  static isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
    * Validate email address using Joi for RFC 5322 compliance
    */
   static isValidEmail(email: string): boolean {
