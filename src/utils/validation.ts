@@ -144,7 +144,7 @@ export class Validator {
    * Validate email address using Joi for RFC 5322 compliance
    */
   static isValidEmail(email: string): boolean {
-    const { error } = Joi.string().email({ tlds: { allow: false } }).validate(email);
+    const { error } = Joi.string().email().validate(email);
     return !error;
   }
 
