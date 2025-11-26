@@ -1067,7 +1067,7 @@ describe('Validation Utilities', () => {
   });
 
   describe('Circular References and Prototype Pollution - sanitizeObject', () => {
-    it('should handle circular references gracefully', () => {
+    it('should throw RangeError on circular references (known limitation)', () => {
       const obj: any = { name: 'test' };
       obj.self = obj; // Create circular reference
       
