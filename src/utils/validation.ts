@@ -98,11 +98,18 @@ export class Validator {
     if (allowedTags.length === 0) {
       sanitized = sanitized.replace(/<[^>]*>/g, '');
     } else {
-      // Remove script tags and their content
-      sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      // Remove script tags and their content (loop until gone)
+      let prevSanitized;
+      do {
+        prevSanitized = sanitized;
+        sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      } while (sanitized !== prevSanitized);
       
-      // Remove iframe tags
-      sanitized = sanitized.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
+      // Remove iframe tags (loop until gone)
+      do {
+        prevSanitized = sanitized;
+        sanitized = sanitized.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
+      } while (sanitized !== prevSanitized);
       
       // Remove dangerous attributes
       sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
