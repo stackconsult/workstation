@@ -136,14 +136,9 @@ class WorkflowWebSocketServer {
   }
 
   /**
-   * Unsubscribe client from execution updates
+   * Remove client from specific execution subscription
    */
-  private unsubscribeFromExecution(ws: WebSocket, executionId: string): void {
-    if (!executionId) {
-      this.sendError(ws, 'Execution ID is required');
-      return;
-    }
-
+  private removeClientFromExecution(ws: WebSocket, executionId: string): void {
     const clients = this.clients.get(executionId);
     if (clients) {
       const index = clients.findIndex(c => c.ws === ws);
@@ -155,6 +150,18 @@ class WorkflowWebSocketServer {
         }
       }
     }
+  }
+
+  /**
+   * Unsubscribe client from execution updates
+   */
+  private unsubscribeFromExecution(ws: WebSocket, executionId: string): void {
+    if (!executionId) {
+      this.sendError(ws, 'Execution ID is required');
+      return;
+    }
+
+    this.removeClientFromExecution(ws, executionId);
 
     this.sendMessage(ws, { 
       type: 'unsubscribed', 
@@ -170,13 +177,7 @@ class WorkflowWebSocketServer {
    */
   private removeClient(ws: WebSocket): void {
     this.clients.forEach((clients, executionId) => {
-      const index = clients.findIndex(c => c.ws === ws);
-      if (index !== -1) {
-        clients.splice(index, 1);
-        if (clients.length === 0) {
-          this.clients.delete(executionId);
-        }
-      }
+      this.removeClientFromExecution(ws, executionId);
     });
   }
 
@@ -268,8 +269,10 @@ class WorkflowWebSocketServer {
       }
     });
     
-    // Clean up clients after execution completes
-    this.clients.delete(executionId);
+    // Delay cleanup to allow clients to process the completion message
+    setTimeout(() => {
+      this.clients.delete(executionId);
+    }, 1000); // 1 second delay
   }
 
   /**
