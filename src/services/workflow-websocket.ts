@@ -7,7 +7,7 @@
  * @version 2.0.0
  */
 
-import { Server as WebSocketServer, WebSocket } from 'ws';
+import { Server as WebSocketServer, WebSocket, RawData } from 'ws';
 import { Server } from 'http';
 import { logger } from '../utils/logger';
 
@@ -40,7 +40,7 @@ class WorkflowWebSocketServer {
       });
 
       // Handle messages from client
-      ws.on('message', (data: Buffer) => {
+      ws.on('message', (data: RawData) => {
         try {
           const message = JSON.parse(data.toString());
           this.handleClientMessage(ws, message);
@@ -116,13 +116,15 @@ class WorkflowWebSocketServer {
     }
 
     const clients = this.clients.get(executionId)!;
-    const existingClient = clients.find(c => c.ws === ws);
     
-    if (existingClient) {
-      existingClient.subscribed = true;
-    } else {
-      clients.push({ ws, executionId, subscribed: true });
+    // Remove existing client entry if present (to avoid duplicates)
+    const existingIndex = clients.findIndex(c => c.ws === ws);
+    if (existingIndex !== -1) {
+      clients.splice(existingIndex, 1);
     }
+    
+    // Add fresh client subscription
+    clients.push({ ws, executionId, subscribed: true });
 
     this.sendMessage(ws, { 
       type: 'subscribed', 
@@ -144,9 +146,13 @@ class WorkflowWebSocketServer {
 
     const clients = this.clients.get(executionId);
     if (clients) {
-      const client = clients.find(c => c.ws === ws);
-      if (client) {
-        client.subscribed = false;
+      const index = clients.findIndex(c => c.ws === ws);
+      if (index !== -1) {
+        clients.splice(index, 1);
+        // Clean up empty execution arrays
+        if (clients.length === 0) {
+          this.clients.delete(executionId);
+        }
       }
     }
 
