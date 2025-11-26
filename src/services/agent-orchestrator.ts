@@ -3,8 +3,8 @@
  * Coordinates tasks across 21 agents and 20 MCP containers
  */
 
-import db from '../db/connection';
-import { logger } from '../utils/logger';
+import db from "../db/connection";
+import { logger } from "../utils/logger";
 
 export interface AgentTask {
   id: string;
@@ -13,7 +13,7 @@ export interface AgentTask {
   payload: any;
   priority: number;
   maxRetries: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
 }
 
 export interface AgentInfo {
@@ -44,7 +44,7 @@ class AgentOrchestrator {
   async initializeAgents(): Promise<void> {
     try {
       const result = await db.query(
-        'SELECT id, name, type, container_name, status, health_status, capabilities FROM agent_registry ORDER BY id'
+        "SELECT id, name, type, container_name, status, health_status, capabilities FROM agent_registry ORDER BY id",
       );
 
       result.rows.forEach((agent: any) => {
@@ -55,13 +55,13 @@ class AgentOrchestrator {
           containerName: agent.container_name,
           status: agent.status,
           healthStatus: agent.health_status,
-          capabilities: agent.capabilities || []
+          capabilities: agent.capabilities || [],
         });
       });
 
       logger.info(`Initialized ${this.activeAgents.size} agents`);
     } catch (error) {
-      logger.error('Agent initialization error:', error);
+      logger.error("Agent initialization error:", error);
     }
   }
 
@@ -75,7 +75,7 @@ class AgentOrchestrator {
         health_status, capabilities, metadata, 
         last_health_check, created_at
        FROM agent_registry 
-       ORDER BY id`
+       ORDER BY id`,
     );
 
     return result.rows.map((row: any) => ({
@@ -88,7 +88,7 @@ class AgentOrchestrator {
       capabilities: row.capabilities || [],
       metadata: row.metadata,
       lastHealthCheck: row.last_health_check,
-      createdAt: row.created_at
+      createdAt: row.created_at,
     }));
   }
 
@@ -97,8 +97,8 @@ class AgentOrchestrator {
    */
   async getAgent(agentId: string): Promise<AgentInfo | null> {
     const result = await db.query(
-      'SELECT * FROM agent_registry WHERE id = $1',
-      [agentId]
+      "SELECT * FROM agent_registry WHERE id = $1",
+      [agentId],
     );
 
     if (result.rows.length === 0) {
@@ -115,7 +115,7 @@ class AgentOrchestrator {
       healthStatus: agent.health_status,
       capabilities: agent.capabilities || [],
       metadata: agent.metadata,
-      lastHealthCheck: agent.last_health_check
+      lastHealthCheck: agent.last_health_check,
     };
   }
 
@@ -127,7 +127,7 @@ class AgentOrchestrator {
     taskType: string,
     payload: any,
     createdBy: string,
-    priority: number = 5
+    priority: number = 5,
   ): Promise<string> {
     try {
       // Verify agent exists
@@ -142,21 +142,23 @@ class AgentOrchestrator {
           (agent_id, type, payload, priority, created_by)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id`,
-        [agentId, taskType, JSON.stringify(payload), priority, createdBy]
+        [agentId, taskType, JSON.stringify(payload), priority, createdBy],
       );
 
       const taskId = result.rows[0].id;
 
-      logger.info(`Task ${taskId} created for agent ${agentId} with type ${taskType}`);
+      logger.info(
+        `Task ${taskId} created for agent ${agentId} with type ${taskType}`,
+      );
 
       // Process task asynchronously
-      this.processTask(taskId).catch(error => {
+      this.processTask(taskId).catch((error) => {
         logger.error(`Task ${taskId} processing error:`, error);
       });
 
       return taskId;
     } catch (error) {
-      logger.error('Task creation error:', error);
+      logger.error("Task creation error:", error);
       throw error;
     }
   }
@@ -171,13 +173,13 @@ class AgentOrchestrator {
         `UPDATE agent_tasks 
          SET status = 'running', started_at = CURRENT_TIMESTAMP
          WHERE id = $1`,
-        [taskId]
+        [taskId],
       );
 
       // Get task details
       const taskResult = await db.query(
-        'SELECT * FROM agent_tasks WHERE id = $1',
-        [taskId]
+        "SELECT * FROM agent_tasks WHERE id = $1",
+        [taskId],
       );
 
       if (taskResult.rows.length === 0) {
@@ -192,7 +194,7 @@ class AgentOrchestrator {
       logger.info(`Processing task ${taskId} for agent ${task.agent_id}`);
 
       // Simulate processing time
-      await new Promise<void>(resolve => global.setTimeout(resolve, 1000));
+      await new Promise<void>((resolve) => global.setTimeout(resolve, 1000));
 
       // Update task as completed
       await db.query(
@@ -201,7 +203,13 @@ class AgentOrchestrator {
              completed_at = CURRENT_TIMESTAMP,
              result = $1
          WHERE id = $2`,
-        [JSON.stringify({ success: true, processedAt: new Date().toISOString() }), taskId]
+        [
+          JSON.stringify({
+            success: true,
+            processedAt: new Date().toISOString(),
+          }),
+          taskId,
+        ],
       );
 
       logger.info(`Task ${taskId} completed successfully`);
@@ -216,7 +224,7 @@ class AgentOrchestrator {
              result = $1,
              retry_count = retry_count + 1
          WHERE id = $2`,
-        [JSON.stringify({ error: error?.message || 'Unknown error' }), taskId]
+        [JSON.stringify({ error: error?.message || "Unknown error" }), taskId],
       );
     }
   }
@@ -233,7 +241,7 @@ class AgentOrchestrator {
        FROM agent_tasks at
        INNER JOIN agent_registry ar ON at.agent_id = ar.id
        WHERE at.id = $1`,
-      [taskId]
+      [taskId],
     );
 
     if (result.rows.length === 0) {
@@ -252,7 +260,7 @@ class AgentOrchestrator {
        WHERE agent_id = $1
        ORDER BY created_at DESC
        LIMIT $2`,
-      [agentId, limit]
+      [agentId, limit],
     );
 
     return result.rows;
@@ -261,14 +269,18 @@ class AgentOrchestrator {
   /**
    * Update agent health status
    */
-  async updateAgentHealth(agentId: string, healthStatus: string, metadata: any = {}): Promise<void> {
+  async updateAgentHealth(
+    agentId: string,
+    healthStatus: string,
+    metadata: any = {},
+  ): Promise<void> {
     await db.query(
       `UPDATE agent_registry 
        SET health_status = $1,
            last_health_check = CURRENT_TIMESTAMP,
            metadata = $2
        WHERE id = $3`,
-      [healthStatus, JSON.stringify(metadata), agentId]
+      [healthStatus, JSON.stringify(metadata), agentId],
     );
 
     logger.info(`Agent ${agentId} health updated to ${healthStatus}`);
@@ -279,7 +291,7 @@ class AgentOrchestrator {
    */
   async startAgent(agentId: string): Promise<boolean> {
     const agent = await this.getAgent(agentId);
-    
+
     if (!agent) {
       throw new Error(`Agent ${agentId} not found`);
     }
@@ -293,7 +305,7 @@ class AgentOrchestrator {
        SET status = 'running',
            last_health_check = CURRENT_TIMESTAMP
        WHERE id = $1`,
-      [agentId]
+      [agentId],
     );
 
     return true;
@@ -304,7 +316,7 @@ class AgentOrchestrator {
    */
   async stopAgent(agentId: string): Promise<boolean> {
     const agent = await this.getAgent(agentId);
-    
+
     if (!agent) {
       throw new Error(`Agent ${agentId} not found`);
     }
@@ -318,7 +330,7 @@ class AgentOrchestrator {
        SET status = 'stopped',
            last_health_check = CURRENT_TIMESTAMP
        WHERE id = $1`,
-      [agentId]
+      [agentId],
     );
 
     return true;
@@ -331,7 +343,7 @@ class AgentOrchestrator {
     const result = await db.query(
       `SELECT COUNT(*) as count 
        FROM agent_tasks 
-       WHERE status = 'pending' OR status = 'running'`
+       WHERE status = 'pending' OR status = 'running'`,
     );
 
     return parseInt(result.rows[0].count);
@@ -353,7 +365,7 @@ class AgentOrchestrator {
         END) as avg_execution_time_ms
        FROM agent_tasks
        WHERE agent_id = $1`,
-      [agentId]
+      [agentId],
     );
 
     return result.rows[0];

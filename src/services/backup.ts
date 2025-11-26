@@ -1,6 +1,6 @@
 /**
  * Database Backup Service - Automated SQLite database backups
- * 
+ *
  * Features:
  * - Scheduled automatic backups
  * - Manual backup triggering
@@ -10,11 +10,11 @@
  * - Pre-migration backup support
  */
 
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import sqlite3 from 'sqlite3';
-import { getDatabase } from '../automation/db/database';
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
+import sqlite3 from "sqlite3";
+import { getDatabase } from "../automation/db/database";
 
 export interface BackupConfig {
   backupDir: string;
@@ -28,12 +28,12 @@ export interface BackupMetadata {
   id: number;
   fileName: string;
   filePath: string;
-  backupType: 'manual' | 'scheduled' | 'pre-migration';
+  backupType: "manual" | "scheduled" | "pre-migration";
   fileSize: number;
   checksum: string;
   startedAt: string;
   completedAt: string;
-  status: 'completed' | 'failed';
+  status: "completed" | "failed";
   error?: string;
 }
 
@@ -45,11 +45,13 @@ export interface BackupResult {
 
 // Default configuration
 const DEFAULT_CONFIG: BackupConfig = {
-  backupDir: process.env.BACKUP_DIR || path.join(process.cwd(), 'backups'),
-  maxBackups: parseInt(process.env.MAX_BACKUPS || '10'),
-  autoBackupEnabled: process.env.AUTO_BACKUP_ENABLED === 'true',
-  autoBackupInterval: parseInt(process.env.AUTO_BACKUP_INTERVAL || String(24 * 60 * 60 * 1000)), // 24 hours
-  compressionEnabled: process.env.BACKUP_COMPRESSION === 'true',
+  backupDir: process.env.BACKUP_DIR || path.join(process.cwd(), "backups"),
+  maxBackups: parseInt(process.env.MAX_BACKUPS || "10"),
+  autoBackupEnabled: process.env.AUTO_BACKUP_ENABLED === "true",
+  autoBackupInterval: parseInt(
+    process.env.AUTO_BACKUP_INTERVAL || String(24 * 60 * 60 * 1000),
+  ), // 24 hours
+  compressionEnabled: process.env.BACKUP_COMPRESSION === "true",
 };
 
 let backupInterval: NodeJS.Timeout | null = null;
@@ -77,7 +79,7 @@ export function initializeBackupService(config?: Partial<BackupConfig>): void {
     startAutoBackup();
   }
 
-  console.log('✅ Database backup service initialized');
+  console.log("✅ Database backup service initialized");
 }
 
 /**
@@ -85,7 +87,7 @@ export function initializeBackupService(config?: Partial<BackupConfig>): void {
  */
 async function initializeBackupLog(): Promise<void> {
   const db = getDatabase();
-  
+
   await db.exec(`
     CREATE TABLE IF NOT EXISTS backup_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,10 +107,10 @@ async function initializeBackupLog(): Promise<void> {
  * Create a backup of the database
  */
 export async function createBackup(
-  backupType: 'manual' | 'scheduled' | 'pre-migration' = 'manual'
+  backupType: "manual" | "scheduled" | "pre-migration" = "manual",
 ): Promise<BackupResult> {
   const db = getDatabase();
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const fileName = `workstation-backup-${timestamp}.db`;
   const filePath = path.join(currentConfig.backupDir, fileName);
 
@@ -119,13 +121,13 @@ export async function createBackup(
     const result = await db.run(
       `INSERT INTO backup_log (backup_type, file_path, started_at, status) 
        VALUES (?, ?, ?, 'in_progress')`,
-      [backupType, filePath, startedAt]
+      [backupType, filePath, startedAt],
     );
 
     const backupId = result.lastID;
 
     // Get source database path
-    const dbPath = process.env.DATABASE_PATH || './workstation.db';
+    const dbPath = process.env.DATABASE_PATH || "./workstation.db";
 
     // Copy database file
     await copyDatabaseFile(dbPath, filePath);
@@ -144,7 +146,7 @@ export async function createBackup(
       `UPDATE backup_log 
        SET status = 'completed', completed_at = ?, file_size_bytes = ?, checksum = ? 
        WHERE id = ?`,
-      [completedAt, fileSize, checksum, backupId]
+      [completedAt, fileSize, checksum, backupId],
     );
 
     const backup: BackupMetadata = {
@@ -156,10 +158,12 @@ export async function createBackup(
       checksum,
       startedAt,
       completedAt,
-      status: 'completed',
+      status: "completed",
     };
 
-    console.log(`✅ Database backup created: ${fileName} (${formatBytes(fileSize)})`);
+    console.log(
+      `✅ Database backup created: ${fileName} (${formatBytes(fileSize)})`,
+    );
 
     // Rotate old backups
     await rotateBackups();
@@ -169,15 +173,16 @@ export async function createBackup(
       backup,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('❌ Backup failed:', errorMessage);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("❌ Backup failed:", errorMessage);
 
     // Update backup log with error
     await db.run(
       `UPDATE backup_log 
        SET status = 'failed', error_message = ?, completed_at = ? 
        WHERE file_path = ? AND status = 'in_progress'`,
-      [errorMessage, new Date().toISOString(), filePath]
+      [errorMessage, new Date().toISOString(), filePath],
     );
 
     return {
@@ -190,7 +195,10 @@ export async function createBackup(
 /**
  * Copy database file using SQLite backup API
  */
-async function copyDatabaseFile(sourcePath: string, destPath: string): Promise<void> {
+async function copyDatabaseFile(
+  sourcePath: string,
+  destPath: string,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       let finished = false;
@@ -212,9 +220,9 @@ async function copyDatabaseFile(sourcePath: string, destPath: string): Promise<v
         reject(err);
       }
 
-      readStream.on('error', cleanupAndReject);
-      writeStream.on('error', cleanupAndReject);
-      writeStream.on('finish', () => {
+      readStream.on("error", cleanupAndReject);
+      writeStream.on("error", cleanupAndReject);
+      writeStream.on("finish", () => {
         if (finished) return;
         finished = true;
         resolve();
@@ -232,12 +240,12 @@ async function copyDatabaseFile(sourcePath: string, destPath: string): Promise<v
  */
 async function calculateChecksum(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const hash = crypto.createHash('sha256');
+    const hash = crypto.createHash("sha256");
     const stream = fs.createReadStream(filePath);
 
-    stream.on('data', (data) => hash.update(data));
-    stream.on('end', () => resolve(hash.digest('hex')));
-    stream.on('error', reject);
+    stream.on("data", (data) => hash.update(data));
+    stream.on("end", () => resolve(hash.digest("hex")));
+    stream.on("error", reject);
   });
 }
 
@@ -249,8 +257,8 @@ export async function verifyBackup(backupId: number): Promise<boolean> {
 
   try {
     const backup = await db.get<BackupMetadata>(
-      'SELECT * FROM backup_log WHERE id = ?',
-      [backupId]
+      "SELECT * FROM backup_log WHERE id = ?",
+      [backupId],
     );
 
     if (!backup) {
@@ -273,14 +281,18 @@ export async function verifyBackup(backupId: number): Promise<boolean> {
 
     // Try to open the backup database to verify it's not corrupted
     const testDb: sqlite3.Database = await new Promise((resolve, reject) => {
-      const db = new sqlite3.Database(backup.filePath, sqlite3.OPEN_READONLY, (err: Error | null) => {
-        if (err) {
-          console.error(`Backup database is corrupted: ${err.message}`);
-          reject(err);
-        } else {
-          resolve(db);
-        }
-      });
+      const db = new sqlite3.Database(
+        backup.filePath,
+        sqlite3.OPEN_READONLY,
+        (err: Error | null) => {
+          if (err) {
+            console.error(`Backup database is corrupted: ${err.message}`);
+            reject(err);
+          } else {
+            resolve(db);
+          }
+        },
+      );
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -293,7 +305,7 @@ export async function verifyBackup(backupId: number): Promise<boolean> {
     console.log(`✅ Backup ${backupId} verified successfully`);
     return true;
   } catch (error) {
-    console.error('Backup verification failed:', error);
+    console.error("Backup verification failed:", error);
     return false;
   }
 }
@@ -309,7 +321,7 @@ async function rotateBackups(): Promise<void> {
     const backups = await db.all<BackupMetadata[]>(
       `SELECT * FROM backup_log 
        WHERE status = 'completed' 
-       ORDER BY completed_at DESC`
+       ORDER BY completed_at DESC`,
     );
 
     if (backups.length <= currentConfig.maxBackups) {
@@ -327,10 +339,7 @@ async function rotateBackups(): Promise<void> {
         }
 
         // Mark as deleted in database
-        await db.run(
-          'DELETE FROM backup_log WHERE id = ?',
-          [backup.id]
-        );
+        await db.run("DELETE FROM backup_log WHERE id = ?", [backup.id]);
 
         console.log(`🗑️  Rotated old backup: ${backup.fileName}`);
       } catch (error) {
@@ -338,7 +347,7 @@ async function rotateBackups(): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('Backup rotation failed:', error);
+    console.error("Backup rotation failed:", error);
   }
 }
 
@@ -352,12 +361,12 @@ export async function listBackups(): Promise<BackupMetadata[]> {
     const backups = await db.all<BackupMetadata[]>(
       `SELECT * FROM backup_log 
        WHERE status = 'completed' 
-       ORDER BY completed_at DESC`
+       ORDER BY completed_at DESC`,
     );
 
     return backups;
   } catch (error) {
-    console.error('Failed to list backups:', error);
+    console.error("Failed to list backups:", error);
     return [];
   }
 }
@@ -365,18 +374,20 @@ export async function listBackups(): Promise<BackupMetadata[]> {
 /**
  * Get backup by ID
  */
-export async function getBackup(backupId: number): Promise<BackupMetadata | null> {
+export async function getBackup(
+  backupId: number,
+): Promise<BackupMetadata | null> {
   const db = getDatabase();
 
   try {
     const backup = await db.get<BackupMetadata>(
-      'SELECT * FROM backup_log WHERE id = ?',
-      [backupId]
+      "SELECT * FROM backup_log WHERE id = ?",
+      [backupId],
     );
 
     return backup || null;
   } catch (error) {
-    console.error('Failed to get backup:', error);
+    console.error("Failed to get backup:", error);
     return null;
   }
 }
@@ -386,16 +397,18 @@ export async function getBackup(backupId: number): Promise<BackupMetadata | null
  */
 export function startAutoBackup(): void {
   if (backupInterval) {
-    console.warn('Auto backup already running');
+    console.warn("Auto backup already running");
     return;
   }
 
   backupInterval = setInterval(async () => {
-    console.log('🔄 Running scheduled backup...');
-    await createBackup('scheduled');
+    console.log("🔄 Running scheduled backup...");
+    await createBackup("scheduled");
   }, currentConfig.autoBackupInterval);
 
-  console.log(`✅ Auto backup started (interval: ${currentConfig.autoBackupInterval}ms)`);
+  console.log(
+    `✅ Auto backup started (interval: ${currentConfig.autoBackupInterval}ms)`,
+  );
 }
 
 /**
@@ -405,7 +418,7 @@ export function stopAutoBackup(): void {
   if (backupInterval) {
     clearInterval(backupInterval);
     backupInterval = null;
-    console.log('⏹️  Auto backup stopped');
+    console.log("⏹️  Auto backup stopped");
   }
 }
 
@@ -434,13 +447,13 @@ export async function getBackupStatistics(): Promise<{
         MIN(completed_at) as oldestBackup,
         MAX(completed_at) as newestBackup
        FROM backup_log 
-       WHERE status = 'completed'`
+       WHERE status = 'completed'`,
     );
 
     const failedResult = await db.get<{ failedBackups: number }>(
       `SELECT COUNT(*) as failedBackups 
        FROM backup_log 
-       WHERE status = 'failed'`
+       WHERE status = 'failed'`,
     );
 
     return {
@@ -451,7 +464,7 @@ export async function getBackupStatistics(): Promise<{
       failedBackups: failedResult?.failedBackups || 0,
     };
   } catch (error) {
-    console.error('Failed to get backup statistics:', error);
+    console.error("Failed to get backup statistics:", error);
     return {
       totalBackups: 0,
       totalSize: 0,
@@ -476,27 +489,27 @@ export async function restoreFromBackup(backupId: number): Promise<boolean> {
   // Verify backup before restore
   const isValid = await verifyBackup(backupId);
   if (!isValid) {
-    console.error('Backup verification failed, cannot restore');
+    console.error("Backup verification failed, cannot restore");
     return false;
   }
 
   try {
     // Create a backup of current database before restore
-    console.log('Creating safety backup before restore...');
-    await createBackup('pre-migration');
+    console.log("Creating safety backup before restore...");
+    await createBackup("pre-migration");
 
     // Get database path
-    const dbPath = process.env.DATABASE_PATH || './workstation.db';
+    const dbPath = process.env.DATABASE_PATH || "./workstation.db";
 
     // Copy backup file to database location
     fs.copyFileSync(backup.filePath, dbPath);
 
     console.log(`✅ Database restored from backup ${backupId}`);
-    console.log('⚠️  Application restart required to use restored database');
+    console.log("⚠️  Application restart required to use restored database");
 
     return true;
   } catch (error) {
-    console.error('Restore failed:', error);
+    console.error("Restore failed:", error);
     return false;
   }
 }
@@ -505,11 +518,11 @@ export async function restoreFromBackup(backupId: number): Promise<boolean> {
  * Format bytes to human-readable string
  */
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
 }
 
 /**
@@ -541,5 +554,5 @@ export function updateBackupConfig(config: Partial<BackupConfig>): void {
     startAutoBackup();
   }
 
-  console.log('✅ Backup configuration updated');
+  console.log("✅ Backup configuration updated");
 }
