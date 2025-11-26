@@ -103,7 +103,11 @@ export class Validator {
     
     // If no tags allowed, strip all HTML
     if (allowedTags.length === 0) {
-      sanitized = sanitized.replace(/<[^>]*>/g, '');
+      let previous;
+      do {
+        previous = sanitized;
+        sanitized = sanitized.replace(/<[^>]*>/g, '');
+      } while (sanitized !== previous);
     } else {
       // Remove script tags and their content
       sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
