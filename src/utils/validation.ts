@@ -10,6 +10,7 @@
 import Joi from 'joi';
 import { ErrorHandler } from './error-handler';
 import { Request, Response, NextFunction } from 'express';
+import sanitizeHtmlLib from 'sanitize-html';
 
 /**
  * Validation result interface
@@ -99,27 +100,16 @@ export class Validator {
       return '';
     }
 
-    let sanitized = input;
-    
-    // If no tags allowed, strip all HTML
-    if (allowedTags.length === 0) {
-      let previous;
-      do {
-        previous = sanitized;
-        sanitized = sanitized.replace(/<[^>]*>/g, '');
-      } while (sanitized !== previous);
-    } else {
-      // Remove script tags and their content
-      sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-      
-      // Remove iframe tags
-      sanitized = sanitized.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
-      
-      // Remove dangerous attributes
-      sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
-      sanitized = sanitized.replace(/(?:javascript:|data:|vbscript:)/gi, '');
-    }
-
+    // Use sanitize-html library for robust sanitization
+    // Build config
+    const config: sanitizeHtmlLib.IOptions = {
+      allowedTags: allowedTags.length > 0 ? allowedTags : [],
+      allowedAttributes: {}, // No attributes allowed by default
+      // Don't allow script, iframe, or dangerous protocols
+      allowVulnerableTags: false,
+      allowedSchemes: ['http', 'https', 'mailto'],
+    };
+    const sanitized = sanitizeHtmlLib(input, config);
     return sanitized.trim();
   }
 
