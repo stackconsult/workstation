@@ -218,7 +218,7 @@ jobs:
     name: Report Final Results
     runs-on: ubuntu-latest
     needs: [run-tests, create-pull-request]
-    if: always()
+    if: always() && github.event_name != 'pull_request'
     
     steps:
       - name: Download verification report
