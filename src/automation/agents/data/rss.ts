@@ -1,9 +1,10 @@
 /**
  * RSS Agent for building client/prospect repositories
+ * Production implementation with rss-parser library
  * Parses RSS feeds and extracts relevant information
- * Phase 10: Workspace Automation
  */
 
+import Parser from 'rss-parser';
 import { logger } from '../../../utils/logger';
 
 export interface RssFeed {
@@ -36,13 +37,29 @@ export interface ClientIntelligence {
 }
 
 /**
- * RSS Agent Implementation
- * Note: Simplified implementation for demo
- * Production would use rss-parser library
+ * Production RSS Agent Implementation
+ * Uses rss-parser library for real RSS feed parsing
  */
 export class RssAgent {
+  private parser: Parser;
+
+  constructor() {
+    this.parser = new Parser({
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'stackBrowserAgent/1.0'
+      },
+      customFields: {
+        item: [
+          ['media:content', 'media'],
+          ['content:encoded', 'contentEncoded']
+        ]
+      }
+    });
+  }
+
   /**
-   * Fetch and parse RSS feed
+   * Fetch and parse RSS feed using rss-parser
    */
   async fetchFeed(params: {
     url: string;
@@ -54,28 +71,36 @@ export class RssAgent {
   }> {
     logger.info('Fetching RSS feed', { url: params.url });
 
-    // Placeholder implementation
-    // Production would use rss-parser library
-    const mockFeed = {
-      title: 'Example Feed',
-      description: 'Example RSS feed',
-      items: [
-        {
-          title: 'Technology Update Q4 2024',
-          link: 'https://example.com/tech-update',
-          content: 'Latest technology trends and industry updates...',
-          contentSnippet: 'Latest technology trends...',
-          pubDate: new Date().toISOString(),
-          categories: ['Technology', 'Industry News']
-        }
-      ]
-    };
+    try {
+      const feed = await this.parser.parseURL(params.url);
+      
+      const items: RssItem[] = feed.items.map(item => ({
+        title: item.title || '',
+        link: item.link || '',
+        content: (item as any).contentEncoded || item.content || '',
+        contentSnippet: item.contentSnippet || '',
+        pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
+        categories: item.categories || []
+      }));
 
-    const maxItems = params.maxItems || 20;
-    return {
-      ...mockFeed,
-      items: mockFeed.items.slice(0, maxItems)
-    };
+      const maxItems = params.maxItems || 20;
+      const limitedItems = items.slice(0, maxItems);
+
+      logger.info('RSS feed fetched successfully', {
+        url: params.url,
+        totalItems: items.length,
+        returnedItems: limitedItems.length
+      });
+
+      return {
+        title: feed.title || 'Unknown Feed',
+        description: feed.description || '',
+        items: limitedItems
+      };
+    } catch (error) {
+      logger.error('RSS feed fetch failed', { url: params.url, error });
+      throw new Error(`Failed to fetch RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -91,47 +116,57 @@ export class RssAgent {
       clientName: params.clientName
     });
 
-    const feed = await this.fetchFeed({
-      url: params.url,
-      maxItems: params.maxItems
-    });
+    try {
+      const feed = await this.fetchFeed({
+        url: params.url,
+        maxItems: params.maxItems
+      });
 
-    const intelligenceItems: ClientIntelligence[] = [];
+      const intelligenceItems: ClientIntelligence[] = [];
 
-    for (const item of feed.items) {
-      // Find client mentions in content
-      const mentions = this.findClientMentions(
-        item.content || item.contentSnippet,
-        params.clientName
-      );
+      for (const item of feed.items) {
+        // Find client mentions in content
+        const mentions = this.findClientMentions(
+          item.content || item.contentSnippet,
+          params.clientName
+        );
 
-      // Calculate relevance score
-      const relevanceScore = this.calculateRelevance(
-        item,
-        mentions,
-        params.clientName
-      );
+        // Calculate relevance score
+        const relevanceScore = this.calculateRelevance(
+          item,
+          mentions,
+          params.clientName
+        );
 
-      // Only include if relevant
-      if (relevanceScore > 0.3) {
-        intelligenceItems.push({
-          title: item.title,
-          url: item.link,
-          summary: this.summarizeContent(
-            item.contentSnippet || item.content,
-            150
-          ),
-          date: item.pubDate,
-          relevanceScore,
-          clientMentions: mentions
-        });
+        // Only include if relevant
+        if (relevanceScore > 0.3) {
+          intelligenceItems.push({
+            title: item.title,
+            url: item.link,
+            summary: this.summarizeContent(
+              item.contentSnippet || item.content,
+              150
+            ),
+            date: item.pubDate,
+            relevanceScore,
+            clientMentions: mentions
+          });
+        }
       }
+
+      // Sort by relevance
+      intelligenceItems.sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+      logger.info('Client information extracted', {
+        totalItems: feed.items.length,
+        relevantItems: intelligenceItems.length
+      });
+
+      return intelligenceItems;
+    } catch (error) {
+      logger.error('Client info extraction failed', { error });
+      throw error;
     }
-
-    // Sort by relevance
-    intelligenceItems.sort((a, b) => b.relevanceScore - a.relevanceScore);
-
-    return intelligenceItems;
   }
 
   /**

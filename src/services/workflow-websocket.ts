@@ -1,42 +1,14 @@
 /**
  * Workflow WebSocket Service
  * 
- * Provides real-time updates for workflow execution progress.
- * Integrates with StateManager to broadcast execution state changes.
- * 
- * @module services/workflow-websocket
- * @version 2.0.0
- */
-
-import { Server as WebSocketServer, WebSocket } from 'ws';
-import { Server } from 'http';
-import { logger } from '../utils/logger';
-import { StateManager } from '../automation/workflow/state-manager';
-
-export interface WorkflowMessage {
-  type: 'execution.started' | 'execution.progress' | 'execution.completed' | 'execution.failed';
-  executionId: string;
-  data: any;
-  timestamp: string;
-}
-
-export class WorkflowWebSocketService {
-  private wss: WebSocketServer | null = null;
-  private clients: Map<string, Set<WebSocket>> = new Map();
-  private stateManager: StateManager;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
-
-  constructor(stateManager: StateManager) {
-    this.stateManager = stateManager;
-  }
- * Real-time Workflow Execution Updates via WebSocket
+ * Real-time workflow execution updates via WebSocket
  * Provides live status updates for workflow executions
+ * Production implementation with ws library
  */
 
 import WebSocket from 'ws';
 import { Server as HttpServer } from 'http';
 import { logger } from '../utils/logger';
-import { orchestrationEngine } from '../automation/orchestrator/engine';
 
 interface ExecutionClient {
   ws: WebSocket;
@@ -52,128 +24,87 @@ class WorkflowWebSocketServer {
   /**
    * Initialize WebSocket server
    */
-  public initialize(server: Server): void {
-    this.wss = new WebSocketServer({ 
+  public initialize(server: HttpServer): void {
+    if (this.wss) {
+      logger.warn('[WorkflowWebSocket] Server already initialized');
+      return;
+    }
+
+    this.wss = new WebSocket.Server({
       server,
-      path: '/ws/workflows'
-  initialize(server: HttpServer): void {
-    this.wss = new WebSocket.Server({ 
-      server, 
-      path: '/ws/executions',
-      clientTracking: true
+      path: '/ws/workflows',
+      perMessageDeflate: false
     });
 
-    this.wss.on('connection', (ws: WebSocket, req) => {
-      logger.info('WebSocket client connected', { 
-        path: req.url,
-        origin: req.headers.origin 
-      });
+    this.setupEventHandlers();
+    this.startHeartbeat();
 
-      ws.on('message', (message: string) => {
+    logger.info('[WorkflowWebSocket] Server initialized on path /ws/workflows');
+  }
+
+  /**
+   * Setup WebSocket event handlers
+   */
+  private setupEventHandlers(): void {
+    if (!this.wss) return;
+
+    this.wss.on('connection', (ws: WebSocket, req: any) => {
+      const clientId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      logger.info('[WorkflowWebSocket] Client connected', { clientId });
+
+      ws.on('message', (data: WebSocket.Data) => {
         try {
-          const data = JSON.parse(message.toString());
-          this.handleClientMessage(ws, data);
+          const message = JSON.parse(data.toString());
+          this.handleMessage(ws, message);
         } catch (error) {
-          logger.error('Invalid WebSocket message', { error: (error as Error).message });
-          ws.send(JSON.stringify({ 
-            type: 'error', 
-            error: 'Invalid message format' 
-          }));
+          logger.error('[WorkflowWebSocket] Error parsing message', { error });
+          this.sendMessage(ws, {
+            type: 'error',
+            message: 'Invalid message format'
+          });
         }
       });
 
-        ip: req.socket.remoteAddress 
+      ws.on('close', () => {
+        logger.info('[WorkflowWebSocket] Client disconnected', { clientId });
+        this.removeClient(ws);
+      });
+
+      ws.on('error', (error: Error) => {
+        logger.error('[WorkflowWebSocket] WebSocket error', { error, clientId });
       });
 
       // Send welcome message
       this.sendMessage(ws, {
         type: 'connected',
-        message: 'Connected to Workstation execution updates',
+        message: 'Connected to workflow updates',
         timestamp: new Date().toISOString()
       });
-
-      // Handle messages from client
-      ws.on('message', (data: WebSocket.Data) => {
-        try {
-          const message = JSON.parse(data.toString());
-          this.handleClientMessage(ws, message);
-        } catch (error) {
-          logger.error('Failed to parse WebSocket message', { error });
-          this.sendError(ws, 'Invalid message format');
-        }
-      });
-
-      // Handle client disconnect
-      ws.on('close', () => {
-        this.removeClient(ws);
-        logger.info('WebSocket client disconnected');
-      });
-
-      ws.on('error', (error) => {
-        logger.error('WebSocket error', { error: error.message });
-      });
-
-      // Send initial connection success message
-      ws.send(JSON.stringify({ 
-        type: 'connected', 
-        message: 'Workflow WebSocket connected',
-        timestamp: new Date().toISOString()
-      }));
     });
-
-    // Start heartbeat to keep connections alive
-    this.startHeartbeat();
-
-    logger.info('Workflow WebSocket server initialized');
   }
 
   /**
-   * Handle incoming client messages
+   * Handle incoming WebSocket messages
    */
-  private handleClientMessage(ws: WebSocket, data: any): void {
-    const { type, executionId } = data;
+  private handleMessage(ws: WebSocket, message: any): void {
+    const { type, executionId } = message;
 
     switch (type) {
       case 'subscribe':
-        this.subscribe(ws, executionId);
-        break;
-      case 'unsubscribe':
-        this.unsubscribe(ws, executionId);
-        break;
-      case 'ping':
-        ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
-        break;
-      default:
-        logger.warn('Unknown WebSocket message type', { type });
-      // Handle errors
-      ws.on('error', (error) => {
-        logger.error('WebSocket error', { error });
-      });
-    });
-
-    // Start ping interval to keep connections alive
-    this.pingInterval = setInterval(() => {
-      this.wss?.clients.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.ping();
+        if (executionId) {
+          this.subscribeToExecution(ws, executionId);
+        } else {
+          this.sendMessage(ws, {
+            type: 'error',
+            message: 'Missing executionId for subscription'
+          });
         }
-      });
-    }, 30000); // Ping every 30 seconds
-
-    logger.info('WebSocket server initialized on /ws/executions');
-  }
-
-  /**
-   * Handle messages from clients
-   */
-  private handleClientMessage(ws: WebSocket, message: any): void {
-    switch (message.type) {
-      case 'subscribe':
-        this.subscribeToExecution(ws, message.executionId);
         break;
 
       case 'unsubscribe':
-        this.unsubscribeFromExecution(ws, message.executionId);
+        if (executionId) {
+          this.unsubscribeFromExecution(ws, executionId);
+        }
         break;
 
       case 'ping':
@@ -181,94 +112,70 @@ class WorkflowWebSocketServer {
         break;
 
       default:
-        this.sendError(ws, `Unknown message type: ${message.type}`);
+        this.sendMessage(ws, {
+          type: 'error',
+          message: `Unknown message type: ${type}`
+        });
     }
   }
 
   /**
    * Subscribe client to execution updates
    */
-  private subscribe(ws: WebSocket, executionId: string): void {
-    if (!this.clients.has(executionId)) {
-      this.clients.set(executionId, new Set());
-    }
-    this.clients.get(executionId)!.add(ws);
-
-    // Send current state immediately
-    const state = this.stateManager.getState(executionId);
-    if (state) {
-      ws.send(JSON.stringify({
-        type: 'execution.status',
-        executionId,
-        data: {
-          status: state.status,
-          progress: state.progress,
-          currentStep: state.currentStep,
-          totalSteps: state.totalSteps,
-        },
-        timestamp: new Date().toISOString(),
-      }));
-    }
-
-    logger.info('Client subscribed to execution', { executionId });
   private subscribeToExecution(ws: WebSocket, executionId: string): void {
-    if (!executionId) {
-      this.sendError(ws, 'Execution ID is required');
+    if (!this.clients.has(executionId)) {
+      this.clients.set(executionId, []);
+    }
+
+    const clients = this.clients.get(executionId)!;
+    
+    // Check if already subscribed
+    if (clients.some(c => c.ws === ws)) {
+      this.sendMessage(ws, {
+        type: 'already_subscribed',
+        executionId
+      });
       return;
     }
 
-    const client: ExecutionClient = {
+    clients.push({
       ws,
       executionId,
       subscribed: true
-    };
-
-    // Add to clients map
-    const clients = this.clients.get(executionId) || [];
-    clients.push(client);
-    this.clients.set(executionId, clients);
+    });
 
     this.sendMessage(ws, {
       type: 'subscribed',
       executionId,
-      message: `Subscribed to execution ${executionId}`,
       timestamp: new Date().toISOString()
     });
 
-    logger.info('Client subscribed to execution', { executionId });
-
-    // Send current status immediately
-    this.sendExecutionStatus(executionId);
+    logger.info('[WorkflowWebSocket] Client subscribed to execution', { executionId });
   }
 
   /**
    * Unsubscribe client from execution updates
    */
-  private unsubscribe(ws: WebSocket, executionId: string): void {
-    const clients = this.clients.get(executionId);
-    if (clients) {
-      clients.delete(ws);
-      if (clients.size === 0) {
-        this.clients.delete(executionId);
-      }
-    }
-    logger.info('Client unsubscribed from execution', { executionId });
   private unsubscribeFromExecution(ws: WebSocket, executionId: string): void {
     const clients = this.clients.get(executionId);
-    if (clients) {
-      const filtered = clients.filter(c => c.ws !== ws);
-      if (filtered.length === 0) {
-        this.clients.delete(executionId);
-      } else {
-        this.clients.set(executionId, filtered);
-      }
-    }
+    if (!clients) return;
 
-    this.sendMessage(ws, {
-      type: 'unsubscribed',
-      executionId,
-      timestamp: new Date().toISOString()
-    });
+    const index = clients.findIndex(c => c.ws === ws);
+    if (index !== -1) {
+      clients.splice(index, 1);
+      
+      if (clients.length === 0) {
+        this.clients.delete(executionId);
+      }
+
+      this.sendMessage(ws, {
+        type: 'unsubscribed',
+        executionId,
+        timestamp: new Date().toISOString()
+      });
+
+      logger.info('[WorkflowWebSocket] Client unsubscribed from execution', { executionId });
+    }
   }
 
   /**
@@ -276,236 +183,100 @@ class WorkflowWebSocketServer {
    */
   private removeClient(ws: WebSocket): void {
     this.clients.forEach((clients, executionId) => {
-      clients.delete(ws);
-      if (clients.size === 0) {
-        this.clients.delete(executionId);
-      }
-    });
-  }
-
-  /**
-   * Broadcast execution update to subscribers
-   */
-  public broadcast(executionId: string, message: WorkflowMessage): void {
-    const clients = this.clients.get(executionId);
-    if (!clients || clients.size === 0) {
-      return;
-    }
-
-    const messageStr = JSON.stringify(message);
-    let successCount = 0;
-    let errorCount = 0;
-
-    clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        try {
-          client.send(messageStr);
-          successCount++;
-        } catch (error) {
-          logger.error('Failed to send WebSocket message', { 
-            error: (error as Error).message 
-          });
-          errorCount++;
+      const index = clients.findIndex(c => c.ws === ws);
+      if (index !== -1) {
+        clients.splice(index, 1);
+        if (clients.length === 0) {
+          this.clients.delete(executionId);
         }
       }
-    });
-
-    logger.debug('Broadcast execution update', { 
-      executionId, 
-      type: message.type,
-      successCount,
-      errorCount 
     });
   }
 
   /**
    * Broadcast execution started event
    */
-  public broadcastExecutionStarted(executionId: string, workflowId: string): void {
+  broadcastExecutionStarted(executionId: string, data: any): void {
     this.broadcast(executionId, {
       type: 'execution.started',
       executionId,
-      data: { workflowId },
-      timestamp: new Date().toISOString(),
+      data,
+      timestamp: new Date().toISOString()
     });
   }
 
   /**
-   * Broadcast execution progress event
+   * Broadcast execution progress update
    */
-  public broadcastExecutionProgress(executionId: string, progress: any): void {
+  broadcastExecutionProgress(executionId: string, data: any): void {
     this.broadcast(executionId, {
       type: 'execution.progress',
       executionId,
-      data: progress,
-      timestamp: new Date().toISOString(),
+      data,
+      timestamp: new Date().toISOString()
     });
   }
 
   /**
    * Broadcast execution completed event
    */
-  public broadcastExecutionCompleted(executionId: string, result: any): void {
+  broadcastExecutionCompleted(executionId: string, data: any): void {
     this.broadcast(executionId, {
       type: 'execution.completed',
       executionId,
-      data: result,
-      timestamp: new Date().toISOString(),
+      data,
+      timestamp: new Date().toISOString()
     });
   }
 
   /**
    * Broadcast execution failed event
    */
-  public broadcastExecutionFailed(executionId: string, error: string): void {
+  broadcastExecutionFailed(executionId: string, data: any): void {
     this.broadcast(executionId, {
       type: 'execution.failed',
       executionId,
-      data: { error },
-      timestamp: new Date().toISOString(),
+      data,
+      timestamp: new Date().toISOString()
     });
-  }
-
-  /**
-   * Start heartbeat to keep connections alive
-   */
-  private startHeartbeat(): void {
-    this.heartbeatInterval = setInterval(() => {
-      if (!this.wss) return;
-
-      this.wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.ping();
-        }
-      });
-    }, 30000); // 30 seconds
-  }
-
-  /**
-   * Stop heartbeat
-   */
-  private stopHeartbeat(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
-      const filtered = clients.filter(c => c.ws !== ws);
-      if (filtered.length === 0) {
-        this.clients.delete(executionId);
-      } else {
-        this.clients.set(executionId, filtered);
-      }
-    });
-  }
-
-  /**
-   * Broadcast execution status to all subscribed clients
-   */
-  async sendExecutionStatus(executionId: string): Promise<void> {
-    const clients = this.clients.get(executionId);
-    if (!clients || clients.length === 0) {
-      return;
-    }
-
-    try {
-      // Get current execution status from orchestration engine
-      const execution = await orchestrationEngine.getExecution(executionId);
-      
-      if (!execution) {
-        return;
-      }
-
-      // Calculate progress from tasks if available
-      let progress = 0;
-      try {
-        const tasks = await orchestrationEngine.getExecutionTasks(executionId);
-        if (tasks && Array.isArray(tasks)) {
-          const completed = tasks.filter((t: any) => t.status === 'completed').length;
-          progress = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
-        }
-      } catch (error) {
-        // If tasks query fails, leave progress at 0
-        logger.warn('Failed to calculate progress from tasks', { executionId, error });
-      }
-
-      const status = {
-        type: 'execution_update',
-        executionId,
-        data: {
-          status: execution.status,
-          progress,
-          startedAt: execution.started_at,
-          completedAt: execution.completed_at,
-          error: execution.error_message,
-          duration: execution.duration_ms
-        },
-        timestamp: new Date().toISOString()
-      };
-
-      // Send to all subscribed clients
-      clients.forEach(client => {
-        if (client.subscribed && client.ws.readyState === WebSocket.OPEN) {
-          this.sendMessage(client.ws, status);
-        }
-      });
-    } catch (error) {
-      logger.error('Failed to send execution status', { executionId, error });
-    }
   }
 
   /**
    * Broadcast task update to subscribed clients
    */
   broadcastTaskUpdate(executionId: string, taskUpdate: any): void {
-    const clients = this.clients.get(executionId);
-    if (!clients || clients.length === 0) {
-      return;
-    }
-
-    const message = {
+    this.broadcast(executionId, {
       type: 'task_update',
       executionId,
       data: taskUpdate,
       timestamp: new Date().toISOString()
-    };
-
-    clients.forEach(client => {
-      if (client.subscribed && client.ws.readyState === WebSocket.OPEN) {
-        this.sendMessage(client.ws, message);
-      }
     });
   }
 
   /**
-   * Broadcast execution completion
+   * Broadcast message to all clients subscribed to an execution
    */
-  broadcastExecutionComplete(executionId: string, result: any): void {
+  private broadcast(executionId: string, message: any): void {
     const clients = this.clients.get(executionId);
     if (!clients || clients.length === 0) {
       return;
     }
 
-    const message = {
-      type: 'execution_complete',
-      executionId,
-      data: result,
-      timestamp: new Date().toISOString()
-    };
-
     clients.forEach(client => {
       if (client.subscribed && client.ws.readyState === WebSocket.OPEN) {
         this.sendMessage(client.ws, message);
       }
     });
 
-    // Clean up clients after a delay
-    setTimeout(() => {
-      this.clients.delete(executionId);
-    }, 60000); // Remove after 1 minute
+    logger.debug('[WorkflowWebSocket] Broadcasted to clients', {
+      executionId,
+      type: message.type,
+      clientCount: clients.length
+    });
   }
 
   /**
-   * Send message to client
+   * Send message to a specific WebSocket client
    */
   private sendMessage(ws: WebSocket, message: any): void {
     if (ws.readyState === WebSocket.OPEN) {
@@ -514,82 +285,44 @@ class WorkflowWebSocketServer {
   }
 
   /**
-   * Send error message to client
+   * Start heartbeat to keep connections alive
    */
-  private sendError(ws: WebSocket, error: string): void {
-    this.sendMessage(ws, {
-      type: 'error',
-      error,
-      timestamp: new Date().toISOString()
-    });
-  }
+  private startHeartbeat(): void {
+    this.pingInterval = setInterval(() => {
+      if (!this.wss) return;
 
-  /**
-   * Get connected clients count
-   */
-  getConnectionsCount(): number {
-    return this.wss?.clients.size || 0;
-  }
-
-  /**
-   * Get active subscriptions count
-   */
-  getSubscriptionsCount(): number {
-    let count = 0;
-    this.clients.forEach(clients => {
-      count += clients.length;
-    });
-    return count;
-  }
-
-  /**
-   * Shutdown WebSocket server
-   */
-  public shutdown(): void {
-    this.stopHeartbeat();
-    
-    if (this.wss) {
-      this.wss.clients.forEach((client) => {
-        client.close(1000, 'Server shutdown');
+      this.wss.clients.forEach((ws: WebSocket) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.ping();
+        }
       });
-      this.wss.close();
-      this.wss = null;
-    }
-
-    this.clients.clear();
-    logger.info('Workflow WebSocket server shutdown');
+    }, 30000); // Every 30 seconds
   }
 
   /**
    * Get connection statistics
    */
-  public getStats(): { totalClients: number; subscriptions: number } {
-    let totalClients = 0;
-    this.clients.forEach((clients) => {
-      totalClients += clients.size;
+  getStats(): {
+    totalConnections: number;
+    activeExecutions: number;
+    clientsByExecution: Record<string, number>;
+  } {
+    const clientsByExecution: Record<string, number> = {};
+    
+    this.clients.forEach((clients, executionId) => {
+      clientsByExecution[executionId] = clients.length;
     });
 
     return {
-      totalClients,
-      subscriptions: this.clients.size,
+      totalConnections: this.wss?.clients.size || 0,
+      activeExecutions: this.clients.size,
+      clientsByExecution
     };
   }
-}
 
-// Export singleton instance
-let workflowWebSocketService: WorkflowWebSocketService | null = null;
-
-export function initializeWorkflowWebSocket(server: Server, stateManager: StateManager): WorkflowWebSocketService {
-  if (!workflowWebSocketService) {
-    workflowWebSocketService = new WorkflowWebSocketService(stateManager);
-    workflowWebSocketService.initialize(server);
-  }
-  return workflowWebSocketService;
-}
-
-export function getWorkflowWebSocketService(): WorkflowWebSocketService | null {
-  return workflowWebSocketService;
-}
+  /**
+   * Shutdown the WebSocket server
+   */
   shutdown(): void {
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
@@ -603,7 +336,7 @@ export function getWorkflowWebSocketService(): WorkflowWebSocketService | null {
     this.wss?.close();
     this.clients.clear();
 
-    logger.info('WebSocket server shut down');
+    logger.info('[WorkflowWebSocket] Server shut down');
   }
 }
 
