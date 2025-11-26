@@ -1,16 +1,16 @@
 /**
  * Input Validation Utilities
- * 
+ *
  * Provides validation and sanitization for agent inputs and API requests
- * 
+ *
  * @module utils/validation
  * @version 1.0.0
  */
 
-import Joi from 'joi';
-import { ErrorHandler } from './error-handler';
-import { Request, Response, NextFunction } from 'express';
-import sanitizeHtmlLib from 'sanitize-html';
+import Joi from "joi";
+import { ErrorHandler } from "./error-handler";
+import { Request, Response, NextFunction } from "express";
+import sanitizeHtmlLib from "sanitize-html";
 
 /**
  * Validation result interface
@@ -28,25 +28,22 @@ export class Validator {
   /**
    * Validate data against Joi schema
    */
-  static validate<T>(
-    data: unknown,
-    schema: Joi.Schema
-  ): ValidationResult<T> {
+  static validate<T>(data: unknown, schema: Joi.Schema): ValidationResult<T> {
     const { error, value } = schema.validate(data, {
       abortEarly: false,
-      stripUnknown: true
+      stripUnknown: true,
     });
 
     if (error) {
       return {
         valid: false,
-        errors: error.details.map(d => d.message)
+        errors: error.details.map((d) => d.message),
       };
     }
 
     return {
       valid: true,
-      data: value as T
+      data: value as T,
     };
   }
 
@@ -56,14 +53,14 @@ export class Validator {
   static validateOrThrow<T>(
     data: unknown,
     schema: Joi.Schema,
-    context?: string
+    context?: string,
   ): T {
     const result = this.validate<T>(data, schema);
-    
+
     if (!result.valid) {
       throw ErrorHandler.validationError(
-        `Validation failed${context ? ` for ${context}` : ''}: ${result.errors?.join(', ')}`,
-        context
+        `Validation failed${context ? ` for ${context}` : ""}: ${result.errors?.join(", ")}`,
+        context,
       );
     }
 
@@ -74,19 +71,20 @@ export class Validator {
    * Sanitize string input (XSS prevention)
    */
   static sanitizeString(input: string): string {
-    if (typeof input !== 'string') {
-      return '';
+    if (typeof input !== "string") {
+      return "";
     }
 
     // Remove angle brackets, javascript: protocol, and repeatedly remove event handlers
-    let sanitized = input.replace(/[<>]/g, '') // Remove angle brackets
-      .replace(/javascript:/gi, ''); // Remove javascript: protocol
+    let sanitized = input
+      .replace(/[<>]/g, "") // Remove angle brackets
+      .replace(/javascript:/gi, ""); // Remove javascript: protocol
 
     // Remove all event handler attributes with repeated replacement
     let previous;
     do {
       previous = sanitized;
-      sanitized = sanitized.replace(/on\w+=/gi, '');
+      sanitized = sanitized.replace(/on\w+=/gi, "");
     } while (sanitized !== previous);
 
     return sanitized.trim();
@@ -96,8 +94,8 @@ export class Validator {
    * Sanitize HTML (preserve safe tags)
    */
   static sanitizeHtml(input: string, allowedTags: string[] = []): string {
-    if (typeof input !== 'string') {
-      return '';
+    if (typeof input !== "string") {
+      return "";
     }
 
     // Use sanitize-html library for robust sanitization
@@ -107,7 +105,7 @@ export class Validator {
       allowedAttributes: {}, // No attributes allowed by default
       // Don't allow script, iframe, or dangerous protocols
       allowVulnerableTags: false,
-      allowedSchemes: ['http', 'https', 'mailto'],
+      allowedSchemes: ["http", "https", "mailto"],
     };
     const sanitized = sanitizeHtmlLib(input, config);
     return sanitized.trim();
@@ -116,17 +114,20 @@ export class Validator {
   /**
    * Validate and sanitize URL
    */
-  static sanitizeUrl(url: string, allowedProtocols: string[] = ['http', 'https']): string {
+  static sanitizeUrl(
+    url: string,
+    allowedProtocols: string[] = ["http", "https"],
+  ): string {
     try {
       const parsed = new URL(url);
-      
-      if (!allowedProtocols.includes(parsed.protocol.replace(':', ''))) {
-        throw new Error('Invalid protocol');
+
+      if (!allowedProtocols.includes(parsed.protocol.replace(":", ""))) {
+        throw new Error("Invalid protocol");
       }
 
       return parsed.toString();
     } catch {
-      return '';
+      return "";
     }
   }
 
@@ -142,7 +143,8 @@ export class Validator {
    * Validate UUID
    */
   static isValidUuid(uuid: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(uuid);
   }
 
@@ -166,15 +168,15 @@ export class Validator {
       return obj;
     }
 
-    if (typeof obj === 'string') {
+    if (typeof obj === "string") {
       return this.sanitizeString(obj);
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitizeObject(item));
+      return obj.map((item) => this.sanitizeObject(item));
     }
 
-    if (typeof obj === 'object') {
+    if (typeof obj === "object") {
       const sanitized: any = {};
       for (const [key, value] of Object.entries(obj)) {
         const sanitizedKey = this.sanitizeString(key);
@@ -199,7 +201,9 @@ export const commonSchemas = {
     parameters: Joi.object().optional(),
     timeout: Joi.number().integer().min(1000).max(300000).optional(), // 1s to 5min
     retryOnFailure: Joi.boolean().optional(),
-    priority: Joi.string().valid('low', 'medium', 'high', 'critical').optional()
+    priority: Joi.string()
+      .valid("low", "medium", "high", "critical")
+      .optional(),
   }),
 
   /**
@@ -210,7 +214,7 @@ export const commonSchemas = {
     inputs: Joi.object().optional(),
     timeout: Joi.number().integer().min(1000).max(3600000).optional(), // 1s to 1hr
     schedule: Joi.string().optional(),
-    tags: Joi.array().items(Joi.string()).optional()
+    tags: Joi.array().items(Joi.string()).optional(),
   }),
 
   /**
@@ -220,7 +224,7 @@ export const commonSchemas = {
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(20),
     sortBy: Joi.string().optional(),
-    sortOrder: Joi.string().valid('asc', 'desc').default('asc')
+    sortOrder: Joi.string().valid("asc", "desc").default("asc"),
   }),
 
   /**
@@ -228,7 +232,7 @@ export const commonSchemas = {
    */
   dateRange: Joi.object({
     startDate: Joi.date().iso().optional(),
-    endDate: Joi.date().iso().min(Joi.ref('startDate')).optional()
+    endDate: Joi.date().iso().min(Joi.ref("startDate")).optional(),
   }),
 
   /**
@@ -236,7 +240,7 @@ export const commonSchemas = {
    */
   authRequest: Joi.object({
     username: Joi.string().min(3).max(50).required(),
-    password: Joi.string().min(8).max(100).required()
+    password: Joi.string().min(8).max(100).required(),
   }),
 
   /**
@@ -245,7 +249,7 @@ export const commonSchemas = {
   apiKeyCreate: Joi.object({
     name: Joi.string().min(3).max(100).required(),
     expiresIn: Joi.number().integer().min(3600).max(31536000).optional(), // 1hr to 1yr
-    scopes: Joi.array().items(Joi.string()).optional()
+    scopes: Joi.array().items(Joi.string()).optional(),
   }),
 
   /**
@@ -255,7 +259,7 @@ export const commonSchemas = {
     url: Joi.string().uri().required(),
     events: Joi.array().items(Joi.string()).min(1).required(),
     secret: Joi.string().min(16).max(100).optional(),
-    active: Joi.boolean().default(true)
+    active: Joi.boolean().default(true),
   }),
 
   /**
@@ -263,16 +267,21 @@ export const commonSchemas = {
    */
   browserTask: Joi.object({
     url: Joi.string().uri().required(),
-    actions: Joi.array().items(
-      Joi.object({
-        type: Joi.string().valid('navigate', 'click', 'type', 'wait', 'extract').required(),
-        selector: Joi.string().optional(),
-        value: Joi.any().optional(),
-        timeout: Joi.number().integer().min(100).max(60000).optional()
-      })
-    ).min(1).required(),
+    actions: Joi.array()
+      .items(
+        Joi.object({
+          type: Joi.string()
+            .valid("navigate", "click", "type", "wait", "extract")
+            .required(),
+          selector: Joi.string().optional(),
+          value: Joi.any().optional(),
+          timeout: Joi.number().integer().min(100).max(60000).optional(),
+        }),
+      )
+      .min(1)
+      .required(),
     headless: Joi.boolean().default(true),
-    timeout: Joi.number().integer().min(1000).max(300000).default(30000)
+    timeout: Joi.number().integer().min(1000).max(300000).default(30000),
   }),
 
   /**
@@ -280,37 +289,45 @@ export const commonSchemas = {
    */
   dataExtraction: Joi.object({
     source: Joi.string().uri().required(),
-    fields: Joi.array().items(
-      Joi.object({
-        name: Joi.string().required(),
-        selector: Joi.string().required(),
-        type: Joi.string().valid('text', 'html', 'attribute', 'link').default('text'),
-        attribute: Joi.string().when('type', {
-          is: 'attribute',
-          then: Joi.required(),
-          otherwise: Joi.optional()
-        })
-      })
-    ).min(1).required(),
-    format: Joi.string().valid('json', 'csv', 'xml').default('json')
-  })
+    fields: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().required(),
+          selector: Joi.string().required(),
+          type: Joi.string()
+            .valid("text", "html", "attribute", "link")
+            .default("text"),
+          attribute: Joi.string().when("type", {
+            is: "attribute",
+            then: Joi.required(),
+            otherwise: Joi.optional(),
+          }),
+        }),
+      )
+      .min(1)
+      .required(),
+    format: Joi.string().valid("json", "csv", "xml").default("json"),
+  }),
 };
 
 /**
  * Request validation middleware factory
  */
-export function validateRequest(schema: Joi.Schema, property: 'body' | 'query' | 'params' = 'body') {
+export function validateRequest(
+  schema: Joi.Schema,
+  property: "body" | "query" | "params" = "body",
+) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = Validator.validate(req[property], schema);
-    
+
     if (!result.valid) {
       return res.status(400).json({
         success: false,
         error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Request validation failed',
-          details: result.errors
-        }
+          code: "VALIDATION_ERROR",
+          message: "Request validation failed",
+          details: result.errors,
+        },
       });
     }
 
@@ -323,18 +340,22 @@ export function validateRequest(schema: Joi.Schema, property: 'body' | 'query' |
 /**
  * Sanitize request middleware
  */
-export function sanitizeRequest(req: Request, _res: Response, next: NextFunction) {
+export function sanitizeRequest(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) {
   if (req.body) {
     req.body = Validator.sanitizeObject(req.body);
   }
-  
+
   if (req.query) {
     Object.assign(req.query, Validator.sanitizeObject(req.query));
   }
-  
+
   if (req.params) {
     Object.assign(req.params, Validator.sanitizeObject(req.params));
   }
-  
+
   next();
 }
