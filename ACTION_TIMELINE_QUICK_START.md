@@ -130,8 +130,7 @@ Phase 4: [████████████████████] 100% ✅
 ```bash
 npm run build      # Should pass after Phase 1
 npm run lint       # Should pass after Phase 1
-npm test           # Should pass after Phase 3
-npm run test:coverage  # Should show 80%+ after Phase 3
+npm test           # Should pass after Phase 3 and show 80%+ coverage
 npm audit          # Should show 0 high after Phase 2
 ```
 
