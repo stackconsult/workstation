@@ -7,7 +7,7 @@
  * @version 2.0.0
  */
 
-import * as WebSocket from 'ws';
+import WebSocket from 'ws';
 import { Server } from 'http';
 import { logger } from '../utils/logger';
 
