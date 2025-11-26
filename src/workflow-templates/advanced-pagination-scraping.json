@@ -4,7 +4,13 @@
   "description": "Automatically scrape data from multi-page websites with intelligent pagination detection. Handles dynamic loading, infinite scroll, and numbered pagination. Includes data deduplication and incremental updates.",
   "category": "scraping",
   "icon": "🔄",
-  "tags": ["scraping", "pagination", "advanced", "dynamic-content", "deduplication"],
+  "tags": [
+    "scraping",
+    "pagination",
+    "advanced",
+    "dynamic-content",
+    "deduplication"
+  ],
   "complexity": "advanced",
   "estimatedDuration": "10-30 minutes",
   "createdAt": "2025-11-24T00:00:00Z",
@@ -35,7 +41,12 @@
       "x": 100,
       "y": 300,
       "params": {
-        "strategies": ["numbered", "next_button", "infinite_scroll", "load_more"],
+        "strategies": [
+          "numbered",
+          "next_button",
+          "infinite_scroll",
+          "load_more"
+        ],
         "maxPages": 100,
         "paginationSelectors": {
           "next": "a.next, button.next, [aria-label*='next']",
@@ -184,7 +195,12 @@
     { "id": "conn-8", "source": "node-8", "target": "node-9", "label": "true" },
     { "id": "conn-9", "source": "node-9", "target": "node-10" },
     { "id": "conn-10", "source": "node-10", "target": "node-5" },
-    { "id": "conn-11", "source": "node-8", "target": "node-11", "label": "false" },
+    {
+      "id": "conn-11",
+      "source": "node-8",
+      "target": "node-11",
+      "label": "false"
+    },
     { "id": "conn-12", "source": "node-11", "target": "node-12" },
     { "id": "conn-13", "source": "node-12", "target": "node-13" }
   ]
