@@ -5,6 +5,26 @@
 
 /// <reference types="jest" />
 
+// Mock @octokit/rest to avoid ESM import issues
+jest.mock('@octokit/rest', () => ({
+  Octokit: jest.fn().mockImplementation(() => ({
+    repos: {
+      get: jest.fn(),
+      listCommits: jest.fn(),
+      createOrUpdateFileContents: jest.fn(),
+    },
+    git: {
+      getRef: jest.fn(),
+      createRef: jest.fn(),
+      updateRef: jest.fn(),
+    },
+    pulls: {
+      create: jest.fn(),
+      merge: jest.fn(),
+    },
+  })),
+}));
+
 // Mock ioredis to avoid Redis connection issues in tests
 jest.mock('ioredis', () => {
   const mockRedis = jest.fn().mockImplementation(() => ({

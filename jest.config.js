@@ -4,8 +4,11 @@ module.exports = {
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  transform: {
+    '^.+\\.tsx?$': 'ts-jest',
+  },
   transformIgnorePatterns: [
-    'node_modules/(?!(@octokit|undici|cheerio|before-after-hook|universal-user-agent|simple-git))',
+    'node_modules/(?!(@octokit|@googleapis|undici|cheerio|before-after-hook|universal-user-agent|simple-git)/)',
   ],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

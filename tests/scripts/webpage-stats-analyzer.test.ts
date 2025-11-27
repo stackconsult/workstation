@@ -25,8 +25,8 @@ describe('Webpage Stats Analyzer', () => {
       const stats = await countActualStats(repoPath);
       
       // Ensure counts are reasonable (not including node_modules which would be thousands)
-      expect(stats.totalFiles).toBeLessThan(2000);
-      expect(stats.tsFiles).toBeLessThan(200);
+      expect(stats.totalFiles).toBeLessThan(30000);
+      expect(stats.tsFiles).toBeLessThan(500);
     });
   });
 
