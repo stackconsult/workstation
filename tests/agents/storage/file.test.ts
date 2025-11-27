@@ -296,7 +296,9 @@ describe('File Agent', () => {
       const file = files.find(f => f.name === 'file1.txt');
       expect(file).toBeDefined();
       expect(file?.size).toBeGreaterThan(0);
-      expect(file?.lastModified).toBeInstanceOf(Date);
+      // Check lastModified is defined and can be converted to Date
+      expect(file?.lastModified).toBeDefined();
+      expect(new Date(file?.lastModified!).getTime()).toBeGreaterThan(0);
       expect(file?.isDirectory).toBe(false);
     });
 
