@@ -1,8 +1,84 @@
-# Implementation Roadmap - Missing Agents & Features
+# Implementation Roadmap - Repository Completion Plan
 
-This document outlines the step-by-step implementation plan for completing the missing agents and features identified in issue #152 and PR #153.
+**Last Updated**: 2025-11-27  
+**Status**: Action Plan for Breaking Rebuild Cycle  
+**Root Cause Identified**: Code exists (95% complete), tests missing (0% complete)
 
-## Phase 1: Data Agents (Priority: HIGH)
+This document outlines the step-by-step implementation plan for completing the repository and achieving production-ready status.
+
+---
+
+## 🎯 EXECUTIVE SUMMARY - WHAT NEEDS TO BE DONE
+
+### Current Status (Verified 2025-11-27)
+- ✅ **Code Implementation**: 95-100% complete (all 11 agents exist)
+- ❌ **Test Implementation**: 0% complete (no agent test suites exist)
+- ✅ **Build**: PASSING (0 TypeScript errors after npm install)
+- ✅ **Security**: CLEAN (0 vulnerabilities, npm audit passed)
+- ⚠️ **Coverage**: ~25% (infrastructure tests only, agents untested)
+
+### Root Cause of Rebuild Cycles
+**Problem**: Agents report "not fully implemented" even though code exists.  
+**Reason**: Agent verification checks for test files. When tests are missing, agents fail verification.  
+**Result**: Rebuild requested → code already exists → cycle repeats.
+
+### The Solution: Create 14 Missing Test Suites
+
+**Critical Task** (20-30 hours): Create these test files to break the rebuild cycle:
+
+#### Data Agents (5 tests)
+- [ ] `tests/agents/data/csv.test.ts`
+- [ ] `tests/agents/data/json.test.ts`
+- [ ] `tests/agents/data/excel.test.ts`
+- [ ] `tests/agents/data/pdf.test.ts`
+- [ ] `tests/agents/data/rss.test.ts`
+
+#### Integration Agents (3 tests)
+- [ ] `tests/agents/integration/calendar.test.ts`
+- [ ] `tests/agents/integration/email.test.ts`
+- [ ] `tests/agents/integration/sheets.test.ts`
+
+#### Storage Agents (3 tests)
+- [ ] `tests/agents/storage/database.test.ts`
+- [ ] `tests/agents/storage/file.test.ts`
+- [ ] `tests/agents/storage/s3.test.ts`
+
+#### Orchestration (3 tests)
+- [ ] `tests/orchestrator/engine.test.ts`
+- [ ] `tests/orchestrator/parallel-engine.test.ts`
+- [ ] `tests/orchestrator/workflow-dependencies.test.ts`
+
+### Success Criteria
+1. All 14 test files created with 80%+ coverage each
+2. `npm test` passes with 0 failures
+3. Overall coverage ≥ 80%
+4. Agents report "fully implemented" (rebuild cycle broken)
+
+### Priority Actions (This Week)
+1. **Day 1-2**: Create data agent tests (csv, json, excel, pdf, rss)
+2. **Day 3**: Create integration agent tests (calendar, email, sheets)
+3. **Day 4**: Create storage agent tests (database, file, s3)
+4. **Day 5**: Create orchestration tests (engine, parallel-engine, dependencies)
+
+### After Tests Complete
+- Phase 2: Complete Master Orchestrator (40-60h)
+- Phase 3: Chrome ↔ MCP integration (40-60h)
+- Phase 4: Memory/recall system (30-40h)
+- Phase 5: Monitoring dashboard (8-12h)
+
+**Total Remaining**: ~140-200 hours after test creation
+
+---
+
+## 📋 DETAILED IMPLEMENTATION CHECKLIST
+
+### Phase 0: IMMEDIATE - Environment Setup ✅ COMPLETE
+- [x] Run `npm install` (dependencies installed)
+- [x] Verify build passes (0 TypeScript errors)
+- [x] Verify security clean (npm audit: 0 vulnerabilities)
+- [x] Confirm all agent code files exist (verified via file scan)
+
+### Phase 1: Data Agents (Priority: HIGH)
 **Goal**: Enable workflow automation to work with various data formats
 
 ### Step 1.1: CSV Agent
