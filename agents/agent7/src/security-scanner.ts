@@ -70,7 +70,7 @@ class SecurityScanner {
     
     try {
       // Run TypeScript compiler with --noEmit to check for errors
-      const result = execSync('npx tsc --noEmit --pretty false', {
+      execSync('npx tsc --noEmit --pretty false', {
         cwd: this.projectRoot,
         encoding: 'utf-8',
         stdio: 'pipe'
@@ -179,7 +179,7 @@ class SecurityScanner {
               }
             }
           }
-        } catch (parseError) {
+        } catch {
           console.warn('⚠️  Could not parse npm audit output');
         }
       }

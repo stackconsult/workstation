@@ -82,7 +82,7 @@ class TypeScriptFixer {
         console.log(`✅ Fixed missing comma in ${filePath}:${line}`);
         return true;
       }
-    } catch (error) {
+    } catch {
       console.warn(`⚠️  Could not fix ${filePath}:${line}`);
     }
     
@@ -118,7 +118,7 @@ class TypeScriptFixer {
           return true;
         }
       }
-    } catch (error) {
+    } catch {
       console.warn(`⚠️  Could not fix implicit 'any' in ${filePath}:${line}`);
     }
     
