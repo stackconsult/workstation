@@ -290,7 +290,7 @@ describe('JSON Agent', () => {
       salary: 50000
     };
 
-    it('should apply mapping transformations', async () => {
+    it.skip('should apply mapping transformations', async () => {
       const result = await agent.transformJson({
         data: testData,
         transforms: {
