@@ -38,8 +38,9 @@ class TypeScriptFixer {
         stdio: 'pipe'
       });
     } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'stdout' in error) {
-        const output = (error as { stdout: string }).stdout;
+      if (error && typeof error === 'object') {
+        const errObj = error as { stdout?: string; stderr?: string };
+        const output = (errObj.stdout || errObj.stderr || '').toString();
         const lines = output.split('\n');
         
         for (const line of lines) {
