@@ -1035,3 +1035,400 @@ Users can now:
 ✅ View execution history and logs
 ✅ Use workflows from builder, templates, or recording
 ✅ Access all features from Chrome extension
+
+---
+
+# Developer Guide - Extending the Workflow Builder
+
+This section provides guidance for developers who want to extend the workflow builder with custom functionality.
+
+## Adding Custom Node Types
+
+### Step 1: Define Node Type
+
+Add your node type to `public/workflow-builder.html`:
+
+```javascript
+const customNodeTypes = {
+  // Your custom nodes
+  custom_api_call: {
+    name: 'API Call',
+    category: 'custom',
+    color: '#9C27B0',
+    icon: '🔌',
+    params: {
+      method: {
+        type: 'select',
+        options: ['GET', 'POST', 'PUT', 'DELETE'],
+        default: 'GET',
+      },
+      url: {
+        type: 'text',
+        required: true,
+        placeholder: 'https://api.example.com/endpoint',
+      },
+      headers: {
+        type: 'textarea',
+        placeholder: '{"Authorization": "Bearer token"}',
+      },
+      body: {
+        type: 'textarea',
+        placeholder: '{"key": "value"}',
+      },
+    },
+  },
+};
+
+// Merge with existing node types
+Object.assign(nodeTypes, customNodeTypes);
+```
+
+### Step 2: Add Node Type Converter
+
+Update the `convertNodeToTask` function:
+
+```javascript
+function convertNodeToTask(node) {
+  const converters = {
+    // ... existing converters
+    custom_api_call: (node) => ({
+      name: node.id,
+      agent_type: 'custom',
+      action: 'api_call',
+      parameters: {
+        method: node.params.method,
+        url: node.params.url,
+        headers: JSON.parse(node.params.headers || '{}'),
+        body: JSON.parse(node.params.body || '{}'),
+      },
+    }),
+  };
+
+  return converters[node.type]?.(node) || null;
+}
+```
+
+### Step 3: Create Custom Agent (Backend)
+
+See [Creating Custom Agents Guide](./docs/guides/CREATING_CUSTOM_AGENTS.md) for detailed instructions.
+
+## Customizing the Builder UI
+
+### Adding Custom Panels
+
+```javascript
+// Add a new panel
+function createCustomPanel() {
+  const panel = document.createElement('div');
+  panel.id = 'custom-panel';
+  panel.className = 'custom-panel';
+  panel.innerHTML = `
+    <h3>Custom Tools</h3>
+    <div id="custom-tools"></div>
+  `;
+  document.body.appendChild(panel);
+}
+
+// Call on page load
+window.addEventListener('load', createCustomPanel);
+```
+
+### Adding Custom Actions
+
+```javascript
+// Add custom toolbar button
+function addCustomAction() {
+  const toolbar = document.querySelector('.toolbar');
+  const button = document.createElement('button');
+  button.textContent = 'Custom Action';
+  button.onclick = () => {
+    // Your custom action
+    console.log('Custom action triggered');
+  };
+  toolbar.appendChild(button);
+}
+```
+
+## Extending Workflow Execution
+
+### Adding Execution Hooks
+
+```javascript
+// Before execution hook
+async function beforeExecute(workflow) {
+  console.log('About to execute:', workflow.name);
+  // Add custom logic here
+  return workflow;
+}
+
+// After execution hook
+async function afterExecute(execution) {
+  console.log('Execution completed:', execution.id);
+  // Add custom logic here
+  return execution;
+}
+
+// Modify the execute function
+async function executeWorkflow() {
+  let workflow = await beforeExecute(currentWorkflow);
+  
+  const response = await fetch('/api/v2/workflows/:id/execute', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(workflow),
+  });
+
+  const execution = await response.json();
+  await afterExecute(execution);
+}
+```
+
+### Adding Custom Validation
+
+```javascript
+function validateWorkflow(workflow) {
+  const errors = [];
+
+  // Custom validation rules
+  if (workflow.definition.tasks.length === 0) {
+    errors.push('Workflow must have at least one task');
+  }
+
+  workflow.definition.tasks.forEach((task, index) => {
+    if (!task.name) {
+      errors.push(`Task ${index + 1} must have a name`);
+    }
+    
+    // Add more validation rules
+  });
+
+  return errors;
+}
+
+// Use before execution
+async function executeWorkflow() {
+  const errors = validateWorkflow(currentWorkflow);
+  if (errors.length > 0) {
+    alert('Validation errors:\n' + errors.join('\n'));
+    return;
+  }
+  
+  // Continue with execution
+}
+```
+
+## Integrating with External Services
+
+### Adding OAuth Integration
+
+```javascript
+async function authenticateWithService() {
+  // Redirect to OAuth provider
+  const clientId = 'your-client-id';
+  const redirectUri = encodeURIComponent(window.location.origin + '/oauth/callback');
+  const authUrl = `https://provider.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}`;
+  
+  window.location.href = authUrl;
+}
+
+// Handle OAuth callback
+if (window.location.pathname === '/oauth/callback') {
+  const code = new URLSearchParams(window.location.search).get('code');
+  
+  // Exchange code for token
+  const response = await fetch('/api/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+
+  const { access_token } = await response.json();
+  localStorage.setItem('service_token', access_token);
+}
+```
+
+### Webhook Integration
+
+```javascript
+// Register webhook endpoint
+async function registerWebhook(workflowId) {
+  const response = await fetch('/api/webhooks/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({
+      workflow_id: workflowId,
+      url: `${window.location.origin}/api/webhooks/trigger/${workflowId}`,
+      events: ['workflow.completed', 'workflow.failed'],
+    }),
+  });
+
+  return response.json();
+}
+```
+
+## Performance Optimization
+
+### Debouncing Node Updates
+
+```javascript
+let updateTimeout;
+
+function onNodeUpdate(node) {
+  clearTimeout(updateTimeout);
+  
+  updateTimeout = setTimeout(() => {
+    // Perform actual update
+    updateNodeProperties(node);
+  }, 300);
+}
+```
+
+### Lazy Loading Node Library
+
+```javascript
+let nodesLoaded = false;
+
+function loadNodeLibrary() {
+  if (nodesLoaded) return;
+  
+  // Load node definitions
+  fetch('/api/node-types')
+    .then(res => res.json())
+    .then(types => {
+      Object.assign(nodeTypes, types);
+      renderNodeLibrary();
+      nodesLoaded = true;
+    });
+}
+
+// Load on first interaction
+document.getElementById('node-library').addEventListener('click', loadNodeLibrary, { once: true });
+```
+
+### Caching Workflow Templates
+
+```javascript
+const templateCache = new Map();
+
+async function getTemplate(id) {
+  if (templateCache.has(id)) {
+    return templateCache.get(id);
+  }
+
+  const response = await fetch(`/api/workflow-templates/${id}`);
+  const template = await response.json();
+  
+  templateCache.set(id, template);
+  return template;
+}
+```
+
+## Testing Custom Extensions
+
+### Unit Testing
+
+```javascript
+describe('Custom Node Type', () => {
+  it('should convert custom_api_call node correctly', () => {
+    const node = {
+      id: 'node-1',
+      type: 'custom_api_call',
+      params: {
+        method: 'POST',
+        url: 'https://api.example.com/data',
+        headers: '{"Content-Type": "application/json"}',
+        body: '{"key": "value"}',
+      },
+    };
+
+    const task = convertNodeToTask(node);
+
+    expect(task.agent_type).toBe('custom');
+    expect(task.action).toBe('api_call');
+    expect(task.parameters.method).toBe('POST');
+  });
+});
+```
+
+### Integration Testing
+
+```javascript
+describe('Workflow Builder Integration', () => {
+  it('should create and execute custom workflow', async () => {
+    // Create workflow with custom node
+    const workflow = {
+      name: 'Custom Workflow',
+      definition: {
+        tasks: [
+          {
+            name: 'api-call',
+            agent_type: 'custom',
+            action: 'api_call',
+            parameters: {
+              method: 'GET',
+              url: 'https://api.example.com/test',
+            },
+          },
+        ],
+      },
+    };
+
+    // Save workflow
+    const response = await fetch('/api/v2/workflows', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(workflow),
+    });
+
+    const savedWorkflow = await response.json();
+
+    // Execute workflow
+    const execResponse = await fetch(`/api/v2/workflows/${savedWorkflow.id}/execute`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+    });
+
+    const execution = await execResponse.json();
+    expect(execution.status).toBe('pending');
+  });
+});
+```
+
+## Additional Resources
+
+- [Creating Custom Agents](./docs/guides/CREATING_CUSTOM_AGENTS.md)
+- [Extending the Orchestrator](./docs/guides/EXTENDING_ORCHESTRATOR.md)
+- [MCP Protocol Documentation](./docs/MCP_PROTOCOL.md)
+- [Deployment Guide](./docs/guides/DEPLOYMENT.md)
+- [API Documentation](./API.md)
+
+## Contributing
+
+To contribute extensions to the workflow builder:
+
+1. Fork the repository
+2. Create a feature branch
+3. Implement your extension
+4. Add tests
+5. Update documentation
+6. Submit a pull request
+
+## Support
+
+For help with extending the workflow builder:
+
+- Review existing examples in the codebase
+- Check the troubleshooting guide
+- Open an issue on GitHub
+- Join community discussions
