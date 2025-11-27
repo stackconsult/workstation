@@ -28,13 +28,13 @@ export class AdvancedAutomation {
   /**
    * Multi-Tab Management
    */
-  
+
   async openNewTab(url: string): Promise<number> {
     const tabId = this.nextTabId++;
     this.tabs.set(tabId, {
       id: tabId,
       url,
-      title: ''
+      title: "",
     });
     console.log(`Opened new tab ${tabId}: ${url}`);
     return tabId;
@@ -64,7 +64,7 @@ export class AdvancedAutomation {
   async closeAllTabs(): Promise<void> {
     this.tabs.clear();
     this.currentTabId = 0;
-    console.log('Closed all tabs');
+    console.log("Closed all tabs");
   }
 
   async listTabs(): Promise<Tab[]> {
@@ -74,7 +74,7 @@ export class AdvancedAutomation {
   /**
    * iFrame Handling
    */
-  
+
   async switchToIframe(selector: string): Promise<void> {
     console.log(`Switching to iframe: ${selector}`);
     // In real implementation, this would switch Playwright context to iframe
@@ -82,7 +82,7 @@ export class AdvancedAutomation {
   }
 
   async switchToMainFrame(): Promise<void> {
-    console.log('Switching back to main frame');
+    console.log("Switching back to main frame");
   }
 
   async executeInIframe(selector: string, actions: any[]): Promise<void> {
@@ -98,32 +98,37 @@ export class AdvancedAutomation {
   /**
    * File Operations
    */
-  
+
   async uploadFile(selector: string, filePath: string): Promise<void> {
     console.log(`Uploading file ${filePath} to ${selector}`);
     // Real implementation would use Playwright's setInputFiles
   }
 
   async downloadFile(url: string, savePath?: string): Promise<string> {
-    console.log(`Downloading file from ${url} to ${savePath || 'default location'}`);
+    console.log(
+      `Downloading file from ${url} to ${savePath || "default location"}`,
+    );
     // Real implementation would handle file download
-    return savePath || '/tmp/downloaded-file';
+    return savePath || "/tmp/downloaded-file";
   }
 
   async waitForDownload(timeout: number = 30000): Promise<string> {
     console.log(`Waiting for download (timeout: ${timeout}ms)`);
-    return '/tmp/downloaded-file';
+    return "/tmp/downloaded-file";
   }
 
   /**
    * Advanced Interactions
    */
-  
+
   async hover(selector: string, duration: number = 1000): Promise<void> {
     console.log(`Hovering over ${selector} for ${duration}ms`);
   }
 
-  async dragAndDrop(sourceSelector: string, targetSelector: string): Promise<void> {
+  async dragAndDrop(
+    sourceSelector: string,
+    targetSelector: string,
+  ): Promise<void> {
     console.log(`Dragging ${sourceSelector} to ${targetSelector}`);
   }
 
@@ -139,20 +144,25 @@ export class AdvancedAutomation {
   /**
    * Network Monitoring
    */
-  
+
   private networkRequests: any[] = [];
 
   async startNetworkMonitoring(): Promise<void> {
-    console.log('Started network monitoring');
+    console.log("Started network monitoring");
     this.networkRequests = [];
   }
 
   async stopNetworkMonitoring(): Promise<any[]> {
-    console.log(`Stopped network monitoring - captured ${this.networkRequests.length} requests`);
+    console.log(
+      `Stopped network monitoring - captured ${this.networkRequests.length} requests`,
+    );
     return this.networkRequests;
   }
 
-  async interceptRequest(pattern: string, _handler: (request: any) => void): Promise<void> {
+  async interceptRequest(
+    pattern: string,
+    _handler: (request: any) => void,
+  ): Promise<void> {
     console.log(`Intercepting requests matching: ${pattern}`);
   }
 
@@ -163,13 +173,13 @@ export class AdvancedAutomation {
   /**
    * Browser Profiles
    */
-  
+
   async saveBrowserProfile(name: string): Promise<void> {
     const profile: BrowserProfile = {
       name,
       cookies: [], // Would capture actual cookies
       localStorage: {},
-      sessionStorage: {}
+      sessionStorage: {},
     };
     this.profiles.set(name, profile);
     console.log(`Saved browser profile: ${name}`);
@@ -191,7 +201,7 @@ export class AdvancedAutomation {
   /**
    * Screenshot & Recording
    */
-  
+
   async takeFullPageScreenshot(path?: string): Promise<string> {
     const savePath = path || `/tmp/screenshot-${Date.now()}.png`;
     console.log(`Taking full page screenshot: ${savePath}`);
@@ -212,23 +222,37 @@ export class AdvancedAutomation {
   /**
    * Element waiting with advanced conditions
    */
-  
-  async waitForElement(selector: string, options: { timeout?: number; visible?: boolean } = {}): Promise<void> {
+
+  async waitForElement(
+    selector: string,
+    options: { timeout?: number; visible?: boolean } = {},
+  ): Promise<void> {
     const timeout = options.timeout || 30000;
     const visible = options.visible !== undefined ? options.visible : true;
-    console.log(`Waiting for element ${selector} (visible: ${visible}, timeout: ${timeout}ms)`);
+    console.log(
+      `Waiting for element ${selector} (visible: ${visible}, timeout: ${timeout}ms)`,
+    );
   }
 
-  async waitForNavigation(options: { timeout?: number; waitUntil?: string } = {}): Promise<void> {
+  async waitForNavigation(
+    options: { timeout?: number; waitUntil?: string } = {},
+  ): Promise<void> {
     const timeout = options.timeout || 30000;
-    const waitUntil = options.waitUntil || 'load';
-    console.log(`Waiting for navigation (waitUntil: ${waitUntil}, timeout: ${timeout}ms)`);
+    const waitUntil = options.waitUntil || "load";
+    console.log(
+      `Waiting for navigation (waitUntil: ${waitUntil}, timeout: ${timeout}ms)`,
+    );
   }
 
-  async waitForFunction(fn: string, options: { timeout?: number; polling?: number } = {}): Promise<void> {
+  async waitForFunction(
+    fn: string,
+    options: { timeout?: number; polling?: number } = {},
+  ): Promise<void> {
     const timeout = options.timeout || 30000;
     const polling = options.polling || 100;
-    console.log(`Waiting for function (polling: ${polling}ms, timeout: ${timeout}ms)`);
+    console.log(
+      `Waiting for function (polling: ${polling}ms, timeout: ${timeout}ms)`,
+    );
   }
 }
 

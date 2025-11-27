@@ -4,43 +4,165 @@
   "description": "Continuous infrastructure monitoring with automated health checks, performance metrics collection, and intelligent alerting. Monitors servers, databases, APIs, and sends alerts when thresholds are exceeded.",
   "category": "devops",
   "icon": "📊",
-  "tags": ["devops", "monitoring", "alerting", "infrastructure", "health-check"],
+  "tags": [
+    "devops",
+    "monitoring",
+    "alerting",
+    "infrastructure",
+    "health-check"
+  ],
   "complexity": "intermediate",
   "estimatedDuration": "Continuous",
   "createdAt": "2025-11-24T00:00:00Z",
   "updatedAt": "2025-11-24T00:00:00Z",
   "nodes": [
-    {"id": "node-1", "type": "start", "label": "Start Monitoring", "x": 100, "y": 100},
-    {"id": "node-2", "type": "schedule", "label": "Every 5 Minutes", "x": 100, "y": 200, "params": {"interval": "5m"}},
-    {"id": "node-3", "type": "parallel_start", "label": "Check All Services", "x": 100, "y": 300},
-    {"id": "node-4", "type": "http_check", "label": "Check Web Service", "x": 50, "y": 400, "params": {"url": "{{env.WEB_URL}}/health", "expectedStatus": 200, "timeout": 5000}},
-    {"id": "node-5", "type": "http_check", "label": "Check API Service", "x": 150, "y": 400, "params": {"url": "{{env.API_URL}}/health", "expectedStatus": 200, "timeout": 5000}},
-    {"id": "node-6", "type": "db_check", "label": "Check Database", "x": 250, "y": 400, "params": {"host": "{{env.DB_HOST}}", "port": 5432, "query": "SELECT 1"}},
-    {"id": "node-7", "type": "parallel_end", "label": "Collect Results", "x": 100, "y": 500},
-    {"id": "node-8", "type": "collect_metrics", "label": "Collect System Metrics", "x": 100, "y": 600, "params": {"metrics": ["cpu", "memory", "disk", "network"]}},
-    {"id": "node-9", "type": "analyze_trends", "label": "Analyze Trends", "x": 100, "y": 700, "params": {"window": "1h", "detectAnomalies": true}},
-    {"id": "node-10", "type": "condition", "label": "Issues Detected?", "x": 100, "y": 800, "params": {"condition": "has_failures || has_anomalies"}},
-    {"id": "node-11", "type": "send_alert", "label": "Send Alert", "x": 200, "y": 900, "params": {"channels": ["slack", "pagerduty", "email"], "severity": "critical"}},
-    {"id": "node-12", "type": "log_metrics", "label": "Log Metrics", "x": 100, "y": 1000, "params": {"destination": "time-series-db"}},
-    {"id": "node-13", "type": "wait", "label": "Wait for Next Check", "x": 100, "y": 1100, "params": {"duration": "5m"}},
-    {"id": "node-14", "type": "loop", "label": "Continue Monitoring", "x": 100, "y": 1200, "params": {"target": "node-2"}}
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start Monitoring",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "schedule",
+      "label": "Every 5 Minutes",
+      "x": 100,
+      "y": 200,
+      "params": { "interval": "5m" }
+    },
+    {
+      "id": "node-3",
+      "type": "parallel_start",
+      "label": "Check All Services",
+      "x": 100,
+      "y": 300
+    },
+    {
+      "id": "node-4",
+      "type": "http_check",
+      "label": "Check Web Service",
+      "x": 50,
+      "y": 400,
+      "params": {
+        "url": "{{env.WEB_URL}}/health",
+        "expectedStatus": 200,
+        "timeout": 5000
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "http_check",
+      "label": "Check API Service",
+      "x": 150,
+      "y": 400,
+      "params": {
+        "url": "{{env.API_URL}}/health",
+        "expectedStatus": 200,
+        "timeout": 5000
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "db_check",
+      "label": "Check Database",
+      "x": 250,
+      "y": 400,
+      "params": { "host": "{{env.DB_HOST}}", "port": 5432, "query": "SELECT 1" }
+    },
+    {
+      "id": "node-7",
+      "type": "parallel_end",
+      "label": "Collect Results",
+      "x": 100,
+      "y": 500
+    },
+    {
+      "id": "node-8",
+      "type": "collect_metrics",
+      "label": "Collect System Metrics",
+      "x": 100,
+      "y": 600,
+      "params": { "metrics": ["cpu", "memory", "disk", "network"] }
+    },
+    {
+      "id": "node-9",
+      "type": "analyze_trends",
+      "label": "Analyze Trends",
+      "x": 100,
+      "y": 700,
+      "params": { "window": "1h", "detectAnomalies": true }
+    },
+    {
+      "id": "node-10",
+      "type": "condition",
+      "label": "Issues Detected?",
+      "x": 100,
+      "y": 800,
+      "params": { "condition": "has_failures || has_anomalies" }
+    },
+    {
+      "id": "node-11",
+      "type": "send_alert",
+      "label": "Send Alert",
+      "x": 200,
+      "y": 900,
+      "params": {
+        "channels": ["slack", "pagerduty", "email"],
+        "severity": "critical"
+      }
+    },
+    {
+      "id": "node-12",
+      "type": "log_metrics",
+      "label": "Log Metrics",
+      "x": 100,
+      "y": 1000,
+      "params": { "destination": "time-series-db" }
+    },
+    {
+      "id": "node-13",
+      "type": "wait",
+      "label": "Wait for Next Check",
+      "x": 100,
+      "y": 1100,
+      "params": { "duration": "5m" }
+    },
+    {
+      "id": "node-14",
+      "type": "loop",
+      "label": "Continue Monitoring",
+      "x": 100,
+      "y": 1200,
+      "params": { "target": "node-2" }
+    }
   ],
   "connections": [
-    {"id": "conn-1", "source": "node-1", "target": "node-2"},
-    {"id": "conn-2", "source": "node-2", "target": "node-3"},
-    {"id": "conn-3", "source": "node-3", "target": "node-4"},
-    {"id": "conn-4", "source": "node-3", "target": "node-5"},
-    {"id": "conn-5", "source": "node-3", "target": "node-6"},
-    {"id": "conn-6", "source": "node-4", "target": "node-7"},
-    {"id": "conn-7", "source": "node-5", "target": "node-7"},
-    {"id": "conn-8", "source": "node-6", "target": "node-7"},
-    {"id": "conn-9", "source": "node-7", "target": "node-8"},
-    {"id": "conn-10", "source": "node-8", "target": "node-9"},
-    {"id": "conn-11", "source": "node-9", "target": "node-10"},
-    {"id": "conn-12", "source": "node-10", "target": "node-11", "label": "true"},
-    {"id": "conn-13", "source": "node-10", "target": "node-12", "label": "false"},
-    {"id": "conn-14", "source": "node-11", "target": "node-12"},
-    {"id": "conn-15", "source": "node-12", "target": "node-13"},
-    {"id": "conn-16", "source": "node-13", "target": "node-14"}
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-3", "target": "node-5" },
+    { "id": "conn-5", "source": "node-3", "target": "node-6" },
+    { "id": "conn-6", "source": "node-4", "target": "node-7" },
+    { "id": "conn-7", "source": "node-5", "target": "node-7" },
+    { "id": "conn-8", "source": "node-6", "target": "node-7" },
+    { "id": "conn-9", "source": "node-7", "target": "node-8" },
+    { "id": "conn-10", "source": "node-8", "target": "node-9" },
+    { "id": "conn-11", "source": "node-9", "target": "node-10" },
+    {
+      "id": "conn-12",
+      "source": "node-10",
+      "target": "node-11",
+      "label": "true"
+    },
+    {
+      "id": "conn-13",
+      "source": "node-10",
+      "target": "node-12",
+      "label": "false"
+    },
+    { "id": "conn-14", "source": "node-11", "target": "node-12" },
+    { "id": "conn-15", "source": "node-12", "target": "node-13" },
+    { "id": "conn-16", "source": "node-13", "target": "node-14" }
   ]
 }
