@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 
-import { OrchestrationEngine } from '../../../src/automation/orchestrator/engine';
+import { OrchestrationEngine } from '../../src/automation/orchestrator/engine';
 
 describe('Orchestration Engine', () => {
   let engine: OrchestrationEngine;

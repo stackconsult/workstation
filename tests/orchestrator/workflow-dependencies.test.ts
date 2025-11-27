@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 
-import { WorkflowDependenciesManager } from '../../../src/automation/orchestrator/workflow-dependencies';
+import { WorkflowDependenciesManager } from '../../src/automation/orchestrator/workflow-dependencies';
 
 describe('Workflow Dependencies Manager', () => {
   let manager: WorkflowDependenciesManager;

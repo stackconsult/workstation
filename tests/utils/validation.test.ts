@@ -1196,8 +1196,6 @@ describe('Validation Utilities', () => {
       });
     });  // Close 'sanitizeObject Special Cases'
   });    // Close 'Security Tests - Object Sanitization Edge Cases'
-    });  // Close 'sanitizeObject Special Cases'
-  });    // Close 'Security Tests - Object Sanitization Edge Cases'
 
   describe('Common Schemas', () => {
     it('should have agentExecutionRequest schema', () => {

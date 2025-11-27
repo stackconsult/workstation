@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 
-import { ParallelExecutionEngine } from '../../../src/automation/orchestrator/parallel-engine';
-import { WorkflowTask } from '../../../src/automation/db/models';
+import { ParallelExecutionEngine } from '../../src/automation/orchestrator/parallel-engine';
+import { WorkflowTask } from '../../src/automation/db/models';
 
 describe('Parallel Execution Engine', () => {
   let engine: ParallelExecutionEngine;
