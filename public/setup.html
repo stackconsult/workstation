@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VS Code Setup Guide - Workstation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #007acc;
+            --secondary-color: #4285F4;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-bg: #1e1e1e;
+            --light-bg: #f8f9fa;
+            --text-dark: #333;
+            --text-light: #666;
+            --border-color: #dee2e6;
+            --code-bg: #f4f4f4;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #007acc 0%, #0098ff 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        /* Quick Start Banner */
+        .quick-start {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            margin: 0;
+        }
+
+        .quick-start h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .quick-start-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .quick-step {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .quick-step h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .quick-step code {
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: block;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--light-bg);
+            border-bottom: 3px solid var(--primary-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav li {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .nav a {
+            display: block;
+            padding: 15px 20px;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .nav a:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Content */
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .section h3 {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin: 30px 0 15px 0;
+        }
+
+        .section h4 {
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            margin: 20px 0 10px 0;
+        }
+
+        /* Steps */
+        .step {
+            background: var(--light-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .step h4 {
+            display: inline;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .step p, .step ul {
+            margin-top: 15px;
+        }
+
+        .step ul {
+            margin-left: 40px;
+        }
+
+        .step li {
+            margin: 8px 0;
+        }
+
+        /* Code blocks */
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+
+        pre {
+            background: var(--dark-bg);
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* Collapsible sections */
+        .collapsible {
+            background: var(--light-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .collapsible-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            user-select: none;
+            transition: background 0.3s;
+        }
+
+        .collapsible-header:hover {
+            background: rgba(0,122,204,0.1);
+        }
+
+        .collapsible-header::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s;
+        }
+
+        .collapsible.active .collapsible-header::after {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapsible.active .collapsible-content {
+            max-height: 2000px;
+        }
+
+        .collapsible-inner {
+            padding: 20px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #0c5460;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #856404;
+            color: #856404;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #155724;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            border-color: #721c24;
+            color: #721c24;
+        }
+
+        .alert strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Benefits list */
+        .benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .benefit-card {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .benefit-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .benefit-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        /* Download button */
+        .download-btn {
+            display: inline-block;
+            background: var(--success-color);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Screenshot placeholder */
+        .screenshot {
+            background: var(--light-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-light);
+            margin: 20px 0;
+        }
+
+        /* Troubleshooting */
+        .troubleshooting-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .troubleshooting-item h4 {
+            color: var(--danger-color);
+            margin-bottom: 10px;
+        }
+
+        .troubleshooting-item .solution {
+            background: var(--light-bg);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .nav li {
+                min-width: 100%;
+            }
+
+            .nav a {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .back-btn {
+                position: static;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="/dashboard.html" class="back-btn">← Back to Dashboard</a>
+            <h1>
+                <span>🖥️</span>
+                <span>VS Code Setup Guide</span>
+            </h1>
+            <p>Complete walkthrough for setting up Workstation with Visual Studio Code and Chrome Extension</p>
+        </div>
+
+        <!-- Quick Start -->
+        <div class="quick-start">
+            <h2>⚡ Quick Start (5 Minutes)</h2>
+            <p>For experienced developers who just want to get started fast:</p>
+            <div class="quick-start-steps">
+                <div class="quick-step">
+                    <h3>1️⃣ Clone & Install</h3>
+                    <code>git clone https://github.com/creditXcredit/workstation.git<br>cd workstation && npm install</code>
+                </div>
+                <div class="quick-step">
+                    <h3>2️⃣ Build & Start</h3>
+                    <code>npm run build<br>npm start</code>
+                </div>
+                <div class="quick-step">
+                    <h3>3️⃣ Load Extension</h3>
+                    <code>chrome://extensions/<br>Load unpacked: chrome-extension/</code>
+                </div>
+                <div class="quick-step">
+                    <h3>4️⃣ Access Dashboard</h3>
+                    <code>http://localhost:3000/dashboard.html</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <ul>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#vscode-setup">VS Code Setup</a></li>
+                <li><a href="#repository">Clone Repository</a></li>
+                <li><a href="#chrome-extension">Chrome Extension</a></li>
+                <li><a href="#benefits">Benefits</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Prerequisites -->
+            <section id="prerequisites" class="section">
+                <h2>📋 Prerequisites</h2>
+                <p>Before starting, ensure you have the following installed on your system:</p>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <h4>Visual Studio Code</h4>
+                    <p><strong>Latest Version:</strong> Download and install from <a href="https://code.visualstudio.com/" target="_blank">https://code.visualstudio.com/</a></p>
+                    <ul>
+                        <li><strong>Windows:</strong> Download the installer and run it</li>
+                        <li><strong>macOS:</strong> Download the .zip, extract, and move to Applications</li>
+                        <li><strong>Linux:</strong> Use your package manager or download the .deb/.rpm file</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <h4>Git</h4>
+                    <p><strong>Version 2.30+:</strong> Required for cloning repositories</p>
+                    <ul>
+                        <li><strong>Windows:</strong> <a href="https://git-scm.com/download/win" target="_blank">Download Git for Windows</a></li>
+                        <li><strong>macOS:</strong> Install via Homebrew: <code>brew install git</code> or download from <a href="https://git-scm.com/" target="_blank">git-scm.com</a></li>
+                        <li><strong>Linux:</strong> <code>sudo apt install git</code> (Ubuntu/Debian) or <code>sudo yum install git</code> (RedHat/CentOS)</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <strong>Verify Installation:</strong>
+                        <code style="display: block; margin-top: 10px;">git --version</code>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <h4>Node.js & npm</h4>
+                    <p><strong>Version 18.0.0+:</strong> JavaScript runtime and package manager</p>
+                    <ul>
+                        <li><strong>All Platforms:</strong> Download from <a href="https://nodejs.org/" target="_blank">https://nodejs.org/</a> (LTS version recommended)</li>
+                        <li><strong>Alternative (macOS/Linux):</strong> Use <a href="https://github.com/nvm-sh/nvm" target="_blank">nvm</a> for version management</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <strong>Verify Installation:</strong>
+                        <code style="display: block; margin-top: 10px;">node --version<br>npm --version</code>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <h4>Chrome Browser</h4>
+                    <p><strong>Version 90+:</strong> Required for the Chrome Extension</p>
+                    <ul>
+                        <li>Download from <a href="https://www.google.com/chrome/" target="_blank">https://www.google.com/chrome/</a></li>
+                        <li>Microsoft Edge (Chromium-based) also works</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- VS Code Setup -->
+            <section id="vscode-setup" class="section">
+                <h2>🔧 VS Code Setup</h2>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <h4>Install GitHub Pull Requests Extension</h4>
+                    <p>This extension enables seamless GitHub integration within VS Code.</p>
+                    <ul>
+                        <li>Open VS Code</li>
+                        <li>Click the Extensions icon in the sidebar (or press <code>Ctrl+Shift+X</code> / <code>Cmd+Shift+X</code>)</li>
+                        <li>Search for "GitHub Pull Requests and Issues"</li>
+                        <li>Click "Install" on the official Microsoft extension</li>
+                        <li>Sign in with your GitHub account when prompted</li>
+                    </ul>
+                    <div class="screenshot">
+                        📸 Screenshot: VS Code Extensions Marketplace with GitHub Pull Requests extension highlighted
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <h4>Recommended VS Code Extensions</h4>
+                    <p>Install these optional but highly recommended extensions for better development experience:</p>
+                    
+                    <div class="collapsible">
+                        <div class="collapsible-header">Essential Extensions (Click to expand)</div>
+                        <div class="collapsible-content">
+                            <div class="collapsible-inner">
+                                <ul>
+                                    <li><strong>ESLint:</strong> JavaScript/TypeScript linting (<code>dbaeumer.vscode-eslint</code>)</li>
+                                    <li><strong>Prettier:</strong> Code formatting (<code>esbenp.prettier-vscode</code>)</li>
+                                    <li><strong>GitLens:</strong> Enhanced Git capabilities (<code>eamodio.gitlens</code>)</li>
+                                    <li><strong>JavaScript (ES6) code snippets:</strong> Useful code snippets (<code>xabikos.JavaScriptSnippets</code>)</li>
+                                    <li><strong>Path Intellisense:</strong> Autocomplete filenames (<code>christian-kohler.path-intellisense</code>)</li>
+                                    <li><strong>Live Server:</strong> Local development server (<code>ritwickdey.LiveServer</code>)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <h4>Configure VS Code Settings</h4>
+                    <p>Optimize VS Code for Workstation development:</p>
+                    <pre><code>{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "files.autoSave": "onFocusChange",
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false
+}</code></pre>
+                    <div class="alert alert-info">
+                        <strong>How to add:</strong> Press <code>Ctrl+,</code> (or <code>Cmd+,</code> on Mac), click the "Open Settings (JSON)" icon in the top right, and paste the above configuration.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Repository Cloning -->
+            <section id="repository" class="section">
+                <h2>📦 Clone Repository Through VS Code</h2>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <h4>Open Command Palette</h4>
+                    <p>Press <code>Ctrl+Shift+P</code> (Windows/Linux) or <code>Cmd+Shift+P</code> (Mac)</p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <h4>Clone Repository</h4>
+                    <p>Type "Git: Clone" and select it from the dropdown</p>
+                    <ul>
+                        <li>Paste the repository URL: <code>https://github.com/creditXcredit/workstation.git</code></li>
+                        <li>Choose a local folder to clone into</li>
+                        <li>Click "Open" when prompted to open the cloned repository</li>
+                    </ul>
+                    <div class="screenshot">
+                        📸 Screenshot: VS Code Command Palette with "Git: Clone" command
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <h4>Trust Workspace</h4>
+                    <p>VS Code may ask if you trust the authors of this workspace. Click "Yes, I trust the authors" to enable full features.</p>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Alternative Method:</strong> You can also clone via terminal:
+                    <code style="display: block; margin-top: 10px;">git clone https://github.com/creditXcredit/workstation.git<br>cd workstation<br>code .</code>
+                </div>
+            </section>
+
+            <!-- Terminal Setup -->
+            <section id="terminal-setup" class="section">
+                <h2>⌨️ Terminal Setup & Commands</h2>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <h4>Open Integrated Terminal</h4>
+                    <p>Press <code>Ctrl+`</code> (backtick) or go to <strong>Terminal → New Terminal</strong></p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <h4>Install Dependencies</h4>
+                    <p>Run the following command in the terminal:</p>
+                    <pre><code>npm install</code></pre>
+                    <p>This will download all required Node.js packages (may take 2-3 minutes).</p>
+                    <div class="alert alert-info">
+                        <strong>What's happening:</strong> npm reads <code>package.json</code> and installs all dependencies into <code>node_modules/</code>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <h4>Install Playwright Browsers</h4>
+                    <p>Workstation uses Playwright for browser automation. Install the required browsers:</p>
+                    <pre><code>npx playwright install --with-deps</code></pre>
+                    <p>This downloads Chromium, Firefox, and WebKit browsers (~300MB).</p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <h4>Configure Environment Variables</h4>
+                    <p>Create a <code>.env</code> file for configuration:</p>
+                    <pre><code>cp .env.example .env</code></pre>
+                    <p>Edit the <code>.env</code> file and set a secure JWT secret:</p>
+                    <pre><code># Generate a secure secret
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Add to .env file
+JWT_SECRET=your_generated_secret_here
+JWT_EXPIRATION=24h
+PORT=3000
+NODE_ENV=development</code></pre>
+                    <div class="alert alert-danger">
+                        <strong>⚠️ CRITICAL:</strong> The server will NOT start without a valid JWT_SECRET! This is required for security.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <h4>Build the Application</h4>
+                    <p>Compile TypeScript to JavaScript:</p>
+                    <pre><code>npm run build</code></pre>
+                    <p>This creates the <code>dist/</code> folder with compiled code.</p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">6</span>
+                    <h4>Generate Download Artifacts</h4>
+                    <p>Build the Chrome extension and other downloadable packages:</p>
+                    <pre><code>npm run build:downloads</code></pre>
+                    <p>This creates ZIP files in <code>public/downloads/</code> for easy distribution.</p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">7</span>
+                    <h4>Start the Server</h4>
+                    <p>Launch the Workstation server:</p>
+                    <pre><code>npm start</code></pre>
+                    <p>You should see output like:</p>
+                    <pre><code>🚀 Workstation server running on http://localhost:3000
+📊 Dashboard available at http://localhost:3000/dashboard.html
+🎨 Workflow Builder at http://localhost:3000/workflow-builder.html</code></pre>
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>✅ Success!</strong> Your Workstation server is now running. Leave this terminal window open.
+                </div>
+
+                <div class="collapsible">
+                    <div class="collapsible-header">Development Mode (Hot Reload)</div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-inner">
+                            <p>For development with automatic reloading on file changes:</p>
+                            <pre><code>npm run dev</code></pre>
+                            <p>This uses <code>ts-node</code> and doesn't require rebuilding after every change.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chrome Extension -->
+            <section id="chrome-extension" class="section">
+                <h2>🔌 Chrome Extension Deployment</h2>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <h4>Open Chrome Extensions Page</h4>
+                    <p>In Chrome, navigate to:</p>
+                    <pre><code>chrome://extensions/</code></pre>
+                    <p>Or: Click the three dots menu → <strong>More tools</strong> → <strong>Extensions</strong></p>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <h4>Enable Developer Mode</h4>
+                    <p>Toggle the "Developer mode" switch in the top-right corner of the Extensions page.</p>
+                    <div class="screenshot">
+                        📸 Screenshot: Chrome Extensions page with Developer Mode toggle highlighted
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <h4>Load Unpacked Extension</h4>
+                    <ul>
+                        <li>Click the "Load unpacked" button</li>
+                        <li>Navigate to your Workstation project folder</li>
+                        <li>Select the <code>chrome-extension/</code> folder</li>
+                        <li>Click "Select Folder" (or "Open")</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <h4>Verify Installation</h4>
+                    <p>You should see the Workstation extension card appear with:</p>
+                    <ul>
+                        <li>Extension name: "Workstation Browser Agent"</li>
+                        <li>Version number (e.g., 1.0.0)</li>
+                        <li>Extension icon</li>
+                        <li>Status: Enabled</li>
+                    </ul>
+                    <div class="alert alert-success">
+                        <strong>✅ Extension Installed!</strong> You can now use browser automation features.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <h4>Pin Extension to Toolbar (Optional)</h4>
+                    <p>For easy access:</p>
+                    <ul>
+                        <li>Click the puzzle piece icon in Chrome's toolbar</li>
+                        <li>Find "Workstation Browser Agent"</li>
+                        <li>Click the pin icon to pin it to the toolbar</li>
+                    </ul>
+                </div>
+
+                <div class="collapsible">
+                    <div class="collapsible-header">Alternative: Download Pre-built Extension</div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-inner">
+                            <p>If you prefer not to build from source, download the pre-built extension:</p>
+                            <ol>
+                                <li>Visit <code>http://localhost:3000/dashboard.html</code></li>
+                                <li>Click "Download Chrome Extension" in the Quick Downloads section</li>
+                                <li>Extract the ZIP file</li>
+                                <li>Load the extracted folder in <code>chrome://extensions/</code></li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Experience Benefits -->
+            <section id="benefits" class="section">
+                <h2>✨ User Experience Benefits</h2>
+                <p>Using VS Code with Workstation provides numerous advantages:</p>
+
+                <div class="benefits">
+                    <div class="benefit-card">
+                        <h4>🚀 Integrated Development</h4>
+                        <p>Edit code, run commands, debug, and manage Git - all in one window without switching between applications.</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>🔍 IntelliSense & Auto-complete</h4>
+                        <p>Get intelligent code completion, parameter info, and documentation as you type.</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>🐛 Built-in Debugging</h4>
+                        <p>Set breakpoints, inspect variables, and step through code without external tools.</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>📊 GitHub Integration</h4>
+                        <p>View pull requests, create branches, commit changes, and push to GitHub without leaving VS Code.</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>⚡ Terminal Integration</h4>
+                        <p>Run npm commands, Git operations, and scripts in the integrated terminal with full context.</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>🎨 Visual Workflow Builder</h4>
+                        <p>Access the workflow builder at <code>localhost:3000/workflow-builder.html</code> for drag-and-drop automation creation.</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>🔌 Extension Ecosystem</h4>
+                        <p>Thousands of extensions available for any language, framework, or tool you use.</p>
+                    </div>
+
+                    <div class="benefit-card">
+                        <h4>💾 Auto-save & Format</h4>
+                        <p>Configure auto-save and format-on-save to maintain consistent code style effortlessly.</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 30px;">
+                    <strong>💡 Pro Tip:</strong> Use the integrated terminal to run <code>npm run dev</code> for live reloading during development. Changes to TypeScript files will automatically restart the server!
+                </div>
+            </section>
+
+            <!-- Troubleshooting -->
+            <section id="troubleshooting" class="section">
+                <h2>🔧 Troubleshooting</h2>
+
+                <div class="troubleshooting-item">
+                    <h4>Problem: "JWT_SECRET is not defined" error</h4>
+                    <p><strong>Symptoms:</strong> Server fails to start with authentication error</p>
+                    <div class="solution">
+                        <strong>Solution:</strong>
+                        <ol>
+                            <li>Generate a secret: <code>node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"</code></li>
+                            <li>Add to <code>.env</code> file: <code>JWT_SECRET=your_generated_secret</code></li>
+                            <li>Restart the server: <code>npm start</code></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshooting-item">
+                    <h4>Problem: "Port 3000 already in use"</h4>
+                    <p><strong>Symptoms:</strong> Server fails to start, error about port already in use</p>
+                    <div class="solution">
+                        <strong>Solution:</strong>
+                        <ol>
+                            <li><strong>Option 1:</strong> Kill the process using port 3000
+                                <pre><code># Windows
+netstat -ano | findstr :3000
+taskkill /PID [process_id] /F
+
+# Mac/Linux
+lsof -ti:3000 | xargs kill -9</code></pre>
+                            </li>
+                            <li><strong>Option 2:</strong> Change the port in <code>.env</code> file: <code>PORT=3001</code></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshooting-item">
+                    <h4>Problem: Chrome extension not loading</h4>
+                    <p><strong>Symptoms:</strong> Extension shows errors or doesn't appear in chrome://extensions/</p>
+                    <div class="solution">
+                        <strong>Solution:</strong>
+                        <ol>
+                            <li>Ensure you built the extension: <code>npm run build:downloads</code></li>
+                            <li>Check that <code>chrome-extension/manifest.json</code> exists and is valid</li>
+                            <li>Click "Load unpacked" and select the <code>chrome-extension/</code> folder (not a subfolder)</li>
+                            <li>If errors appear, click "Errors" to see details and fix them</li>
+                            <li>Try removing and re-adding the extension</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshooting-item">
+                    <h4>Problem: npm install fails</h4>
+                    <p><strong>Symptoms:</strong> Error messages during <code>npm install</code></p>
+                    <div class="solution">
+                        <strong>Solution:</strong>
+                        <ol>
+                            <li>Clear npm cache: <code>npm cache clean --force</code></li>
+                            <li>Delete <code>node_modules/</code> and <code>package-lock.json</code></li>
+                            <li>Reinstall: <code>npm install</code></li>
+                            <li>If still failing, check your Node.js version: <code>node --version</code> (must be 18+)</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshooting-item">
+                    <h4>Problem: TypeScript build errors</h4>
+                    <p><strong>Symptoms:</strong> <code>npm run build</code> fails with TypeScript errors</p>
+                    <div class="solution">
+                        <strong>Solution:</strong>
+                        <ol>
+                            <li>Run linting to see specific issues: <code>npm run lint</code></li>
+                            <li>Check <code>tsconfig.json</code> is not modified</li>
+                            <li>Ensure all dependencies are installed: <code>npm install</code></li>
+                            <li>Try cleaning and rebuilding:
+                                <pre><code>rm -rf dist/
+npm run build</code></pre>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="troubleshooting-item">
+                    <h4>Problem: Dashboard shows "connection refused"</h4>
+                    <p><strong>Symptoms:</strong> Cannot access dashboard at localhost:3000</p>
+                    <div class="solution">
+                        <strong>Solution:</strong>
+                        <ol>
+                            <li>Verify server is running (check terminal for server output)</li>
+                            <li>Check the port in <code>.env</code> matches the URL you're visiting</li>
+                            <li>Try restarting the server: Stop with <code>Ctrl+C</code>, then <code>npm start</code></li>
+                            <li>Check firewall settings aren't blocking localhost connections</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="collapsible">
+                    <div class="collapsible-header">More Troubleshooting Resources</div>
+                    <div class="collapsible-content">
+                        <div class="collapsible-inner">
+                            <h4>Documentation Links:</h4>
+                            <ul>
+                                <li><a href="/docs/guides/TROUBLESHOOTING.md">Full Troubleshooting Guide</a></li>
+                                <li><a href="/docs/guides/FAQ.md">Frequently Asked Questions</a></li>
+                                <li><a href="https://github.com/creditXcredit/workstation/issues">GitHub Issues</a></li>
+                            </ul>
+                            
+                            <h4>Common Log Locations:</h4>
+                            <ul>
+                                <li>Server logs: Terminal output where you ran <code>npm start</code></li>
+                                <li>Build logs: Output from <code>npm run build</code></li>
+                                <li>Chrome extension logs: <code>chrome://extensions/</code> → Click "Errors" on the extension</li>
+                            </ul>
+                            
+                            <h4>Getting Help:</h4>
+                            <ul>
+                                <li>Check existing <a href="https://github.com/creditXcredit/workstation/issues">GitHub Issues</a></li>
+                                <li>Create a new issue with error logs and steps to reproduce</li>
+                                <li>Include your OS, Node.js version, and npm version</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Next Steps -->
+            <section id="next-steps" class="section">
+                <h2>🎯 Next Steps</h2>
+                <p>Now that you have Workstation set up, here's what you can do:</p>
+
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <h4>Explore the Dashboard</h4>
+                    <p>Visit <a href="http://localhost:3000/dashboard.html" target="_blank">http://localhost:3000/dashboard.html</a> to:</p>
+                    <ul>
+                        <li>View system statistics and health</li>
+                        <li>Download pre-built packages</li>
+                        <li>Access workflow management</li>
+                        <li>Monitor agent activity</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <h4>Create Your First Workflow</h4>
+                    <p>Use the Visual Workflow Builder at <a href="http://localhost:3000/workflow-builder.html" target="_blank">http://localhost:3000/workflow-builder.html</a></p>
+                    <ul>
+                        <li>Drag and drop actions to create automation sequences</li>
+                        <li>Test workflows in real-time</li>
+                        <li>Save and share workflows as JSON</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <h4>Try Browser Automation</h4>
+                    <p>Test the Chrome extension with sample tasks:</p>
+                    <ul>
+                        <li>Navigate to a website and extract data</li>
+                        <li>Fill out forms automatically</li>
+                        <li>Take screenshots of pages</li>
+                        <li>Search multiple engines simultaneously</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <h4>Read the Documentation</h4>
+                    <p>Explore comprehensive guides:</p>
+                    <ul>
+                        <li><a href="/docs/guides/QUICKSTART.md">Quick Start Guide</a></li>
+                        <li><a href="/docs/guides/WORKFLOW_EXAMPLES.md">Workflow Examples</a></li>
+                        <li><a href="/docs/api/README.md">API Documentation</a></li>
+                        <li><a href="/docs/guides/DEPLOYMENT.md">Deployment Guide</a></li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <h4>Join the Community</h4>
+                    <p>Connect with other Workstation users:</p>
+                    <ul>
+                        <li>⭐ Star the repository on <a href="https://github.com/creditXcredit/workstation" target="_blank">GitHub</a></li>
+                        <li>📝 Report bugs or request features via <a href="https://github.com/creditXcredit/workstation/issues" target="_blank">Issues</a></li>
+                        <li>🤝 Contribute code via <a href="https://github.com/creditXcredit/workstation/pulls" target="_blank">Pull Requests</a></li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-success" style="margin-top: 30px;">
+                    <strong>🎉 Congratulations!</strong> You've successfully set up Workstation with VS Code. Happy automating!
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Workstation</strong> - Privacy-First Browser Automation Platform</p>
+            <p>
+                <a href="https://github.com/creditXcredit/workstation">GitHub</a> •
+                <a href="/docs/README.md">Documentation</a> •
+                <a href="/dashboard.html">Dashboard</a> •
+                <a href="/workflow-builder.html">Workflow Builder</a>
+            </p>
+            <p style="margin-top: 15px; opacity: 0.7;">
+                Licensed under ISC • Node.js 18+ • TypeScript 5.3+
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Collapsible sections functionality
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const collapsible = header.parentElement;
+                collapsible.classList.toggle('active');
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // Highlight current section in navigation
+        window.addEventListener('scroll', () => {
+            let current = '';
+            document.querySelectorAll('.section').forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.nav a').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
