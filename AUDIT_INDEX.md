@@ -73,7 +73,7 @@
 ## 📊 Audit Scope
 
 This audit covered:
-- ✅ 20 TypeScript source files (3,367 LOC)
+- ✅ 20 TypeScript source files (74,632 LOC (51,178 TypeScript))
 - ✅ 50 test files (1,849 LOC, 170 tests)
 - ✅ 24 GitHub Actions workflows
 - ✅ Docker configuration

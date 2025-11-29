@@ -372,7 +372,7 @@ Deliverables:
 | Metric | Count |
 |--------|-------|
 | **Total TypeScript Files** | 112 |
-| **Total Lines of Code** | 3,367 lines |
+| **Total Lines of Code | 74,632 lines (51,178 TypeScript) |
 | **Total Test Files** | 36 |
 | **Total Tests** | 146 passing |
 | **Test Coverage** | 67.18% |
