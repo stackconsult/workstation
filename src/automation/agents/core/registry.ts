@@ -15,6 +15,7 @@ import { CsvAgent } from '../data/csv';
 import { JsonAgent } from '../data/json';
 import { ExcelAgent } from '../data/excel';
 import { PdfAgent } from '../data/pdf';
+import { EnrichmentAgent } from '../utility/enrichment';
 import { logger } from '../../../utils/logger';
 
 export interface AgentCapability {
@@ -113,6 +114,13 @@ export class AgentRegistry {
       agent_type: 'pdf',
       actions: ['extractText', 'extractTables', 'generatePdf', 'mergePdfs', 'getPdfInfo', 'splitPdf'],
       description: 'PDF text extraction, table extraction, generation, and manipulation'
+    });
+
+    // Phase 2: Utility agents
+    this.registerCapability({
+      agent_type: 'enrichment',
+      actions: ['geocode', 'enrichCompanyData', 'enrichContact', 'batchEnrich', 'clearCache', 'getCacheStats'],
+      description: 'Data enrichment with external APIs (geocoding, company info, contact enrichment)'
     });
 
     logger.info('Default agents registered', { count: this.capabilities.length });
@@ -596,6 +604,36 @@ export class AgentRegistry {
               return await s3Agent.moveFile(params as never);
             default:
               throw new Error(`Unknown S3 action: ${action}`);
+          }
+        }
+      };
+
+      this.agents.set(key, actionWrapper);
+      return actionWrapper;
+    }
+
+    // Phase 2: Enrichment agent
+    if (agentType === 'enrichment') {
+      const enrichmentAgent = new EnrichmentAgent();
+
+      const actionWrapper: AgentAction = {
+        execute: async (params: Record<string, unknown>) => {
+          switch (action) {
+            case 'geocode':
+              return await enrichmentAgent.geocode(params as never);
+            case 'enrichCompanyData':
+              return await enrichmentAgent.enrichCompanyData(params as never);
+            case 'enrichContact':
+              return await enrichmentAgent.enrichContact(params as never);
+            case 'batchEnrich':
+              return await enrichmentAgent.batchEnrich(params as never);
+            case 'clearCache':
+              enrichmentAgent.clearCache();
+              return { success: true, message: 'Cache cleared' };
+            case 'getCacheStats':
+              return enrichmentAgent.getCacheStats();
+            default:
+              throw new Error(`Unknown enrichment action: ${action}`);
           }
         }
       };
