@@ -356,9 +356,9 @@ sudo systemctl start grafana-server
 
 ---
 
-### Database Connection Failure
+### Application Down
 
-**Alert**: `DatabaseConnectionFailure`  
+**Alert**: `ApplicationDown`  
 **Severity**: Critical  
 **Threshold**: Application unreachable for 2 minutes
 
@@ -368,30 +368,33 @@ sudo systemctl start grafana-server
    docker ps | grep workstation-app
    curl http://localhost:3000/health
    ```
-2. Check database file:
-   ```bash
-   ls -lh src/automation/db/workstation.db
-   sqlite3 src/automation/db/workstation.db "PRAGMA integrity_check;"
-   ```
-3. Review application logs:
+2. Review application logs:
    ```bash
    docker logs workstation-app --tail 200
    ```
+3. Check if Prometheus can reach the application:
+   ```bash
+   curl http://localhost:3000/metrics
+   ```
 
 **Investigation:**
-- Verify database file permissions
-- Check for file locks
-- Review SQLite connection configuration
-- Examine disk space and I/O
+- Verify application is running (check Docker container status)
+- Check network connectivity between Prometheus and application
+- Review application startup logs for errors
+- Examine resource availability (CPU, memory, disk)
+- Check database connectivity if application fails to start
 
 **Resolution:**
-- Restart application to reset connections
-- Restore from backup if database corrupted
-- Fix permission issues
-- Upgrade to PostgreSQL if scaling issue
+- Restart application container if crashed
+- Fix configuration issues preventing startup
+- Address resource constraints
+- Restore from backup if corrupted
+- Check and fix network issues
 
 **Prevention:**
-- Implement database health checks
+- Implement application health checks
+- Set up automatic restarts for crashed containers
+- Monitor resource usage proactively
 - Set up automatic backups (already implemented)
 - Monitor database file size
 - Plan migration to PostgreSQL
