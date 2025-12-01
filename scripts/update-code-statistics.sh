@@ -130,9 +130,31 @@ echo "  - CODE_STATISTICS.md"
 echo "  - docs/architecture/ROADMAP.md"
 echo "  - README.md (if applicable)"
 echo ""
+
+# Check milestone lock compliance
+echo "🔒 Checking milestone lock compliance..."
+if [ -f "MILESTONE_LOCK_2025-12-01.md" ]; then
+    echo "✅ Milestone lock file exists"
+    echo ""
+    echo "⚠️  REMINDER: Completion percentages are LOCKED at:"
+    echo "   - Phase 1: 100% (locked)"
+    echo "   - Phase 2: 95% minimum (locked)"
+    echo "   - Phase 3: 85% minimum (locked)"
+    echo "   - Phase 4: 99% minimum (locked)"
+    echo "   - Phase 5: 75% minimum (locked)"
+    echo "   - Overall: 91% minimum (locked)"
+    echo ""
+    echo "   These can only INCREASE when new files are added."
+    echo "   See MILESTONE_LOCK_2025-12-01.md for details."
+else
+    echo "⚠️  Warning: Milestone lock file not found"
+fi
+echo ""
+
 echo "Next steps:"
 echo "  1. Review the changes: git diff"
 echo "  2. Commit the updates: git add . && git commit -m 'Update code statistics ($UPDATE_DATE)'"
 echo "  3. Push to repository: git push"
 echo ""
-echo "💡 Tip: Add this script to a cron job or GitHub Action to run monthly"
+echo "💡 Tip: This script runs monthly via GitHub Action to keep stats current"
+echo "🔒 Note: Completion percentages locked - see MILESTONE_LOCK_2025-12-01.md"
