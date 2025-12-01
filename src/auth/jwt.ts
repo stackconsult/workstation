@@ -21,8 +21,9 @@ export interface JWTPayload {
 }
 
 // Extend Express Request interface to include user property
+// Note: This now uses Express.User which includes userId
 export interface AuthenticatedRequest extends Request {
-  user?: JWTPayload;
+  user?: Express.User;
 }
 
 /**
@@ -85,7 +86,8 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   }
 
   // Attach payload to request object for use in routes
-  (req as AuthenticatedRequest).user = payload;
+  // Cast to Express.User to ensure compatibility
+  (req as AuthenticatedRequest).user = payload as unknown as Express.User;
   next();
 }
 

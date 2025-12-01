@@ -28,9 +28,11 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import session from 'express-session';
 import { createHash } from 'crypto';
 import { join } from 'path';
 import { generateToken, generateDemoToken, authenticateToken, AuthenticatedRequest } from './auth/jwt';
+import passport from './auth/passport';
 import { validateRequest, schemas } from './middleware/validation';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
@@ -49,6 +51,9 @@ import agentsRoutes from './routes/agents';
 import downloadsRoutes from './routes/downloads';
 import backupsRoutes from './routes/backups';
 import workflowStateRoutes from './routes/workflow-state';
+// Phase 6: Import workspace and Slack routes
+import workspacesRoutes from './routes/workspaces';
+import slackRoutes from './routes/slack';
 import { initializeDatabase } from './automation/db/database';
 // Context-Memory Intelligence Layer
 import { initializeContextMemory } from './intelligence/context-memory';
@@ -60,6 +65,8 @@ import {
 import { initializeMonitoring } from './services/monitoring';
 // Phase 4: Import backup service
 import { initializeBackupService } from './services/backup';
+// Phase 6: Import workspace initialization
+import { initializeWorkspaces } from './scripts/initialize-workspaces';
 
 // Validate environment configuration
 const envConfig = validateEnvironment();
@@ -77,6 +84,10 @@ async function initialize() {
     // Phase 4: Initialize backup service
     initializeBackupService();
     logger.info('Phase 4: Backup service initialized successfully');
+    
+    // Phase 6: Initialize workspaces
+    await initializeWorkspaces();
+    logger.info('Phase 6: Workspaces initialized successfully');
   } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);
@@ -165,6 +176,22 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Phase 6: Session support for Passport
+app.use(session({
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'dev-session-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Phase 3: Apply global rate limiter with Redis backend (fallback to memory if Redis unavailable)
 // This provides distributed rate limiting across multiple instances
@@ -302,6 +329,14 @@ logger.info('Backup management routes registered');
 // Phase 4: Workflow state management routes
 app.use('/api/workflow-state', workflowStateRoutes);
 logger.info('Workflow state management routes registered');
+
+// Phase 6: Workspace management routes
+app.use('/api/workspaces', workspacesRoutes);
+logger.info('Phase 6: Workspace management routes registered');
+
+// Phase 6: Slack integration routes
+app.use('/api/slack', slackRoutes);
+logger.info('Phase 6: Slack integration routes registered');
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);

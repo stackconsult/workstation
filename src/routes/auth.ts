@@ -1,14 +1,17 @@
 /**
  * Authentication Routes
- * User registration, login, logout, and session management
+ * User registration, login, logout, OAuth, and password reset
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { generateToken, authenticateToken, AuthenticatedRequest } from '../auth/jwt';
+import passport from '../auth/passport';
 import db from '../db/connection';
 import { logger } from '../utils/logger';
+import { sendPasswordResetEmail } from '../services/email';
 
 const router = Router();
 
@@ -304,6 +307,247 @@ router.get('/verify/:token', async (req: Request, res: Response) => {
       error: 'Verification failed'
     });
   }
+});
+
+/**
+ * Request password reset
+ * POST /api/auth/password-reset/request
+ */
+router.post('/password-reset/request', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required'
+      });
+    }
+
+    // Find user
+    const result = await db.query(
+      'SELECT id, email FROM users WHERE email = $1 AND is_active = true',
+      [email.toLowerCase()]
+    );
+
+    // Always return success for security (don't reveal if email exists)
+    if (result.rows.length === 0) {
+      logger.info('Password reset requested for non-existent email', { email });
+      return res.json({
+        success: true,
+        message: 'If the email exists, a password reset link has been sent'
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Generate reset token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+    // Store token
+    await db.query(
+      `INSERT INTO password_reset_tokens (user_id, token, expires_at, ip_address)
+       VALUES ($1, $2, $3, $4)`,
+      [user.id, token, expiresAt, req.ip]
+    );
+
+    // Send email
+    await sendPasswordResetEmail(user.email, token);
+
+    logger.info('Password reset requested', { userId: user.id, email: user.email });
+
+    res.json({
+      success: true,
+      message: 'If the email exists, a password reset link has been sent'
+    });
+  } catch (error) {
+    logger.error('Password reset request error', { error });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to request password reset'
+    });
+  }
+});
+
+/**
+ * Reset password with token
+ * POST /api/auth/password-reset/confirm
+ */
+router.post('/password-reset/confirm', async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Token and new password are required'
+      });
+    }
+
+    // Password strength validation
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 8 characters long'
+      });
+    }
+
+    // Find valid token
+    const tokenResult = await db.query(
+      `SELECT id, user_id, expires_at, used_at
+       FROM password_reset_tokens
+       WHERE token = $1`,
+      [token]
+    );
+
+    if (tokenResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid reset token'
+      });
+    }
+
+    const resetToken = tokenResult.rows[0];
+
+    // Check if token is expired
+    if (new Date() > new Date(resetToken.expires_at)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Reset token has expired'
+      });
+    }
+
+    // Check if token was already used
+    if (resetToken.used_at) {
+      return res.status(400).json({
+        success: false,
+        error: 'Reset token has already been used'
+      });
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update user password
+    await db.query(
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
+      [passwordHash, resetToken.user_id]
+    );
+
+    // Mark token as used
+    await db.query(
+      'UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1',
+      [resetToken.id]
+    );
+
+    logger.info('Password reset successful', { userId: resetToken.user_id });
+
+    res.json({
+      success: true,
+      message: 'Password reset successful'
+    });
+  } catch (error) {
+    logger.error('Password reset confirmation error', { error });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reset password'
+    });
+  }
+});
+
+/**
+ * Google OAuth - Initiate
+ * GET /api/auth/google
+ */
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+/**
+ * Google OAuth - Callback
+ * GET /api/auth/google/callback
+ */
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login?error=oauth_failed' }),
+  (req: Request, res: Response) => {
+    // Generate JWT token
+    const user = req.user as Express.User;
+    const token = generateToken({
+      userId: (user as { id: string }).id,
+      email: (user as { email: string }).email,
+      accessLevel: (user as { access_level: string }).access_level
+    });
+
+    // Redirect to frontend with token
+    res.redirect(`/auth/success?token=${token}`);
+  }
+);
+
+/**
+ * GitHub OAuth - Initiate
+ * GET /api/auth/github
+ */
+router.get('/github',
+  passport.authenticate('github', { scope: ['user:email'] })
+);
+
+/**
+ * GitHub OAuth - Callback
+ * GET /api/auth/github/callback
+ */
+router.get('/github/callback',
+  passport.authenticate('github', { session: false, failureRedirect: '/login?error=oauth_failed' }),
+  (req: Request, res: Response) => {
+    // Generate JWT token
+    const user = req.user as Express.User;
+    const token = generateToken({
+      userId: (user as { id: string }).id,
+      email: (user as { email: string }).email,
+      accessLevel: (user as { access_level: string }).access_level
+    });
+
+    // Redirect to frontend with token
+    res.redirect(`/auth/success?token=${token}`);
+  }
+);
+
+/**
+ * Local Passport authentication
+ * POST /api/auth/passport/login
+ */
+router.post('/passport/login', (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate('local', (err: Error, user: Express.User, info: { message?: string }) => {
+    if (err) {
+      logger.error('Passport authentication error', { error: err });
+      return res.status(500).json({
+        success: false,
+        error: 'Authentication failed'
+      });
+    }
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: info?.message || 'Invalid credentials'
+      });
+    }
+
+    // Generate JWT token
+    const token = generateToken({
+      userId: (user as { id: string }).id,
+      email: (user as { email: string }).email,
+      accessLevel: (user as { access_level: string }).access_level
+    });
+
+    res.json({
+      success: true,
+      data: {
+        user,
+        token
+      }
+    });
+  })(req, res, next);
 });
 
 export default router;
