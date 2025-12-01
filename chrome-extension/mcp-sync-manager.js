@@ -487,21 +487,6 @@ class MCPSyncManager {
     return { ...value1, ...value2 };
   }
 
-    // Record history
-    this.addToHistory({
-      action: 'sync_receive',
-      key,
-      value,
-      source,
-      timestamp
-    });
-
-    // Persist
-    await this.persistState();
-
-    return { success: true };
-  }
-
   /**
    * Detect and handle conflict
    */
