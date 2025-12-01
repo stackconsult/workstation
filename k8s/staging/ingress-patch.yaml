@@ -1,0 +1,21 @@
+# Ingress patch for staging
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stackbrowseragent-ingress
+spec:
+  tls:
+  - hosts:
+    - staging.stackbrowseragent.example.com
+    secretName: stackbrowseragent-staging-tls
+  rules:
+  - host: staging.stackbrowseragent.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: stackbrowseragent
+            port:
+              number: 80

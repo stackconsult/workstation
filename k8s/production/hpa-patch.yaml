@@ -1,0 +1,8 @@
+# HPA patch for production
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: stackbrowseragent-hpa
+spec:
+  minReplicas: 5
+  maxReplicas: 20

@@ -118,3 +118,16 @@ workstation-extension-*.zip
 deployment-report-*.md
 deploy-*.log
 *.broken
+
+# Phase 5: UI Build Artifacts
+dist/ui/
+.vite/
+*.local
+
+# Phase 5: Load Test Results
+tests/load/results/*.json
+tests/load/summary.json
+
+# Kubernetes secrets (never commit real secrets)
+k8s/**/secrets.yaml
+!k8s/base/secrets.yaml

@@ -1,0 +1,85 @@
+# Base Deployment for stackBrowserAgent
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stackbrowseragent
+  labels:
+    app: stackbrowseragent
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: stackbrowseragent
+  template:
+    metadata:
+      labels:
+        app: stackbrowseragent
+        version: v1
+    spec:
+      containers:
+      - name: stackbrowseragent
+        image: stackbrowseragent:latest
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: stackbrowseragent-secrets
+              key: jwt-secret
+        - name: JWT_EXPIRATION
+          value: "24h"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: stackbrowseragent-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stackbrowseragent
+  labels:
+    app: stackbrowseragent
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: stackbrowseragent

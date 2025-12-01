@@ -1,0 +1,22 @@
+# ConfigMap for stackBrowserAgent
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stackbrowseragent-config
+data:
+  # Application configuration
+  APP_NAME: "stackBrowserAgent"
+  LOG_LEVEL: "info"
+  MAX_CONCURRENT_WORKFLOWS: "10"
+  WORKFLOW_TIMEOUT: "300000"
+  
+  # Feature flags
+  ENABLE_METRICS: "true"
+  ENABLE_TRACING: "true"
+  ENABLE_COMPRESSION: "true"
+  
+  # Performance settings
+  CONNECTION_POOL_SIZE: "20"
+  CACHE_TTL: "300"
+  RATE_LIMIT_WINDOW: "60000"
+  RATE_LIMIT_MAX: "100"
