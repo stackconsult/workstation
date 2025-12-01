@@ -1,0 +1,159 @@
+groups:
+  - name: workstation_alerts
+    interval: 30s
+    rules:
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_requests_total[5m])), 1)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High error rate detected ({{ $value | humanizePercentage }})"
+          description: "More than 5% of requests are returning 5xx errors for the last 5 minutes. Current rate: {{ $value | humanizePercentage }}"
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#high-error-rate"
+
+      # High Latency Alert
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            rate(http_request_duration_seconds_bucket[5m])
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected ({{ $value }}s at p95)"
+          description: "95th percentile of HTTP request duration is above 2 seconds for the last 10 minutes. Current p95: {{ $value }}s"
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#high-latency"
+
+      # Low Disk Space Alert
+      - alert: LowDiskSpace
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"}
+            /
+            node_filesystem_size_bytes{mountpoint="/"}
+          ) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Low disk space ({{ $value | humanizePercentage }} remaining)"
+          description: "Available disk space is below 10% for the last 5 minutes. Current: {{ $value | humanizePercentage }}"
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#low-disk-space"
+
+      # High Memory Usage Alert
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            workstation_nodejs_heap_size_used_bytes
+            /
+            workstation_nodejs_heap_size_total_bytes
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High memory usage detected ({{ $value }}GB)"
+          description: "Application is using more than 90% of available memory for the last 5 minutes. Current: {{ $value }}GB"
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#high-memory-usage"
+
+      # Application Down
+      - alert: ApplicationDown
+        expr: |
+          up{job="workstation-app"} == 0
+          or
+          absent(up{job="workstation-app"})
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Application is down"
+          description: "The application has been unreachable for the last 2 minutes. Prometheus cannot scrape metrics."
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#application-down"
+
+      # Workflow Execution Failures
+      - alert: HighWorkflowFailureRate
+        expr: |
+          (
+            sum(rate(workflow_executions_total[10m])) > 0
+            and
+            (
+              sum(rate(workflow_executions_total{status="failure"}[10m]))
+              /
+              sum(rate(workflow_executions_total[10m]))
+            ) > 0.2
+          )
+        for: 10m
+        labels:
+          severity: warning
+          component: workflows
+        annotations:
+          summary: "High workflow failure rate ({{ $value | humanizePercentage }})"
+          description: "More than 20% of workflow executions are failing for the last 10 minutes. Current failure rate: {{ $value | humanizePercentage }}"
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#high-workflow-failure-rate"
+
+      # Long-Running Agent Tasks
+      - alert: LongRunningAgentTask
+        expr: |
+          histogram_quantile(0.95,
+            rate(agent_task_duration_seconds_bucket[10m])
+          ) > 300
+        for: 15m
+        labels:
+          severity: warning
+          component: agents
+        annotations:
+          summary: "Agent tasks taking too long ({{ $value }}s at p95)"
+          description: "95th percentile of agent task duration exceeds 5 minutes for the last 15 minutes. Current p95: {{ $value }}s"
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#long-running-agent-task"
+
+      # Active WebSocket Connections Spike
+      - alert: WebSocketConnectionSpike
+        expr: |
+          (
+            active_websocket_connections > 10
+            and
+            (
+              active_websocket_connections
+              /
+              (avg_over_time(active_websocket_connections[1h]) + 1)
+            ) > 3
+          )
+        for: 5m
+        labels:
+          severity: info
+          component: websocket
+        annotations:
+          summary: "WebSocket connection spike detected ({{ $value }}x normal)"
+          description: "Active WebSocket connections are 3x higher than the 1-hour average. Current multiplier: {{ $value }}x"
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#websocket-connection-spike"
+
+  - name: workstation_redis_alerts
+    interval: 30s
+    rules:
+      # Redis Connection Warning (non-critical - we have fallback)
+      - alert: RedisConnectionWarning
+        expr: |
+          redis_up{job="redis-exporter"} == 0
+          or
+          absent(redis_up{job="redis-exporter"})
+        for: 5m
+        labels:
+          severity: info
+          component: redis
+        annotations:
+          summary: "Redis connection unavailable (using in-memory fallback)"
+          description: "Redis is not responding for the last 5 minutes. Application is using in-memory session storage as fallback."
+          runbook: "docs/operations/MONITORING_RUNBOOK.md#redis-connection-warning"
