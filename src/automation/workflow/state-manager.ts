@@ -1,19 +1,19 @@
 /**
  * Workflow State Manager
- * 
+ *
  * Manages execution state, checkpoints, and recovery for workflows.
  * Provides real-time state tracking and persistence.
- * 
+ *
  * @module automation/workflow/state-manager
  * @version 2.0.0
  */
 
-import { logger } from '../../shared/utils/logger.js';
+import { logger } from "../../shared/utils/logger.js";
 
 export interface ExecutionState {
   executionId: string;
   workflowId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: "pending" | "running" | "completed" | "failed" | "cancelled";
   currentStep: number;
   totalSteps: number;
   progress: number;
@@ -28,7 +28,7 @@ export interface ExecutionState {
 
 export interface StepState {
   stepId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  status: "pending" | "running" | "completed" | "failed" | "skipped";
   startedAt?: string;
   completedAt?: string;
   result?: any;
@@ -44,7 +44,7 @@ export interface Checkpoint {
 }
 
 export interface StateUpdate {
-  status?: ExecutionState['status'];
+  status?: ExecutionState["status"];
   currentStep?: number;
   progress?: number;
   error?: string;
@@ -55,7 +55,8 @@ export interface StateUpdate {
  */
 export class StateManager {
   private states: Map<string, ExecutionState> = new Map();
-  private stateListeners: Map<string, Set<(state: ExecutionState) => void>> = new Map();
+  private stateListeners: Map<string, Set<(state: ExecutionState) => void>> =
+    new Map();
   private checkpointRetention = 100; // Keep last 100 checkpoints
 
   /**
@@ -65,12 +66,12 @@ export class StateManager {
     executionId: string,
     workflowId: string,
     totalSteps: number,
-    variables: Record<string, any> = {}
+    variables: Record<string, any> = {},
   ): ExecutionState {
     const state: ExecutionState = {
       executionId,
       workflowId,
-      status: 'pending',
+      status: "pending",
       currentStep: 0,
       totalSteps,
       progress: 0,
@@ -84,7 +85,7 @@ export class StateManager {
     this.states.set(executionId, state);
     this.notifyListeners(executionId, state);
 
-    logger.info('Execution state created', { executionId, workflowId });
+    logger.info("Execution state created", { executionId, workflowId });
     return state;
   }
 
@@ -101,7 +102,7 @@ export class StateManager {
   updateState(executionId: string, update: StateUpdate): ExecutionState | null {
     const state = this.states.get(executionId);
     if (!state) {
-      logger.warn('Execution state not found', { executionId });
+      logger.warn("Execution state not found", { executionId });
       return null;
     }
 
@@ -118,7 +119,9 @@ export class StateManager {
       state.progress = update.progress;
     } else if (update.currentStep !== undefined && state.totalSteps > 0) {
       // Auto-calculate progress from current step
-      state.progress = Math.round((update.currentStep / state.totalSteps) * 100);
+      state.progress = Math.round(
+        (update.currentStep / state.totalSteps) * 100,
+      );
     }
 
     if (update.error !== undefined) {
@@ -126,7 +129,11 @@ export class StateManager {
     }
 
     // Mark as completed if status is terminal
-    if (state.status === 'completed' || state.status === 'failed' || state.status === 'cancelled') {
+    if (
+      state.status === "completed" ||
+      state.status === "failed" ||
+      state.status === "cancelled"
+    ) {
       if (!state.completedAt) {
         state.completedAt = new Date().toISOString();
       }
@@ -135,7 +142,7 @@ export class StateManager {
     state.updatedAt = new Date().toISOString();
     this.notifyListeners(executionId, state);
 
-    logger.debug('Execution state updated', { executionId, update });
+    logger.debug("Execution state updated", { executionId, update });
     return state;
   }
 
@@ -145,7 +152,7 @@ export class StateManager {
   updateStepState(
     executionId: string,
     stepId: string,
-    stepUpdate: Partial<StepState>
+    stepUpdate: Partial<StepState>,
   ): boolean {
     const state = this.states.get(executionId);
     if (!state) {
@@ -156,7 +163,7 @@ export class StateManager {
     if (!stepState) {
       stepState = {
         stepId,
-        status: 'pending',
+        status: "pending",
         retryCount: 0,
       };
       state.stepStates.set(stepId, stepState);
@@ -165,10 +172,10 @@ export class StateManager {
     // Apply updates
     Object.assign(stepState, stepUpdate);
     state.updatedAt = new Date().toISOString();
-    
+
     this.notifyListeners(executionId, state);
 
-    logger.debug('Step state updated', { executionId, stepId, stepUpdate });
+    logger.debug("Step state updated", { executionId, stepId, stepUpdate });
     return true;
   }
 
@@ -178,7 +185,7 @@ export class StateManager {
   createCheckpoint(
     executionId: string,
     stepId: string,
-    checkpointState: Record<string, any>
+    checkpointState: Record<string, any>,
   ): Checkpoint | null {
     const state = this.states.get(executionId);
     if (!state) {
@@ -202,7 +209,11 @@ export class StateManager {
     state.updatedAt = new Date().toISOString();
     this.notifyListeners(executionId, state);
 
-    logger.info('Checkpoint created', { executionId, checkpointId: checkpoint.id, stepId });
+    logger.info("Checkpoint created", {
+      executionId,
+      checkpointId: checkpoint.id,
+      stepId,
+    });
     return checkpoint;
   }
 
@@ -215,19 +226,19 @@ export class StateManager {
       return false;
     }
 
-    const checkpoint = state.checkpoints.find(cp => cp.id === checkpointId);
+    const checkpoint = state.checkpoints.find((cp) => cp.id === checkpointId);
     if (!checkpoint) {
-      logger.warn('Checkpoint not found', { executionId, checkpointId });
+      logger.warn("Checkpoint not found", { executionId, checkpointId });
       return false;
     }
 
     // Restore state from checkpoint
     state.variables = { ...checkpoint.state };
     state.updatedAt = new Date().toISOString();
-    
+
     this.notifyListeners(executionId, state);
 
-    logger.info('State restored from checkpoint', {
+    logger.info("State restored from checkpoint", {
       executionId,
       checkpointId,
       stepId: checkpoint.stepId,
@@ -253,11 +264,11 @@ export class StateManager {
    */
   deleteState(executionId: string): boolean {
     const deleted = this.states.delete(executionId);
-    
+
     if (deleted) {
       // Clean up listeners
       this.stateListeners.delete(executionId);
-      logger.info('Execution state deleted', { executionId });
+      logger.info("Execution state deleted", { executionId });
     }
 
     return deleted;
@@ -268,15 +279,17 @@ export class StateManager {
    */
   getActiveExecutions(): ExecutionState[] {
     return Array.from(this.states.values()).filter(
-      state => state.status === 'running' || state.status === 'pending'
+      (state) => state.status === "running" || state.status === "pending",
     );
   }
 
   /**
    * Get execution count by status
    */
-  getExecutionCountByStatus(status: ExecutionState['status']): number {
-    return Array.from(this.states.values()).filter(state => state.status === status).length;
+  getExecutionCountByStatus(status: ExecutionState["status"]): number {
+    return Array.from(this.states.values()).filter(
+      (state) => state.status === status,
+    ).length;
   }
 
   /**
@@ -284,7 +297,7 @@ export class StateManager {
    */
   subscribe(
     executionId: string,
-    callback: (state: ExecutionState) => void
+    callback: (state: ExecutionState) => void,
   ): () => void {
     if (!this.stateListeners.has(executionId)) {
       this.stateListeners.set(executionId, new Set());
@@ -310,11 +323,11 @@ export class StateManager {
   private notifyListeners(executionId: string, state: ExecutionState): void {
     const listeners = this.stateListeners.get(executionId);
     if (listeners) {
-      listeners.forEach(callback => {
+      listeners.forEach((callback) => {
         try {
           callback(state);
         } catch (error) {
-          logger.error('Error in state listener', {
+          logger.error("Error in state listener", {
             executionId,
             error: (error as Error).message,
           });
@@ -332,7 +345,11 @@ export class StateManager {
 
     this.states.forEach((state, executionId) => {
       // Only cleanup completed/failed/cancelled states
-      if (state.status === 'completed' || state.status === 'failed' || state.status === 'cancelled') {
+      if (
+        state.status === "completed" ||
+        state.status === "failed" ||
+        state.status === "cancelled"
+      ) {
         const updatedAt = new Date(state.updatedAt).getTime();
         if (now - updatedAt > maxAge) {
           this.deleteState(executionId);
@@ -342,7 +359,7 @@ export class StateManager {
     });
 
     if (cleaned > 0) {
-      logger.info('Old execution states cleaned up', { count: cleaned });
+      logger.info("Old execution states cleaned up", { count: cleaned });
     }
 
     return cleaned;
@@ -379,7 +396,7 @@ export class StateManager {
   importState(stateData: string): boolean {
     try {
       const data = JSON.parse(stateData);
-      
+
       // Restore Map from array
       const state: ExecutionState = {
         ...data,
@@ -387,11 +404,15 @@ export class StateManager {
       };
 
       this.states.set(state.executionId, state);
-      
-      logger.info('Execution state imported', { executionId: state.executionId });
+
+      logger.info("Execution state imported", {
+        executionId: state.executionId,
+      });
       return true;
     } catch (error) {
-      logger.error('Failed to import state', { error: (error as Error).message });
+      logger.error("Failed to import state", {
+        error: (error as Error).message,
+      });
       return false;
     }
   }

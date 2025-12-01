@@ -89,7 +89,11 @@
             "name": "Contact Form Validation",
             "steps": [
               { "action": "click", "selector": "a[href='/contact']" },
-              { "action": "fill", "selector": "input[name='email']", "value": "invalid" },
+              {
+                "action": "fill",
+                "selector": "input[name='email']",
+                "value": "invalid"
+              },
               { "action": "click", "selector": "button[type='submit']" },
               { "assertion": "element_visible", "selector": ".error-message" }
             ]
@@ -97,9 +101,21 @@
           {
             "name": "Valid Form Submission",
             "steps": [
-              { "action": "fill", "selector": "input[name='name']", "value": "Test User" },
-              { "action": "fill", "selector": "input[name='email']", "value": "test@example.com" },
-              { "action": "fill", "selector": "textarea[name='message']", "value": "Test message" },
+              {
+                "action": "fill",
+                "selector": "input[name='name']",
+                "value": "Test User"
+              },
+              {
+                "action": "fill",
+                "selector": "input[name='email']",
+                "value": "test@example.com"
+              },
+              {
+                "action": "fill",
+                "selector": "textarea[name='message']",
+                "value": "Test message"
+              },
               { "action": "click", "selector": "button[type='submit']" },
               { "assertion": "element_visible", "selector": ".success-message" }
             ]
@@ -144,7 +160,12 @@
           {
             "name": "WCAG 2.1 AA Compliance",
             "standard": "WCAG21AA",
-            "rules": ["color-contrast", "alt-text", "form-labels", "heading-order"]
+            "rules": [
+              "color-contrast",
+              "alt-text",
+              "form-labels",
+              "heading-order"
+            ]
           }
         ]
       }
