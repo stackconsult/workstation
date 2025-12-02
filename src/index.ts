@@ -65,8 +65,8 @@ import {
 import { initializeMonitoring } from './services/monitoring';
 // Phase 4: Import backup service
 import { initializeBackupService } from './services/backup';
-// Phase 6: Import workspace initialization
-import { initializeWorkspaces } from './scripts/initialize-workspaces';
+// Phase 6: Workspace initialization available as separate script
+// import { initializeWorkspaces } from './scripts/initialize-workspaces';
 
 // Validate environment configuration
 const envConfig = validateEnvironment();
@@ -85,14 +85,9 @@ async function initialize() {
     initializeBackupService();
     logger.info('Phase 4: Backup service initialized successfully');
     
-    // Phase 6: Initialize workspaces (can be disabled with SKIP_WORKSPACE_INIT=true)
-    // This is automatically skipped if workspaces already exist to avoid performance overhead
-    if (process.env.SKIP_WORKSPACE_INIT !== 'true') {
-      await initializeWorkspaces();
-      logger.info('Phase 6: Workspaces initialized successfully');
-    } else {
-      logger.info('Phase 6: Workspace initialization skipped (SKIP_WORKSPACE_INIT=true)');
-    }
+    // Phase 6: Workspace initialization is available as a separate script
+    // Run: npm run build && node dist/scripts/initialize-workspaces.js
+    // Workspaces are not initialized automatically to avoid performance issues on restarts
   } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);

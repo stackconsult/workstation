@@ -40,15 +40,6 @@ const WORKSPACE_CONFIGS: WorkspaceConfig[] = [
 
 export async function initializeWorkspaces(): Promise<void> {
   try {
-    // Check if workspaces already exist to avoid expensive operations on every startup
-    const existingCount = await db.query('SELECT COUNT(*) FROM workspaces');
-    const count = parseInt(existingCount.rows[0].count);
-    
-    if (count >= WORKSPACE_CONFIGS.length) {
-      logger.info(`Phase 6: Workspace initialization skipped (${count} workspaces already exist)`);
-      return;
-    }
-    
     // Security Note: Each workspace gets a unique random password instead of shared default
     // Passwords are logged for admin access and should be stored securely
     logger.info('Initializing 20 generic workspaces with unique random passwords...');
