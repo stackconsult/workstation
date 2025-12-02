@@ -85,9 +85,14 @@ async function initialize() {
     initializeBackupService();
     logger.info('Phase 4: Backup service initialized successfully');
     
-    // Phase 6: Initialize workspaces
-    await initializeWorkspaces();
-    logger.info('Phase 6: Workspaces initialized successfully');
+    // Phase 6: Initialize workspaces (can be disabled with SKIP_WORKSPACE_INIT=true)
+    // This is automatically skipped if workspaces already exist to avoid performance overhead
+    if (process.env.SKIP_WORKSPACE_INIT !== 'true') {
+      await initializeWorkspaces();
+      logger.info('Phase 6: Workspaces initialized successfully');
+    } else {
+      logger.info('Phase 6: Workspace initialization skipped (SKIP_WORKSPACE_INIT=true)');
+    }
   } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);
