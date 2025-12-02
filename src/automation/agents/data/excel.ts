@@ -4,8 +4,8 @@
  * Phase 1: Data Agents
  */
 
-import * as XLSX from '@e965/xlsx';
-import { logger } from '../../../utils/logger';
+import * as XLSX from "@e965/xlsx";
+import { logger } from "../../../utils/logger";
 
 export interface ExcelReadOptions {
   sheetName?: string;
@@ -18,7 +18,7 @@ export interface ExcelReadOptions {
 export interface ExcelWriteOptions {
   sheetName?: string;
   compression?: boolean;
-  bookType?: 'xlsx' | 'xlsm' | 'xlsb' | 'xls' | 'csv';
+  bookType?: "xlsx" | "xlsm" | "xlsb" | "xls" | "csv";
 }
 
 export interface CellFormat {
@@ -28,7 +28,7 @@ export interface CellFormat {
   color?: string;
   bgColor?: string;
   fontSize?: number;
-  alignment?: 'left' | 'center' | 'right';
+  alignment?: "left" | "center" | "right";
 }
 
 export interface FormattedCell {
@@ -56,12 +56,13 @@ export class ExcelAgent {
   }> {
     try {
       // Read workbook from buffer or file path
-      const workbook = typeof params.input === 'string'
-        ? XLSX.readFile(params.input)
-        : XLSX.read(params.input, { type: 'buffer' });
+      const workbook =
+        typeof params.input === "string"
+          ? XLSX.readFile(params.input)
+          : XLSX.read(params.input, { type: "buffer" });
 
       const options = params.options || {};
-      
+
       // Determine which sheet to read
       let sheetName: string;
       if (options.sheetName) {
@@ -74,7 +75,9 @@ export class ExcelAgent {
       }
 
       if (!sheetName || !workbook.Sheets[sheetName]) {
-        throw new Error(`Sheet not found: ${sheetName || 'index ' + options.sheetIndex}`);
+        throw new Error(
+          `Sheet not found: ${sheetName || "index " + options.sheetIndex}`,
+        );
       }
 
       const worksheet = workbook.Sheets[sheetName];
@@ -83,23 +86,25 @@ export class ExcelAgent {
       const data = XLSX.utils.sheet_to_json(worksheet, {
         raw: options.raw ?? false,
         defval: options.defval,
-        range: options.range
+        range: options.range,
       });
 
-      logger.info(`Excel file read successfully: ${data.length} rows from sheet '${sheetName}'`);
+      logger.info(
+        `Excel file read successfully: ${data.length} rows from sheet '${sheetName}'`,
+      );
 
       return {
         success: true,
         data,
         sheets: workbook.SheetNames,
-        sheetName
+        sheetName,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Excel read error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("Excel read error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -117,10 +122,10 @@ export class ExcelAgent {
   }> {
     try {
       const options: ExcelWriteOptions = {
-        sheetName: 'Sheet1',
+        sheetName: "Sheet1",
         compression: false,
-        bookType: 'xlsx',
-        ...params.options
+        bookType: "xlsx",
+        ...params.options,
       };
 
       const workbook = XLSX.utils.book_new();
@@ -128,7 +133,7 @@ export class ExcelAgent {
       // Handle single sheet (array) or multi-sheet (object with sheet names as keys)
       if (Array.isArray(params.data)) {
         if (params.data.length === 0) {
-          throw new Error('Data array cannot be empty');
+          throw new Error("Data array cannot be empty");
         }
 
         const worksheet = XLSX.utils.json_to_sheet(params.data);
@@ -137,7 +142,7 @@ export class ExcelAgent {
         // Multi-sheet workbook
         const sheets = Object.keys(params.data);
         if (sheets.length === 0) {
-          throw new Error('Data object must contain at least one sheet');
+          throw new Error("Data object must contain at least one sheet");
         }
 
         for (const sheetName of sheets) {
@@ -154,23 +159,23 @@ export class ExcelAgent {
 
       // Write to buffer
       const buffer = XLSX.write(workbook, {
-        type: 'buffer',
+        type: "buffer",
         bookType: options.bookType,
-        compression: options.compression
+        compression: options.compression,
       });
 
-      logger.info('Excel file generated successfully');
+      logger.info("Excel file generated successfully");
 
       return {
         success: true,
-        buffer: Buffer.from(buffer)
+        buffer: Buffer.from(buffer),
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Excel write error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("Excel write error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -189,9 +194,10 @@ export class ExcelAgent {
     error?: string;
   }> {
     try {
-      const workbook = typeof params.input === 'string'
-        ? XLSX.readFile(params.input)
-        : XLSX.read(params.input, { type: 'buffer' });
+      const workbook =
+        typeof params.input === "string"
+          ? XLSX.readFile(params.input)
+          : XLSX.read(params.input, { type: "buffer" });
 
       let sheetName: string;
       if (params.sheetName) {
@@ -199,11 +205,13 @@ export class ExcelAgent {
       } else if (params.sheetIndex !== undefined) {
         sheetName = workbook.SheetNames[params.sheetIndex];
       } else {
-        throw new Error('Either sheetName or sheetIndex must be provided');
+        throw new Error("Either sheetName or sheetIndex must be provided");
       }
 
       if (!sheetName || !workbook.Sheets[sheetName]) {
-        throw new Error(`Sheet not found: ${sheetName || 'index ' + params.sheetIndex}`);
+        throw new Error(
+          `Sheet not found: ${sheetName || "index " + params.sheetIndex}`,
+        );
       }
 
       const worksheet = workbook.Sheets[sheetName];
@@ -214,14 +222,14 @@ export class ExcelAgent {
       return {
         success: true,
         data,
-        sheetName
+        sheetName,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Get sheet error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("Get sheet error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -229,18 +237,17 @@ export class ExcelAgent {
   /**
    * List all sheets in a workbook
    */
-  async listSheets(params: {
-    input: Buffer | string;
-  }): Promise<{
+  async listSheets(params: { input: Buffer | string }): Promise<{
     success: boolean;
     sheets?: string[];
     count?: number;
     error?: string;
   }> {
     try {
-      const workbook = typeof params.input === 'string'
-        ? XLSX.readFile(params.input)
-        : XLSX.read(params.input, { type: 'buffer' });
+      const workbook =
+        typeof params.input === "string"
+          ? XLSX.readFile(params.input)
+          : XLSX.read(params.input, { type: "buffer" });
 
       const sheets = workbook.SheetNames;
 
@@ -249,14 +256,14 @@ export class ExcelAgent {
       return {
         success: true,
         sheets,
-        count: sheets.length
+        count: sheets.length,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('List sheets error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("List sheets error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -277,9 +284,10 @@ export class ExcelAgent {
     error?: string;
   }> {
     try {
-      const workbook = typeof params.input === 'string'
-        ? XLSX.readFile(params.input)
-        : XLSX.read(params.input, { type: 'buffer' });
+      const workbook =
+        typeof params.input === "string"
+          ? XLSX.readFile(params.input)
+          : XLSX.read(params.input, { type: "buffer" });
 
       const sheetName = params.sheetName || workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
@@ -332,23 +340,26 @@ export class ExcelAgent {
 
       // Write to buffer
       const buffer = XLSX.write(workbook, {
-        type: 'buffer',
-        bookType: 'xlsx'
+        type: "buffer",
+        bookType: "xlsx",
       });
 
-      logger.info(`Formatted ${params.formats.length} cells in sheet '${sheetName}'`);
+      logger.info(
+        `Formatted ${params.formats.length} cells in sheet '${sheetName}'`,
+      );
 
       return {
         success: true,
         buffer: Buffer.from(buffer),
-        message: 'Note: Basic formatting applied. For advanced formatting, consider using xlsx-style or similar libraries.'
+        message:
+          "Note: Basic formatting applied. For advanced formatting, consider using xlsx-style or similar libraries.",
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Format cells error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("Format cells error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -356,9 +367,7 @@ export class ExcelAgent {
   /**
    * Get Excel file information and statistics
    */
-  async getInfo(params: {
-    input: Buffer | string;
-  }): Promise<{
+  async getInfo(params: { input: Buffer | string }): Promise<{
     success: boolean;
     info?: {
       sheetCount: number;
@@ -371,19 +380,20 @@ export class ExcelAgent {
     error?: string;
   }> {
     try {
-      const workbook = typeof params.input === 'string'
-        ? XLSX.readFile(params.input)
-        : XLSX.read(params.input, { type: 'buffer' });
+      const workbook =
+        typeof params.input === "string"
+          ? XLSX.readFile(params.input)
+          : XLSX.read(params.input, { type: "buffer" });
 
-      const sheets = workbook.SheetNames.map(name => {
+      const sheets = workbook.SheetNames.map((name) => {
         const worksheet = workbook.Sheets[name];
         const data = XLSX.utils.sheet_to_json(worksheet);
-        const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
 
         return {
           name,
           rowCount: data.length,
-          columnCount: range.e.c - range.s.c + 1
+          columnCount: range.e.c - range.s.c + 1,
         };
       });
 
@@ -393,15 +403,15 @@ export class ExcelAgent {
         success: true,
         info: {
           sheetCount: sheets.length,
-          sheets
-        }
+          sheets,
+        },
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Get Excel info error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("Get Excel info error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
