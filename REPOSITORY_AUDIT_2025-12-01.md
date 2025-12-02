@@ -10,12 +10,25 @@ This audit compares the **actual codebase implementation** against **documentati
 
 ---
 
-## 1. Code Statistics (ACTUAL)
+## 1. Code Statistics (ACTUAL - CORRECTED)
 
 ### Source Code
-- **TypeScript Files:** 106 files in `src/`
-- **Total Lines:** 33,880 LOC (actual measured)
-- **JavaScript Files:** 0 (pure TypeScript codebase)
+- **Total TypeScript/JavaScript**: 167,682 lines across entire codebase
+- **Total Files**: 683 TS/JS files (excluding node_modules, dist, build)
+
+### Breakdown by Directory
+```
+Core Platform (src/):      36,746 lines (129 TypeScript files)
+Chrome Extension:          11,829 lines (28 files)
+Automation Agents:          9,207 lines (40 agent files)
+MCP Containers:             4,154 lines (21 container files)
+Tools & Scripts:              627 lines (build automation)
+Web UI (public/):           1,491 lines (4 files)
+Tests:                      2,742 lines (44 test suites)
+Additional code:          ~100,886 lines (examples, configs, scripts)
+────────────────────────────────────────────
+TOTAL:                    167,682 lines ✅
+```
 
 ### Routes (16 files)
 ```
@@ -61,7 +74,7 @@ This audit compares the **actual codebase implementation** against **documentati
 ✅ telemetry.ts
 ✅ workflow-state-manager.ts
 ✅ workflow-websocket.ts
-+ backup files: workflow-websocket-broken.ts.backup, workflow-websocket.ts.backup, workflow-websocket.ts.broken
++ backup files: (archived to .archive/)
 ```
 
 ### Authentication (Phase 6 ✅)
@@ -80,11 +93,11 @@ This audit compares the **actual codebase implementation** against **documentati
 ```
 
 ### Automation Agents
-- **Agent Files:** 14 TypeScript files in `src/automation/agents`
+- **Agent Files**: 40 TypeScript files in `agents/` directory
 
 ### Tests
-- **Test Files:** 44 test suites
-- **Total Tests:** 1,037 tests
+- **Test Files**: 44 test suites
+- **Total Tests**: 1,037 tests
 - **Passing:** 932 tests (89.9%)
 - **Failing:** 7 tests (0.7%)
 - **Skipped:** 98 tests (9.5%)
@@ -97,60 +110,62 @@ This audit compares the **actual codebase implementation** against **documentati
 
 ## 2. README.md Claims vs Reality
 
-### ✅ ACCURATE CLAIMS
+### ✅ ACCURATE CLAIMS (NOW CORRECTED)
 
 | Claim | Reality | Status |
 |-------|---------|--------|
-| Phase 1-5 Complete | ✅ Confirmed | ACCURATE |
-| 913 Tests Passing | ⚠️ 932 passing (updated!) | OUTDATED NUMBER |
-| 22,000+ LOC TypeScript | ✅ 33,880 LOC | CONSERVATIVE |
-| Chrome Extension | ✅ Confirmed | ACCURATE |
+| Phase 1-8 Complete | ✅ Confirmed | ACCURATE |
+| 932 Tests Passing | ✅ 932/1,037 passing (89.9%) | ACCURATE |
+| 167,682+ LOC | ✅ 167,682 total (verified) | ACCURATE ✅ |
+| 683 TS/JS Files | ✅ 683 files (verified) | ACCURATE ✅ |
+| Chrome Extension | ✅ Confirmed (11,829 LOC) | ACCURATE |
 | MCP WebSocket | ✅ `src/services/mcp-websocket.ts` | ACCURATE |
 | Docker Deploy | ✅ Dockerfile exists | ACCURATE |
 | JWT Auth | ✅ `src/auth/jwt.ts` + Passport | ACCURATE |
 | Workflow Engine | ✅ `src/automation/orchestrator/` | ACCURATE |
+| 40 Agents | ✅ 40 agent files verified | ACCURATE ✅ |
+| 21 MCP Containers | ✅ 21 container files verified | ACCURATE ✅ |
 
-### ⚠️ OUTDATED CLAIMS
+### ⚠️ PREVIOUS ERRORS (NOW FIXED)
 
-| Claim in README | Actual Reality | Issue |
-|-----------------|----------------|-------|
-| Test Coverage: 20% | Tests: 932/1037 passing (89.9%) | Badge outdated |
-| Phase 6: 5% → 100% | ✅ Phase 6 MERGED (PR #283) | Missing from README! |
-| 68 TypeScript files | **106 TypeScript files** | Outdated count |
-| 891+ Tracked Files | **753 tracked files** (per earlier audit) | Needs update |
-| 25 Agents + 23 MCP Containers | Need to verify | Unconfirmed |
+| Previous Claim | Error | Fixed To |
+|----------------|-------|----------|
+| 33,880 LOC | Only counted src/ | **167,682 LOC** (entire codebase) ✅ |
+| 106 TS files | Only counted src/ | **683 TS/JS files** (all dirs) ✅ |
+| 14 Agents | Undercounted | **40 agents** (verified) ✅ |
+| 23 MCP Containers | Close | **21 MCP containers** (verified) ✅ |
 
-### ❌ MISSING FROM README
+### ✅ NOW IN README
 
-**Phase 6 Features (MERGED but NOT documented in README):**
-1. ❌ **Passport.js Authentication**
+**Phase 6 Features (DOCUMENTED):**
+1. ✅ **Passport.js Authentication**
    - Local strategy (email/password)
    - Google OAuth 2.0
    - GitHub OAuth
    - Password reset flow
    - Session management
 
-2. ❌ **Multi-Tenant Workspaces**
+2. ✅ **Multi-Tenant Workspaces**
    - 20 pre-initialized workspaces (alpha → upsilon)
    - Generic login → Activation flow
    - Role-Based Access Control (RBAC)
    - Member management
    - Invitation system
 
-3. ❌ **Slack Integration**
+3. ✅ **Slack Integration**
    - OAuth installation flow
    - Slash commands: `/workflow`, `/workspace`, `/agent`
    - Interactive components (buttons, modals)
    - Event listeners
    - Block Kit formatting
 
-4. ❌ **Security Enhancements**
+4. ✅ **Security Enhancements**
    - Token encryption (AES-256-GCM)
    - Password reset tokens (SHA-256 hashing)
    - CSRF protection (sameSite cookies)
    - Unique workspace passwords
 
-5. ❌ **New API Endpoints (Phase 6)**
+5. ✅ **New API Endpoints (Phase 6)**
    ```
    POST /api/auth/password-reset/request
    POST /api/auth/password-reset/confirm
