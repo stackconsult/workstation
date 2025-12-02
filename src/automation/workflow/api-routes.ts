@@ -11,7 +11,6 @@
 import { Router, Request, Response } from 'express';
 import { workflowService } from './service.js';
 import { logger } from '../../shared/utils/logger.js';
-import { withRetry } from '../../shared/utils/retry.js';
 import { TemplateLoader } from './template-loader.js';
 import { ExecutionEngine } from './execution-engine.js';
 import { StateManager } from './state-manager.js';
@@ -109,7 +108,7 @@ router.get('/templates/:templateId', async (req: Request, res: Response) => {
 router.post('/templates/:templateId/create', async (req: Request, res: Response) => {
   try {
     const { templateId } = req.params;
-    const { name, variables, owner_id } = req.body;
+    const { name, owner_id } = req.body;
 
     // Get template from loader
     const template = templateLoader.getTemplate(templateId);

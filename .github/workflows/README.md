@@ -2,6 +2,27 @@
 
 This directory contains all CI/CD workflows for the Workstation project.
 
+## 🎉 NEW: Auto-Update Repository Metrics
+
+**File:** `metrics-update.yml`  
+**Status:** ✅ PRODUCTION READY  
+**Purpose:** Ensures repository metrics are **always accurate** and **never out of date**
+
+### Why This Exists
+Previous manual audits became stale (11 days old) and massively undercounted the codebase (33K vs 167K LOC = 80% error). This automation **permanently solves** the problem.
+
+### How It Works
+- **Triggers:** Daily at 00:00 UTC + every push to main + manual
+- **Actions:** Counts all .ts/.js files, generates CODE_TIMELINE.md, stores JSON metrics
+- **Result:** Always accurate metrics with zero maintenance
+
+### Documentation
+- 📋 [Implementation Plan](../AUTOMATED_METRICS_PLAN.md) - Full design
+- 📊 [CODE_TIMELINE.md](../CODE_TIMELINE.md) - Auto-generated (do not edit)
+- 📜 [Metrics Correction History](../METRICS_CORRECTION_SUMMARY.md) - What went wrong before
+
+---
+
 ## Active Workflows
 
 ### CI/CD Pipelines

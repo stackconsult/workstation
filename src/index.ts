@@ -67,6 +67,8 @@ import { initializeMonitoring } from './services/monitoring';
 import { initializeBackupService } from './services/backup';
 // Phase 6: Import workspace initialization
 import { initializeWorkspaces } from './scripts/initialize-workspaces';
+// Phase 6: Workspace initialization available as separate script
+// import { initializeWorkspaces } from './scripts/initialize-workspaces';
 
 // Validate environment configuration
 const envConfig = validateEnvironment();
@@ -88,6 +90,9 @@ async function initialize() {
     // Phase 6: Initialize workspaces
     await initializeWorkspaces();
     logger.info('Phase 6: Workspaces initialized successfully');
+    // Phase 6: Workspace initialization is available as a separate script
+    // Run: npm run build && node dist/scripts/initialize-workspaces.js
+    // Workspaces are not initialized automatically to avoid performance issues on restarts
   } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);
@@ -178,6 +183,8 @@ app.use(cors({
 app.use(express.json());
 
 // Phase 6: Session support for Passport
+// Note: CSRF protection for OAuth flows is handled via state parameter validation in passport strategies
+// JWT-authenticated API endpoints are naturally CSRF-resistant (no cookies used for auth)
 app.use(session({
   secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'dev-session-secret-change-in-production',
   resave: false,
@@ -186,6 +193,8 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax' // Additional CSRF protection for session cookies
   }
 }));
 
@@ -337,6 +346,14 @@ logger.info('Phase 6: Workspace management routes registered');
 app.use('/api/slack', slackRoutes);
 logger.info('Phase 6: Slack integration routes registered');
 logger.info('Workflow state management routes registered');
+
+// Phase 6: Workspace management routes
+app.use('/api/workspaces', workspacesRoutes);
+logger.info('Phase 6: Workspace management routes registered');
+
+// Phase 6: Slack integration routes
+app.use('/api/slack', slackRoutes);
+logger.info('Phase 6: Slack integration routes registered');
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);

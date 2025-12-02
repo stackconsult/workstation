@@ -7,7 +7,7 @@
 import axios from 'axios';
 import { logger } from '../../../utils/logger';
 import { ErrorHandler, ErrorCategory } from '../../../utils/error-handler';
-import { Validator, commonSchemas } from '../../../utils/validation';
+import { Validator } from '../../../utils/validation';
 
 export interface EnrichmentOptions {
   timeout?: number;
@@ -236,7 +236,7 @@ export class EnrichmentAgent {
               if (description) {
                 companyInfo.description = description;
               }
-            } catch (webError) {
+            } catch {
               logger.warn('Could not fetch website metadata', { domain: cleanDomain });
               // Continue with basic info
             }
@@ -341,7 +341,7 @@ export class EnrichmentAgent {
         if (companyResult.success && companyResult.data) {
           contactInfo.company = companyResult.data.name;
         }
-      } catch (companyError) {
+      } catch {
         logger.warn('Could not enrich with company data', { email });
         // Continue with basic info
       }

@@ -3,6 +3,10 @@
  * Creates 20 generic workspaces with secure passwords
  */
 
+ * Creates 20 generic workspaces with secure random passwords
+ */
+
+import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import db from '../db/connection';
 import { logger } from '../utils/logger';
@@ -45,6 +49,11 @@ export async function initializeWorkspaces(): Promise<void> {
 
     logger.info('Initializing 20 generic workspaces...');
 
+    // Security Note: Each workspace gets a unique random password instead of shared default
+    // Passwords are logged for admin access and should be stored securely
+    logger.info('Initializing 20 generic workspaces with unique random passwords...');
+    
+    const createdWorkspaces: Array<{ name: string; slug: string; username: string; password: string }> = [];
     let created = 0;
     let existing = 0;
 
@@ -53,6 +62,13 @@ export async function initializeWorkspaces(): Promise<void> {
         const result = await db.query(
           `INSERT INTO workspaces (name, slug, generic_username, generic_password_hash, description, status)
            VALUES ($1, $2, $3, $4, $5, 'active')
+        // Generate cryptographically secure random password (16 characters)
+        const randomPassword = crypto.randomBytes(16).toString('base64').slice(0, 16);
+        const passwordHash = await bcrypt.hash(randomPassword, 10);
+        
+        const result = await db.query(
+          `INSERT INTO workspaces (name, slug, generic_username, generic_password_hash, description, status, is_activated)
+           VALUES ($1, $2, $3, $4, $5, 'active', false)
            ON CONFLICT (slug) DO NOTHING
            RETURNING id`,
           [config.name, config.slug, config.username, passwordHash, config.description]
@@ -60,6 +76,12 @@ export async function initializeWorkspaces(): Promise<void> {
 
         if (result.rows.length > 0) {
           created++;
+          createdWorkspaces.push({
+            name: config.name,
+            slug: config.slug,
+            username: config.username,
+            password: randomPassword
+          });
           logger.info(`Created workspace: ${config.name} (${config.slug})`);
         } else {
           existing++;
@@ -76,6 +98,25 @@ export async function initializeWorkspaces(): Promise<void> {
       logger.info('Default credentials for all workspaces:');
       logger.info('  Password: workspace123');
       logger.info('  Note: Users must update credentials upon activation');
+      logger.warn('='.repeat(80));
+      logger.warn('WORKSPACE CREDENTIALS - STORE SECURELY AND DELETE THIS LOG');
+      logger.warn('='.repeat(80));
+      logger.warn('The following credentials are for initial workspace access only.');
+      logger.warn('Users MUST activate workspaces with their own email/password.');
+      logger.warn('These generic credentials will be disabled after activation.');
+      logger.warn('');
+      
+      for (const ws of createdWorkspaces) {
+        logger.warn(`${ws.slug}:`);
+        logger.warn(`  Name: ${ws.name}`);
+        logger.warn(`  Username: ${ws.username}`);
+        logger.warn(`  Password: ${ws.password}`);
+        logger.warn('');
+      }
+      
+      logger.warn('='.repeat(80));
+      logger.warn('IMPORTANT: Copy these credentials to a secure location and delete this log!');
+      logger.warn('='.repeat(80));
     }
   } catch (error) {
     logger.error('Failed to initialize workspaces', { error });

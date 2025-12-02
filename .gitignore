@@ -34,6 +34,10 @@ build/
 public/downloads/*.zip
 !public/downloads/manifest.json
 
+# Metrics artifacts (git-tracked but excluded from some operations)
+# .metrics/ directory is committed to preserve history
+# DO NOT add .metrics/ to .gitignore - we want these tracked
+
 # Agent 1-6 artifacts (Build Setup Agents)
 agents/agent1/reports/*/
 !agents/agent1/reports/.gitkeep

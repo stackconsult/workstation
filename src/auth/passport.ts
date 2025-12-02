@@ -90,6 +90,7 @@ passport.use(new LocalStrategy({
     logger.info('Local authentication successful', { userId: user.id, email: user.email });
     
     return done(null, {
+      userId: user.id,  // Required by JWTPayload
       id: user.id,
       email: user.email,
       full_name: user.full_name,
@@ -174,6 +175,16 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
       logger.info('Google OAuth authentication successful', { userId, email });
       done(null, userResult.rows[0]);
+      const user = userResult.rows[0];
+      logger.info('Google OAuth authentication successful', { userId, email });
+      done(null, {
+        userId: user.id,
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        access_level: user.access_level,
+        avatar_url: user.avatar_url
+      });
     } catch (error) {
       logger.error('Google OAuth error', { error });
       done(error as Error, undefined);
@@ -264,6 +275,17 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
 
       logger.info('GitHub OAuth authentication successful', { userId, email });
       done(null, userResult.rows[0]);
+      const user = userResult.rows[0];
+      logger.info('GitHub OAuth authentication successful', { userId, email });
+      done(null, {
+        userId: user.id,
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        access_level: user.access_level,
+        github_username: user.github_username,
+        avatar_url: user.avatar_url
+      });
     } catch (error) {
       logger.error('GitHub OAuth error', { error });
       done(error as Error, undefined);
