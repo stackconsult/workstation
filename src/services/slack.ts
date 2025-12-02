@@ -4,7 +4,6 @@
  */
 
 import { App, BlockAction, SlashCommand, ViewSubmitAction } from '@slack/bolt';
-import { App, BlockAction, ViewSubmitAction } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
 import db from '../db/connection';
 import { logger } from '../utils/logger';

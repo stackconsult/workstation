@@ -173,8 +173,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         [userId]
       );
 
-      logger.info('Google OAuth authentication successful', { userId, email });
-      done(null, userResult.rows[0]);
       const user = userResult.rows[0];
       logger.info('Google OAuth authentication successful', { userId, email });
       done(null, {
@@ -273,8 +271,6 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
         [userId]
       );
 
-      logger.info('GitHub OAuth authentication successful', { userId, email });
-      done(null, userResult.rows[0]);
       const user = userResult.rows[0];
       logger.info('GitHub OAuth authentication successful', { userId, email });
       done(null, {

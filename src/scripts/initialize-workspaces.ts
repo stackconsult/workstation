@@ -1,8 +1,5 @@
 /**
  * Phase 6: Initialize Workspaces
- * Creates 20 generic workspaces with secure passwords
- */
-
  * Creates 20 generic workspaces with secure random passwords
  */
 
@@ -43,12 +40,6 @@ const WORKSPACE_CONFIGS: WorkspaceConfig[] = [
 
 export async function initializeWorkspaces(): Promise<void> {
   try {
-    // Generate bcrypt hash for default password 'workspace123'
-    const defaultPassword = 'workspace123';
-    const passwordHash = await bcrypt.hash(defaultPassword, 10);
-
-    logger.info('Initializing 20 generic workspaces...');
-
     // Security Note: Each workspace gets a unique random password instead of shared default
     // Passwords are logged for admin access and should be stored securely
     logger.info('Initializing 20 generic workspaces with unique random passwords...');
@@ -59,9 +50,6 @@ export async function initializeWorkspaces(): Promise<void> {
 
     for (const config of WORKSPACE_CONFIGS) {
       try {
-        const result = await db.query(
-          `INSERT INTO workspaces (name, slug, generic_username, generic_password_hash, description, status)
-           VALUES ($1, $2, $3, $4, $5, 'active')
         // Generate cryptographically secure random password (16 characters)
         const randomPassword = crypto.randomBytes(16).toString('base64').slice(0, 16);
         const passwordHash = await bcrypt.hash(randomPassword, 10);
@@ -95,9 +83,6 @@ export async function initializeWorkspaces(): Promise<void> {
     logger.info(`Workspace initialization complete: ${created} created, ${existing} already existed`);
     
     if (created > 0) {
-      logger.info('Default credentials for all workspaces:');
-      logger.info('  Password: workspace123');
-      logger.info('  Note: Users must update credentials upon activation');
       logger.warn('='.repeat(80));
       logger.warn('WORKSPACE CREDENTIALS - STORE SECURELY AND DELETE THIS LOG');
       logger.warn('='.repeat(80));
