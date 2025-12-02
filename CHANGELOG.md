@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - Upgraded nodemailer to 7.0.11 (2025-12-02)
+
+#### Dependencies
+- **nodemailer** - Upgraded from 7.0.10 to 7.0.11
+  - Includes latest security patches and bug fixes
+  - Maintains API compatibility (minor version bump)
+- **lusca** - Restored to ^1.7.0
+  - Security middleware package that was unintentionally removed
+  - Provides CSRF, CSP, and other security protections
+
+#### Context
+- Addresses review comment from PR #295
+- Fixes unintentional removal of lusca dependency identified in PR review
+- No breaking changes expected
 ### Fixed - Critical Dependency and Code Quality Issues (2025-12-02)
 
 #### Dependencies Fixed
