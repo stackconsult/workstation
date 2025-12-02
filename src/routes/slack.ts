@@ -295,7 +295,7 @@ router.delete('/disconnect/:workspaceId', authenticateToken, async (req: Authent
 router.post('/test/:workspaceId', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { workspaceId } = req.params;
-    const requestId = (req as any).requestId;
+    const requestId = req.requestId;
 
     // Verify user has access
     const accessCheck = await db.query(
@@ -393,10 +393,19 @@ router.post('/test/:workspaceId', authenticateToken, async (req: AuthenticatedRe
   } catch (error) {
     logger.error('Slack test error', { error, workspaceId: req.params.workspaceId });
     
-    // Provide more specific error based on error type
+    // Classify Slack API errors using structured error response
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const isAuthError = errorMessage.includes('invalid_auth') || errorMessage.includes('token');
-    const isChannelError = errorMessage.includes('channel_not_found') || errorMessage.includes('is_archived');
+    const slackError = (error as any)?.data?.error; // Slack API structured error code
+    
+    // Categorize based on Slack error codes
+    const isAuthError = slackError === 'invalid_auth' || 
+                       slackError === 'token_revoked' || 
+                       slackError === 'token_expired' ||
+                       slackError === 'not_authed';
+    
+    const isChannelError = slackError === 'channel_not_found' || 
+                          slackError === 'is_archived' ||
+                          slackError === 'channel_not_member';
     
     let errorCode = ErrorCode.SLACK_INTEGRATION_ERROR;
     let nextSteps = [
@@ -424,7 +433,7 @@ router.post('/test/:workspaceId', authenticateToken, async (req: AuthenticatedRe
         'Failed to send test message to Slack',
         {
           details: errorMessage,
-          requestId: (req as any).requestId,
+          requestId: req.requestId,
           retryable: !isAuthError,
           nextSteps
         }

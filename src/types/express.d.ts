@@ -17,6 +17,11 @@ declare global {
       avatar_url?: string;
       [key: string]: string | number | boolean | undefined;
     }
+    
+    // Request extensions
+    interface Request {
+      requestId?: string;
+    }
   }
 }
 

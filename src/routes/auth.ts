@@ -278,7 +278,7 @@ router.post('/change-password', authenticateToken, async (req: AuthenticatedRequ
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user?.userId;
-    const requestId = (req as any).requestId;
+    const requestId = req.requestId;
 
     // Validation
     if (!currentPassword || !newPassword) {
@@ -410,7 +410,7 @@ router.post('/change-password', authenticateToken, async (req: AuthenticatedRequ
         ErrorCode.INTERNAL_SERVER_ERROR,
         'Failed to change password',
         {
-          requestId: (req as any).requestId,
+          requestId: req.requestId,
           retryable: true,
           nextSteps: [
             'Try again in a few moments',
