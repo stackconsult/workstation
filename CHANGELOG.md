@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - Critical Dependency and Code Quality Issues (2025-12-02)
+
+#### Dependencies Fixed
+- **@types/express** - Upgraded from ^4.17.21 to ^5.0.0
+  - Resolves peer dependency conflict with @slack/bolt@4.6.0
+  - @slack/bolt requires @types/express@^5.0.0
+  - @types/express@5.x is compatible with Express 4.x runtime
+  - **Impact**: Clean npm install without --legacy-peer-deps flag
+- **nodemailer override** - Added npm override to force ^7.0.11
+  - Fixes transitive dependency vulnerability in mailparser@3.9.0
+  - mailparser depends on vulnerable nodemailer@7.0.10
+  - Override ensures all packages use nodemailer@7.0.11+
+  - **Impact**: Resolves GHSA-rcmh-qjqh-p98v DoS vulnerability
+- **esbuild override** - Added npm override to force ^0.25.0
+  - Fixes vulnerability in esbuild <=0.24.2 (GHSA-67mh-4wv8-2f99)
+  - Used by vite development server
+  - **Impact**: Resolves moderate severity security issue
+- **@types/ioredis** - Removed stub package (^5.0.0)
+  - ioredis provides its own type definitions
+  - Stub package is unnecessary and deprecated
+  - **Impact**: Cleaner dependency tree, no functionality change
+
+#### Code Quality Fixed
+- **enrichment.ts** - Removed unused error variables
+  - Fixed: 'commonSchemas' imported but never used
+  - Fixed: 'webError' caught but never used
+  - Fixed: 'companyError' caught but never used
+- **api-routes.ts** - Removed unused imports and variables
+  - Fixed: 'withRetry' imported but never used
+  - Fixed: 'variables' assigned but never used
+
+#### Security Impact
+- ✅ **RESOLVED**: nodemailer DoS vulnerability (GHSA-rcmh-qjqh-p98v)
+- ✅ **RESOLVED**: esbuild security issue (GHSA-67mh-4wv8-2f99)
+- ✅ **RESOLVED**: Peer dependency conflicts preventing clean install
+- ✅ **VERIFIED**: npm audit shows 0 vulnerabilities
+- ✅ Removed deprecated stub packages
+
+#### Context
+- Addresses comprehensive review of PR #302
+- All ESLint errors in modified files now resolved
+- Package installation now works without --legacy-peer-deps flag
+- TypeScript compilation successful
+- No breaking changes expected
+- **Test Status**: Build passes, ready for integration testing
+
 ### Changed - README.md Updated to Reflect Phase 5/7/8 Completion (2025-11-29)
 
 #### Documentation Updates
