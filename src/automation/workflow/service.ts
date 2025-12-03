@@ -512,7 +512,7 @@ export class WorkflowService {
         logger.info('Executing fallback logic', { workflowId, executionId });
         return { recovered: true, action: 'fallback_executed' };
 
-      case 'rollback':
+      case 'rollback': {
         const context = this.orchestrationContexts.get(executionId);
         if (context && context.checkpoints.length > 0) {
           await this.recoverFromCheckpoint(executionId, context.checkpoints.length - 1);
@@ -520,6 +520,7 @@ export class WorkflowService {
           return { recovered: true, action: 'rolled_back' };
         }
         return { recovered: false, action: 'no_checkpoint' };
+      }
 
       default:
         return { recovered: false, action: 'unknown_strategy' };

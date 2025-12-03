@@ -8,9 +8,6 @@ import { WebClient } from '@slack/web-api';
 import db from '../db/connection';
 import { logger } from '../utils/logger';
 
-// Initialize Slack app (will be configured per workspace)
-let slackApp: App | null = null;
-
 interface SlackWorkspaceConfig {
   workspaceId: string;
   slackTeamId: string;
@@ -50,7 +47,7 @@ export function initializeSlackApp(config: SlackWorkspaceConfig): App {
  */
 function registerSlashCommands(app: App, workspaceId: string): void {
   // /workflow - List and manage workflows
-  app.command('/workflow', async ({ command, ack, respond, client }) => {
+  app.command('/workflow', async ({ command, ack, respond, client: _client }) => {
     await ack();
 
     try {
@@ -92,7 +89,7 @@ function registerSlashCommands(app: App, workspaceId: string): void {
   });
 
   // /workspace - Workspace management
-  app.command('/workspace', async ({ command, ack, respond }) => {
+  app.command('/workspace', async ({ command: _command, ack, respond }) => {
     await ack();
 
     try {
@@ -509,5 +506,3 @@ export async function sendSlackMessage(
     throw error;
   }
 }
-
-export { slackApp };

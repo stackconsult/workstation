@@ -386,7 +386,7 @@ if (process.env.NODE_ENV !== 'test') {
   logger.info('WebSocket server initialized for real-time workflow updates');
   
   // Phase 5.1 & 5.2: Initialize MCP WebSocket server for MCP protocol integration
-  const mcpWebSocketServer = new MCPWebSocketServer(server);
+  const _mcpWebSocketServer = new MCPWebSocketServer(server);
   logger.info('MCP WebSocket server initialized for protocol integration');
 }
 
