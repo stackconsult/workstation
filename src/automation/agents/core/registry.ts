@@ -3,20 +3,20 @@
  * Manages available agents and their capabilities
  */
 
-import { BrowserAgent } from './browser';
-import { EmailAgent } from '../integration/email';
-import { SheetsAgent } from '../integration/sheets';
-import { CalendarAgent } from '../integration/calendar';
-import { FileAgent } from '../storage/file';
-import { DatabaseAgent } from '../storage/database';
-import { S3Agent } from '../storage/s3';
-import { RssAgent } from '../data/rss';
-import { CsvAgent } from '../data/csv';
-import { JsonAgent } from '../data/json';
-import { ExcelAgent } from '../data/excel';
-import { PdfAgent } from '../data/pdf';
-import { EnrichmentAgent } from '../utility/enrichment';
-import { logger } from '../../../utils/logger';
+import { BrowserAgent } from "./browser";
+import { EmailAgent } from "../integration/email";
+import { SheetsAgent } from "../integration/sheets";
+import { CalendarAgent } from "../integration/calendar";
+import { FileAgent } from "../storage/file";
+import { DatabaseAgent } from "../storage/database";
+import { S3Agent } from "../storage/s3";
+import { RssAgent } from "../data/rss";
+import { CsvAgent } from "../data/csv";
+import { JsonAgent } from "../data/json";
+import { ExcelAgent } from "../data/excel";
+import { PdfAgent } from "../data/pdf";
+import { EnrichmentAgent } from "../utility/enrichment";
+import { logger } from "../../../utils/logger";
 
 export interface AgentCapability {
   agent_type: string;
@@ -42,88 +42,185 @@ export class AgentRegistry {
   private registerDefaultAgents(): void {
     // Browser agent capabilities
     this.registerCapability({
-      agent_type: 'browser',
-      actions: ['navigate', 'click', 'type', 'getText', 'screenshot', 'getContent', 'evaluate'],
-      description: 'Browser automation using Playwright'
+      agent_type: "browser",
+      actions: [
+        "navigate",
+        "click",
+        "type",
+        "getText",
+        "screenshot",
+        "getContent",
+        "evaluate",
+      ],
+      description: "Browser automation using Playwright",
     });
 
     // Phase 10: Workspace automation agents
     this.registerCapability({
-      agent_type: 'email',
-      actions: ['sendEmail', 'getUnreadEmails', 'markAsRead', 'createFilter'],
-      description: 'Email automation (Gmail, Outlook, IMAP/SMTP)'
+      agent_type: "email",
+      actions: ["sendEmail", "getUnreadEmails", "markAsRead", "createFilter"],
+      description: "Email automation (Gmail, Outlook, IMAP/SMTP)",
     });
 
     this.registerCapability({
-      agent_type: 'file',
-      actions: ['readFile', 'writeFile', 'listFiles', 'createDirectory', 'deleteFile', 'moveFile', 'copyFile', 'searchFiles'],
-      description: 'File system operations (local and cloud storage)'
+      agent_type: "file",
+      actions: [
+        "readFile",
+        "writeFile",
+        "listFiles",
+        "createDirectory",
+        "deleteFile",
+        "moveFile",
+        "copyFile",
+        "searchFiles",
+      ],
+      description: "File system operations (local and cloud storage)",
     });
 
     this.registerCapability({
-      agent_type: 'rss',
-      actions: ['fetchFeed', 'extractClientInfo', 'buildClientRepository', 'monitorFeeds'],
-      description: 'RSS feed parsing and client intelligence gathering'
+      agent_type: "rss",
+      actions: [
+        "fetchFeed",
+        "extractClientInfo",
+        "buildClientRepository",
+        "monitorFeeds",
+      ],
+      description: "RSS feed parsing and client intelligence gathering",
     });
 
     this.registerCapability({
-      agent_type: 'sheets',
-      actions: ['authenticate', 'readSheet', 'writeSheet', 'appendRows', 'updateCells', 'createSheet', 'listSheets', 'getSheetInfo'],
-      description: 'Google Sheets integration with OAuth2 support'
+      agent_type: "sheets",
+      actions: [
+        "authenticate",
+        "readSheet",
+        "writeSheet",
+        "appendRows",
+        "updateCells",
+        "createSheet",
+        "listSheets",
+        "getSheetInfo",
+      ],
+      description: "Google Sheets integration with OAuth2 support",
     });
 
     this.registerCapability({
-      agent_type: 'calendar',
-      actions: ['authenticate', 'createEvent', 'listEvents', 'getEvent', 'updateEvent', 'deleteEvent', 'checkAvailability'],
-      description: 'Google Calendar integration with OAuth2 support'
+      agent_type: "calendar",
+      actions: [
+        "authenticate",
+        "createEvent",
+        "listEvents",
+        "getEvent",
+        "updateEvent",
+        "deleteEvent",
+        "checkAvailability",
+      ],
+      description: "Google Calendar integration with OAuth2 support",
     });
 
     // Phase 10: Storage agents
     this.registerCapability({
-      agent_type: 'database',
-      actions: ['connect', 'disconnect', 'query', 'insert', 'update', 'delete', 'transaction', 'getTableInfo'],
-      description: 'Database operations (PostgreSQL and SQLite)'
+      agent_type: "database",
+      actions: [
+        "connect",
+        "disconnect",
+        "query",
+        "insert",
+        "update",
+        "delete",
+        "transaction",
+        "getTableInfo",
+      ],
+      description: "Database operations (PostgreSQL and SQLite)",
     });
 
     this.registerCapability({
-      agent_type: 's3',
-      actions: ['uploadFile', 'downloadFile', 'listFiles', 'deleteFile', 'getFileInfo', 'generatePresignedUrl', 'copyFile', 'moveFile'],
-      description: 'S3 and S3-compatible cloud storage operations'
+      agent_type: "s3",
+      actions: [
+        "uploadFile",
+        "downloadFile",
+        "listFiles",
+        "deleteFile",
+        "getFileInfo",
+        "generatePresignedUrl",
+        "copyFile",
+        "moveFile",
+      ],
+      description: "S3 and S3-compatible cloud storage operations",
     });
 
     // Phase 1: Data agents
     this.registerCapability({
-      agent_type: 'csv',
-      actions: ['parseCsv', 'writeCsv', 'filterCsv', 'transformCsv', 'getStats'],
-      description: 'CSV data parsing, transformation, and analysis'
+      agent_type: "csv",
+      actions: [
+        "parseCsv",
+        "writeCsv",
+        "filterCsv",
+        "transformCsv",
+        "getStats",
+      ],
+      description: "CSV data parsing, transformation, and analysis",
     });
 
     this.registerCapability({
-      agent_type: 'json',
-      actions: ['parseJson', 'queryJson', 'validateJson', 'transformJson', 'stringifyJson', 'mergeJson'],
-      description: 'JSON data parsing, querying, validation, and transformation'
+      agent_type: "json",
+      actions: [
+        "parseJson",
+        "queryJson",
+        "validateJson",
+        "transformJson",
+        "stringifyJson",
+        "mergeJson",
+      ],
+      description:
+        "JSON data parsing, querying, validation, and transformation",
     });
 
     this.registerCapability({
-      agent_type: 'excel',
-      actions: ['readExcel', 'writeExcel', 'getSheet', 'listSheets', 'formatCells', 'getInfo'],
-      description: 'Excel file reading, writing, multi-sheet operations, and cell formatting'
+      agent_type: "excel",
+      actions: [
+        "readExcel",
+        "writeExcel",
+        "getSheet",
+        "listSheets",
+        "formatCells",
+        "getInfo",
+      ],
+      description:
+        "Excel file reading, writing, multi-sheet operations, and cell formatting",
     });
 
     this.registerCapability({
-      agent_type: 'pdf',
-      actions: ['extractText', 'extractTables', 'generatePdf', 'mergePdfs', 'getPdfInfo', 'splitPdf'],
-      description: 'PDF text extraction, table extraction, generation, and manipulation'
+      agent_type: "pdf",
+      actions: [
+        "extractText",
+        "extractTables",
+        "generatePdf",
+        "mergePdfs",
+        "getPdfInfo",
+        "splitPdf",
+      ],
+      description:
+        "PDF text extraction, table extraction, generation, and manipulation",
     });
 
     // Phase 2: Utility agents
     this.registerCapability({
-      agent_type: 'enrichment',
-      actions: ['geocode', 'enrichCompanyData', 'enrichContact', 'batchEnrich', 'clearCache', 'getCacheStats'],
-      description: 'Data enrichment with external APIs (geocoding, company info, contact enrichment)'
+      agent_type: "enrichment",
+      actions: [
+        "geocode",
+        "enrichCompanyData",
+        "enrichContact",
+        "batchEnrich",
+        "clearCache",
+        "getCacheStats",
+      ],
+      description:
+        "Data enrichment with external APIs (geocoding, company info, contact enrichment)",
     });
 
-    logger.info('Default agents registered', { count: this.capabilities.length });
+    logger.info("Default agents registered", {
+      count: this.capabilities.length,
+    });
   }
 
   /**
@@ -131,22 +228,27 @@ export class AgentRegistry {
    */
   registerCapability(capability: AgentCapability): void {
     this.capabilities.push(capability);
-    logger.info('Agent capability registered', { agent_type: capability.agent_type });
+    logger.info("Agent capability registered", {
+      agent_type: capability.agent_type,
+    });
   }
 
   /**
    * Get agent instance for execution
    */
-  async getAgent(agentType: string, action: string): Promise<AgentAction | null> {
+  async getAgent(
+    agentType: string,
+    action: string,
+  ): Promise<AgentAction | null> {
     const key = `${agentType}:${action}`;
-    
+
     // Check if agent exists in cache
     if (this.agents.has(key)) {
       return this.agents.get(key)!;
     }
 
     // Create new agent instance
-    if (agentType === 'browser') {
+    if (agentType === "browser") {
       const browserAgent = new BrowserAgent();
       await browserAgent.initialize();
 
@@ -155,41 +257,47 @@ export class AgentRegistry {
         execute: async (params: Record<string, unknown>) => {
           try {
             switch (action) {
-              case 'navigate': {
+              case "navigate": {
                 await browserAgent.navigate(params as never);
                 return { success: true };
               }
-              
-              case 'click': {
+
+              case "click": {
                 await browserAgent.click(params as never);
                 return { success: true };
               }
-              
-              case 'type': {
+
+              case "type": {
                 await browserAgent.type(params as never);
                 return { success: true };
               }
-              
-              case 'getText': {
-                const text = await browserAgent.getText(params.selector as string);
+
+              case "getText": {
+                const text = await browserAgent.getText(
+                  params.selector as string,
+                );
                 return { text };
               }
-              
-              case 'screenshot': {
-                const screenshot = await browserAgent.screenshot(params as never);
-                return { screenshot: screenshot.toString('base64') };
+
+              case "screenshot": {
+                const screenshot = await browserAgent.screenshot(
+                  params as never,
+                );
+                return { screenshot: screenshot.toString("base64") };
               }
-              
-              case 'getContent': {
+
+              case "getContent": {
                 const content = await browserAgent.getContent();
                 return { content };
               }
-              
-              case 'evaluate': {
-                const result = await browserAgent.evaluate(params.function as never);
+
+              case "evaluate": {
+                const result = await browserAgent.evaluate(
+                  params.function as never,
+                );
                 return { result };
               }
-              
+
               default:
                 throw new Error(`Unknown action: ${action}`);
             }
@@ -197,7 +305,7 @@ export class AgentRegistry {
             // Cleanup after action
             await browserAgent.cleanup();
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -205,27 +313,27 @@ export class AgentRegistry {
     }
 
     // Phase 10: Email agent
-    if (agentType === 'email') {
+    if (agentType === "email") {
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           // Email config should be passed in params or retrieved from workspace config
           const emailConfig = (params as any).emailConfig || {
-            provider: 'gmail' as const,
-            email: 'default@example.com'
+            provider: "gmail" as const,
+            email: "default@example.com",
           };
-          
+
           const emailAgent = new EmailAgent(emailConfig);
           await emailAgent.connect();
 
           try {
             switch (action) {
-              case 'sendEmail':
+              case "sendEmail":
                 return await emailAgent.sendEmail(params as never);
-              case 'getUnreadEmails':
+              case "getUnreadEmails":
                 return await emailAgent.getUnreadEmails(params as never);
-              case 'markAsRead':
+              case "markAsRead":
                 return await emailAgent.markAsRead(params.emailIds as string[]);
-              case 'createFilter':
+              case "createFilter":
                 return await emailAgent.createFilter(params as never);
               default:
                 throw new Error(`Unknown email action: ${action}`);
@@ -233,7 +341,7 @@ export class AgentRegistry {
           } finally {
             await emailAgent.disconnect();
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -241,37 +349,37 @@ export class AgentRegistry {
     }
 
     // Phase 10: File agent
-    if (agentType === 'file') {
+    if (agentType === "file") {
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           const fileConfig = (params as any).fileConfig || {
-            storageType: 'local' as const,
-            basePath: '/tmp/workstation'
+            storageType: "local" as const,
+            basePath: "/tmp/workstation",
           };
-          
+
           const fileAgent = new FileAgent(fileConfig);
 
           switch (action) {
-            case 'readFile':
+            case "readFile":
               return await fileAgent.readFile(params as never);
-            case 'writeFile':
+            case "writeFile":
               return await fileAgent.writeFile(params as never);
-            case 'listFiles':
+            case "listFiles":
               return await fileAgent.listFiles(params as never);
-            case 'createDirectory':
+            case "createDirectory":
               return await fileAgent.createDirectory(params as never);
-            case 'deleteFile':
+            case "deleteFile":
               return await fileAgent.deleteFile(params as never);
-            case 'moveFile':
+            case "moveFile":
               return await fileAgent.moveFile(params as never);
-            case 'copyFile':
+            case "copyFile":
               return await fileAgent.copyFile(params as never);
-            case 'searchFiles':
+            case "searchFiles":
               return await fileAgent.searchFiles(params as never);
             default:
               throw new Error(`Unknown file action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -279,24 +387,24 @@ export class AgentRegistry {
     }
 
     // Phase 10: RSS agent
-    if (agentType === 'rss') {
+    if (agentType === "rss") {
       const rssAgent = new RssAgent();
 
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           switch (action) {
-            case 'fetchFeed':
+            case "fetchFeed":
               return await rssAgent.fetchFeed(params as never);
-            case 'extractClientInfo':
+            case "extractClientInfo":
               return await rssAgent.extractClientInfo(params as never);
-            case 'buildClientRepository':
+            case "buildClientRepository":
               return await rssAgent.buildClientRepository(params as never);
-            case 'monitorFeeds':
+            case "monitorFeeds":
               return await rssAgent.monitorFeeds(params as never);
             default:
               throw new Error(`Unknown RSS action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -304,42 +412,42 @@ export class AgentRegistry {
     }
 
     // Phase 10: Google Sheets agent
-    if (agentType === 'sheets') {
+    if (agentType === "sheets") {
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           // Sheets config should be passed in params
           const sheetsConfig = (params as any).sheetsConfig || {
-            authType: 'oauth2' as const,
+            authType: "oauth2" as const,
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            redirectUri: process.env.GOOGLE_REDIRECT_URI
+            redirectUri: process.env.GOOGLE_REDIRECT_URI,
           };
-          
+
           const sheetsAgent = new SheetsAgent(sheetsConfig);
 
           try {
             switch (action) {
-              case 'authenticate':
+              case "authenticate":
                 return await sheetsAgent.authenticate();
-              case 'readSheet':
+              case "readSheet":
                 await sheetsAgent.authenticate();
                 return await sheetsAgent.readSheet(params as never);
-              case 'writeSheet':
+              case "writeSheet":
                 await sheetsAgent.authenticate();
                 return await sheetsAgent.writeSheet(params as never);
-              case 'appendRows':
+              case "appendRows":
                 await sheetsAgent.authenticate();
                 return await sheetsAgent.appendRows(params as never);
-              case 'updateCells':
+              case "updateCells":
                 await sheetsAgent.authenticate();
                 return await sheetsAgent.updateCells(params as never);
-              case 'createSheet':
+              case "createSheet":
                 await sheetsAgent.authenticate();
                 return await sheetsAgent.createSheet(params as never);
-              case 'listSheets':
+              case "listSheets":
                 await sheetsAgent.authenticate();
                 return await sheetsAgent.listSheets(params as never);
-              case 'getSheetInfo':
+              case "getSheetInfo":
                 await sheetsAgent.authenticate();
                 return await sheetsAgent.getSheetInfo(params as never);
               default:
@@ -348,7 +456,7 @@ export class AgentRegistry {
           } finally {
             await sheetsAgent.disconnect();
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -356,39 +464,39 @@ export class AgentRegistry {
     }
 
     // Phase 10: Google Calendar agent
-    if (agentType === 'calendar') {
+    if (agentType === "calendar") {
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           // Calendar config should be passed in params
           const calendarConfig = (params as any).calendarConfig || {
-            authType: 'oauth2' as const,
+            authType: "oauth2" as const,
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            redirectUri: process.env.GOOGLE_REDIRECT_URI
+            redirectUri: process.env.GOOGLE_REDIRECT_URI,
           };
-          
+
           const calendarAgent = new CalendarAgent(calendarConfig);
 
           try {
             switch (action) {
-              case 'authenticate':
+              case "authenticate":
                 return await calendarAgent.authenticate();
-              case 'createEvent':
+              case "createEvent":
                 await calendarAgent.authenticate();
                 return await calendarAgent.createEvent(params as never);
-              case 'listEvents':
+              case "listEvents":
                 await calendarAgent.authenticate();
                 return await calendarAgent.listEvents(params as never);
-              case 'getEvent':
+              case "getEvent":
                 await calendarAgent.authenticate();
                 return await calendarAgent.getEvent(params as never);
-              case 'updateEvent':
+              case "updateEvent":
                 await calendarAgent.authenticate();
                 return await calendarAgent.updateEvent(params as never);
-              case 'deleteEvent':
+              case "deleteEvent":
                 await calendarAgent.authenticate();
                 return await calendarAgent.deleteEvent(params as never);
-              case 'checkAvailability':
+              case "checkAvailability":
                 await calendarAgent.authenticate();
                 return await calendarAgent.checkAvailability(params as never);
               default:
@@ -397,7 +505,7 @@ export class AgentRegistry {
           } finally {
             await calendarAgent.disconnect();
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -405,26 +513,26 @@ export class AgentRegistry {
     }
 
     // Phase 1: CSV agent
-    if (agentType === 'csv') {
+    if (agentType === "csv") {
       const csvAgent = new CsvAgent();
 
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           switch (action) {
-            case 'parseCsv':
+            case "parseCsv":
               return await csvAgent.parseCsv(params as never);
-            case 'writeCsv':
+            case "writeCsv":
               return await csvAgent.writeCsv(params as never);
-            case 'filterCsv':
+            case "filterCsv":
               return await csvAgent.filterCsv(params as never);
-            case 'transformCsv':
+            case "transformCsv":
               return await csvAgent.transformCsv(params as never);
-            case 'getStats':
+            case "getStats":
               return await csvAgent.getStats(params as never);
             default:
               throw new Error(`Unknown CSV action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -432,28 +540,28 @@ export class AgentRegistry {
     }
 
     // Phase 1: JSON agent
-    if (agentType === 'json') {
+    if (agentType === "json") {
       const jsonAgent = new JsonAgent();
 
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           switch (action) {
-            case 'parseJson':
+            case "parseJson":
               return await jsonAgent.parseJson(params as never);
-            case 'queryJson':
+            case "queryJson":
               return await jsonAgent.queryJson(params as never);
-            case 'validateJson':
+            case "validateJson":
               return await jsonAgent.validateJson(params as never);
-            case 'transformJson':
+            case "transformJson":
               return await jsonAgent.transformJson(params as never);
-            case 'stringifyJson':
+            case "stringifyJson":
               return await jsonAgent.stringifyJson(params as never);
-            case 'mergeJson':
+            case "mergeJson":
               return await jsonAgent.mergeJson(params as never);
             default:
               throw new Error(`Unknown JSON action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -461,28 +569,28 @@ export class AgentRegistry {
     }
 
     // Phase 1: Excel agent
-    if (agentType === 'excel') {
+    if (agentType === "excel") {
       const excelAgent = new ExcelAgent();
 
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           switch (action) {
-            case 'readExcel':
+            case "readExcel":
               return await excelAgent.readExcel(params as never);
-            case 'writeExcel':
+            case "writeExcel":
               return await excelAgent.writeExcel(params as never);
-            case 'getSheet':
+            case "getSheet":
               return await excelAgent.getSheet(params as never);
-            case 'listSheets':
+            case "listSheets":
               return await excelAgent.listSheets(params as never);
-            case 'formatCells':
+            case "formatCells":
               return await excelAgent.formatCells(params as never);
-            case 'getInfo':
+            case "getInfo":
               return await excelAgent.getInfo(params as never);
             default:
               throw new Error(`Unknown Excel action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -490,28 +598,28 @@ export class AgentRegistry {
     }
 
     // Phase 1: PDF agent
-    if (agentType === 'pdf') {
+    if (agentType === "pdf") {
       const pdfAgent = new PdfAgent();
 
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           switch (action) {
-            case 'extractText':
+            case "extractText":
               return await pdfAgent.extractText(params as never);
-            case 'extractTables':
+            case "extractTables":
               return await pdfAgent.extractTables(params as never);
-            case 'generatePdf':
+            case "generatePdf":
               return await pdfAgent.generatePdf(params as never);
-            case 'mergePdfs':
+            case "mergePdfs":
               return await pdfAgent.mergePdfs(params as never);
-            case 'getPdfInfo':
+            case "getPdfInfo":
               return await pdfAgent.getPdfInfo(params as never);
-            case 'splitPdf':
+            case "splitPdf":
               return await pdfAgent.splitPdf(params as never);
             default:
               throw new Error(`Unknown PDF action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -519,50 +627,50 @@ export class AgentRegistry {
     }
 
     // Phase 10: Database agent
-    if (agentType === 'database') {
+    if (agentType === "database") {
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           // Database config should be passed in params
           const dbConfig = (params as any).dbConfig || {
-            type: 'postgresql' as const,
-            useExistingConnection: true
+            type: "postgresql" as const,
+            useExistingConnection: true,
           };
-          
+
           const databaseAgent = new DatabaseAgent(dbConfig);
-          
+
           try {
             // Connect for operations (except connect/disconnect actions)
-            if (action !== 'connect' && action !== 'disconnect') {
+            if (action !== "connect" && action !== "disconnect") {
               await databaseAgent.connect();
             }
 
             switch (action) {
-              case 'connect':
+              case "connect":
                 return await databaseAgent.connect();
-              case 'disconnect':
+              case "disconnect":
                 return await databaseAgent.disconnect();
-              case 'query':
+              case "query":
                 return await databaseAgent.query(params as never);
-              case 'insert':
+              case "insert":
                 return await databaseAgent.insert(params as never);
-              case 'update':
+              case "update":
                 return await databaseAgent.update(params as never);
-              case 'delete':
+              case "delete":
                 return await databaseAgent.delete(params as never);
-              case 'transaction':
+              case "transaction":
                 return await databaseAgent.transaction(params as never);
-              case 'getTableInfo':
+              case "getTableInfo":
                 return await databaseAgent.getTableInfo(params as never);
               default:
                 throw new Error(`Unknown database action: ${action}`);
             }
           } finally {
             // Cleanup connection (except for connect/disconnect actions)
-            if (action !== 'connect' && action !== 'disconnect') {
+            if (action !== "connect" && action !== "disconnect") {
               await databaseAgent.disconnect();
             }
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -570,42 +678,42 @@ export class AgentRegistry {
     }
 
     // Phase 10: S3 agent
-    if (agentType === 's3') {
+    if (agentType === "s3") {
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           // S3 config should be passed in params or use environment variables
           const s3Config = (params as any).s3Config || {
-            region: process.env.AWS_REGION || 'us-east-1',
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-            bucket: process.env.AWS_S3_BUCKET || '',
+            region: process.env.AWS_REGION || "us-east-1",
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+            bucket: process.env.AWS_S3_BUCKET || "",
             endpoint: process.env.AWS_S3_ENDPOINT,
-            forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === 'true'
+            forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === "true",
           };
-          
+
           const s3Agent = new S3Agent(s3Config);
 
           switch (action) {
-            case 'uploadFile':
+            case "uploadFile":
               return await s3Agent.uploadFile(params as never);
-            case 'downloadFile':
+            case "downloadFile":
               return await s3Agent.downloadFile(params as never);
-            case 'listFiles':
+            case "listFiles":
               return await s3Agent.listFiles(params as never);
-            case 'deleteFile':
+            case "deleteFile":
               return await s3Agent.deleteFile(params as never);
-            case 'getFileInfo':
+            case "getFileInfo":
               return await s3Agent.getFileInfo(params as never);
-            case 'generatePresignedUrl':
+            case "generatePresignedUrl":
               return await s3Agent.generatePresignedUrl(params as never);
-            case 'copyFile':
+            case "copyFile":
               return await s3Agent.copyFile(params as never);
-            case 'moveFile':
+            case "moveFile":
               return await s3Agent.moveFile(params as never);
             default:
               throw new Error(`Unknown S3 action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
@@ -613,36 +721,36 @@ export class AgentRegistry {
     }
 
     // Phase 2: Enrichment agent
-    if (agentType === 'enrichment') {
+    if (agentType === "enrichment") {
       const enrichmentAgent = new EnrichmentAgent();
 
       const actionWrapper: AgentAction = {
         execute: async (params: Record<string, unknown>) => {
           switch (action) {
-            case 'geocode':
+            case "geocode":
               return await enrichmentAgent.geocode(params as never);
-            case 'enrichCompanyData':
+            case "enrichCompanyData":
               return await enrichmentAgent.enrichCompanyData(params as never);
-            case 'enrichContact':
+            case "enrichContact":
               return await enrichmentAgent.enrichContact(params as never);
-            case 'batchEnrich':
+            case "batchEnrich":
               return await enrichmentAgent.batchEnrich(params as never);
-            case 'clearCache':
+            case "clearCache":
               enrichmentAgent.clearCache();
-              return { success: true, message: 'Cache cleared' };
-            case 'getCacheStats':
+              return { success: true, message: "Cache cleared" };
+            case "getCacheStats":
               return enrichmentAgent.getCacheStats();
             default:
               throw new Error(`Unknown enrichment action: ${action}`);
           }
-        }
+        },
       };
 
       this.agents.set(key, actionWrapper);
       return actionWrapper;
     }
 
-    logger.warn('Unknown agent type requested', { agentType, action });
+    logger.warn("Unknown agent type requested", { agentType, action });
     return null;
   }
 
@@ -657,7 +765,9 @@ export class AgentRegistry {
    * Check if agent supports action
    */
   supportsAction(agentType: string, action: string): boolean {
-    const capability = this.capabilities.find(c => c.agent_type === agentType);
+    const capability = this.capabilities.find(
+      (c) => c.agent_type === agentType,
+    );
     return capability ? capability.actions.includes(action) : false;
   }
 }

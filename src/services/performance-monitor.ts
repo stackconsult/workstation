@@ -1,16 +1,16 @@
 /**
  * Performance Monitoring Service
- * 
+ *
  * Monitors agent performance, connection pooling, and health scoring.
  * Provides metrics for Chrome Extension v2.0 backend integration.
- * 
+ *
  * @module services/performance-monitor
  * @version 2.0.0
  */
 
-import { EventEmitter } from 'events';
-import { logger } from '../utils/logger';
-import { agentOrchestrator } from './agent-orchestrator';
+import { EventEmitter } from "events";
+import { logger } from "../utils/logger";
+import { agentOrchestrator } from "./agent-orchestrator";
 
 export interface AgentPerformanceMetrics {
   agentId: string;
@@ -61,28 +61,28 @@ export class PerformanceMonitor extends EventEmitter {
    */
   public start(): void {
     if (this.isRunning) {
-      logger.warn('Performance monitor already running');
+      logger.warn("Performance monitor already running");
       return;
     }
 
     this.isRunning = true;
-    logger.info('Starting performance monitor', { 
-      interval: this.checkIntervalMs 
+    logger.info("Starting performance monitor", {
+      interval: this.checkIntervalMs,
     });
 
     // Perform initial check
     this.performHealthCheck().catch((error) => {
-      logger.error('Initial health check failed', { error: error.message });
+      logger.error("Initial health check failed", { error: error.message });
     });
 
     // Schedule periodic checks
     this.monitorInterval = setInterval(() => {
       this.performHealthCheck().catch((error) => {
-        logger.error('Health check failed', { error: error.message });
+        logger.error("Health check failed", { error: error.message });
       });
     }, this.checkIntervalMs);
 
-    this.emit('started', { interval: this.checkIntervalMs });
+    this.emit("started", { interval: this.checkIntervalMs });
   }
 
   /**
@@ -99,8 +99,8 @@ export class PerformanceMonitor extends EventEmitter {
     }
 
     this.isRunning = false;
-    logger.info('Performance monitor stopped');
-    this.emit('stopped');
+    logger.info("Performance monitor stopped");
+    this.emit("stopped");
   }
 
   /**
@@ -121,19 +121,19 @@ export class PerformanceMonitor extends EventEmitter {
       this.updateConnectionPoolMetrics();
 
       const checkDuration = Date.now() - checkStartTime;
-      logger.debug('Health check completed', {
+      logger.debug("Health check completed", {
         agentCount: agents.length,
         durationMs: checkDuration,
       });
 
       // Emit metrics event
-      this.emit('metrics', this.getMetrics());
+      this.emit("metrics", this.getMetrics());
 
       // Emit alerts for unhealthy agents
       this.checkAndEmitAlerts();
     } catch (error) {
-      logger.error('Health check error', { error: (error as Error).message });
-      this.emit('error', error);
+      logger.error("Health check error", { error: (error as Error).message });
+      this.emit("error", error);
     }
   }
 
@@ -142,7 +142,7 @@ export class PerformanceMonitor extends EventEmitter {
    */
   private async checkAgentHealth(
     agentId: string,
-    agentName: string
+    agentName: string,
   ): Promise<AgentPerformanceMetrics> {
     const startTime = Date.now();
 
@@ -167,18 +167,21 @@ export class PerformanceMonitor extends EventEmitter {
       const healthScore = this.calculateHealthScore(
         agent.healthStatus,
         agent.status,
-        responseTime
+        responseTime,
       );
 
       // Get error count from previous metrics
       const previousMetrics = this.metrics.get(agentId);
-      const errorCount = agent.healthStatus === 'healthy' 
-        ? 0 
-        : (previousMetrics?.errorCount || 0) + 1;
+      const errorCount =
+        agent.healthStatus === "healthy"
+          ? 0
+          : (previousMetrics?.errorCount || 0) + 1;
 
       // Calculate success rate (simplified)
-      const successRate = agent.healthStatus === 'healthy' ? 100 : 
-        Math.max(0, 100 - (errorCount * 10));
+      const successRate =
+        agent.healthStatus === "healthy"
+          ? 100
+          : Math.max(0, 100 - errorCount * 10);
 
       return {
         agentId,
@@ -190,9 +193,9 @@ export class PerformanceMonitor extends EventEmitter {
         lastChecked: new Date().toISOString(),
       };
     } catch (error) {
-      logger.error('Agent health check failed', { 
-        agentId, 
-        error: (error as Error).message 
+      logger.error("Agent health check failed", {
+        agentId,
+        error: (error as Error).message,
       });
 
       const previousMetrics = this.metrics.get(agentId);
@@ -214,19 +217,19 @@ export class PerformanceMonitor extends EventEmitter {
   private calculateHealthScore(
     healthStatus: string,
     status: string,
-    responseTime: number
+    responseTime: number,
   ): number {
     let score = 50; // Base score
 
     // Health status contributes 40 points
-    if (healthStatus === 'healthy') {
+    if (healthStatus === "healthy") {
       score += 40;
-    } else if (healthStatus === 'degraded') {
+    } else if (healthStatus === "degraded") {
       score += 20;
     }
 
     // Agent status contributes 10 points
-    if (status === 'active' || status === 'running') {
+    if (status === "active" || status === "running") {
       score += 10;
     }
 
@@ -266,12 +269,12 @@ export class PerformanceMonitor extends EventEmitter {
    */
   private checkAndEmitAlerts(): void {
     const unhealthyAgents = Array.from(this.metrics.values()).filter(
-      (m) => m.healthScore < 50
+      (m) => m.healthScore < 50,
     );
 
     if (unhealthyAgents.length > 0) {
-      this.emit('alert', {
-        type: 'unhealthy_agents',
+      this.emit("alert", {
+        type: "unhealthy_agents",
         count: unhealthyAgents.length,
         agents: unhealthyAgents,
         timestamp: new Date().toISOString(),
@@ -280,8 +283,8 @@ export class PerformanceMonitor extends EventEmitter {
 
     // Alert on high pool utilization
     if (this.connectionPool.poolUtilization > 80) {
-      this.emit('alert', {
-        type: 'high_pool_utilization',
+      this.emit("alert", {
+        type: "high_pool_utilization",
         utilization: this.connectionPool.poolUtilization,
         timestamp: new Date().toISOString(),
       });
@@ -318,7 +321,7 @@ export class PerformanceMonitor extends EventEmitter {
    */
   public getAgentsByHealthScore(minScore: number): AgentPerformanceMetrics[] {
     return Array.from(this.metrics.values()).filter(
-      (m) => m.healthScore >= minScore
+      (m) => m.healthScore >= minScore,
     );
   }
 
@@ -330,7 +333,7 @@ export class PerformanceMonitor extends EventEmitter {
 
     const totalScore = Array.from(this.metrics.values()).reduce(
       (sum, m) => sum + m.healthScore,
-      0
+      0,
     );
 
     return totalScore / this.metrics.size;
@@ -340,7 +343,7 @@ export class PerformanceMonitor extends EventEmitter {
    * Force immediate health check
    */
   public async forceCheckNow(): Promise<void> {
-    logger.info('Force health check requested');
+    logger.info("Force health check requested");
     await this.performHealthCheck();
   }
 
@@ -362,7 +365,7 @@ export class PerformanceMonitor extends EventEmitter {
     poolUtilization: number;
   } {
     const healthyAgents = Array.from(this.metrics.values()).filter(
-      (m) => m.healthScore >= 70
+      (m) => m.healthScore >= 70,
     ).length;
 
     return {
@@ -378,11 +381,13 @@ export class PerformanceMonitor extends EventEmitter {
 // Export singleton instance
 let performanceMonitor: PerformanceMonitor | null = null;
 
-export function initializePerformanceMonitor(intervalMs?: number): PerformanceMonitor {
+export function initializePerformanceMonitor(
+  intervalMs?: number,
+): PerformanceMonitor {
   if (!performanceMonitor) {
     performanceMonitor = new PerformanceMonitor(intervalMs);
     performanceMonitor.start();
-    logger.info('Performance monitor initialized');
+    logger.info("Performance monitor initialized");
   }
   return performanceMonitor;
 }

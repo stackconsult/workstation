@@ -2,31 +2,34 @@
  * Agent Deploy Modal Component
  */
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface AgentDeployModalProps {
   onClose: () => void;
   onDeploy: () => void;
 }
 
-export const AgentDeployModal: React.FC<AgentDeployModalProps> = ({ onClose, onDeploy }) => {
+export const AgentDeployModal: React.FC<AgentDeployModalProps> = ({
+  onClose,
+  onDeploy,
+}) => {
   const [formData, setFormData] = useState({
-    name: '',
-    type: 'browser-automation',
-    environment: 'production',
+    name: "",
+    type: "browser-automation",
+    environment: "production",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await fetch('/api/agents/deploy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/agents/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       onDeploy();
     } catch (error) {
-      console.error('Failed to deploy agent:', error);
+      console.error("Failed to deploy agent:", error);
     }
   };
 
@@ -45,7 +48,9 @@ export const AgentDeployModal: React.FC<AgentDeployModalProps> = ({ onClose, onD
               type="text"
               className="input-field"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               required
             />
           </div>
@@ -56,11 +61,15 @@ export const AgentDeployModal: React.FC<AgentDeployModalProps> = ({ onClose, onD
             <select
               className="input-field"
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, type: e.target.value })
+              }
             >
               <option value="browser-automation">Browser Automation</option>
               <option value="data-extraction">Data Extraction</option>
-              <option value="workflow-orchestration">Workflow Orchestration</option>
+              <option value="workflow-orchestration">
+                Workflow Orchestration
+              </option>
             </select>
           </div>
           <div>
@@ -70,7 +79,9 @@ export const AgentDeployModal: React.FC<AgentDeployModalProps> = ({ onClose, onD
             <select
               className="input-field"
               value={formData.environment}
-              onChange={(e) => setFormData({ ...formData, environment: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, environment: e.target.value })
+              }
             >
               <option value="development">Development</option>
               <option value="staging">Staging</option>
@@ -78,7 +89,11 @@ export const AgentDeployModal: React.FC<AgentDeployModalProps> = ({ onClose, onD
             </select>
           </div>
           <div className="flex gap-2 pt-4">
-            <button type="button" onClick={onClose} className="flex-1 btn-secondary">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 btn-secondary"
+            >
               Cancel
             </button>
             <button type="submit" className="flex-1 btn-primary">
