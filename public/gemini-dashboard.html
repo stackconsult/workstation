@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workstation + Gemini</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .typing span { animation: blink 1.4s infinite both; }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+    .fade-in { animation: fadeIn .3s ease-in; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <header class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+          <i class="fas fa-robot mr-3"></i>Workstation + Gemini
+        </h1>
+        <p class="text-gray-400 mt-2">Natural language browser automation</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <div id="status" class="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800">
+          <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+          <span class="text-sm">Connecting...</span>
+        </div>
+        <a href="/dashboard.html" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">
+          <i class="fas fa-arrow-left mr-2"></i>Dashboard
+        </a>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Chat Panel -->
+      <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold"><i class="fas fa-comments text-blue-400 mr-2"></i>Chat</h2>
+          <button id="clearBtn" class="text-sm text-gray-400 hover:text-white"><i class="fas fa-trash mr-1"></i>Clear</button>
+        </div>
+
+        <div id="messages" class="h-96 overflow-y-auto mb-4 space-y-4 pr-2">
+          <div class="text-center text-gray-500 py-8" id="emptyState">
+            <i class="fas fa-magic text-4xl mb-4"></i>
+            <p>Describe what you want to automate</p>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <input id="prompt" type="text" placeholder="e.g., Go to Google and search for AI news..."
+            class="flex-1 px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl focus:outline-none focus:border-blue-500">
+          <button id="sendBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button class="quick px-3 py-1 bg-gray-700/50 hover:bg-gray-600 rounded-lg text-sm" data-p="Screenshot the homepage of hacker news">📸 Screenshot</button>
+          <button class="quick px-3 py-1 bg-gray-700/50 hover:bg-gray-600 rounded-lg text-sm" data-p="Go to Google and search for latest AI news">🔍 Search</button>
+          <button class="quick px-3 py-1 bg-gray-700/50 hover:bg-gray-600 rounded-lg text-sm" data-p="Scrape all headlines from reddit.com front page">🕷️ Scrape</button>
+        </div>
+      </div>
+
+      <!-- Workflow Panel -->
+      <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-6 border border-gray-700">
+        <h2 class="text-2xl font-bold mb-4"><i class="fas fa-code-branch text-purple-400 mr-2"></i>Workflow</h2>
+
+        <pre id="workflow" class="bg-gray-900 p-4 rounded-xl text-sm overflow-auto max-h-64 text-gray-400">// Generated workflow appears here</pre>
+
+        <div class="flex gap-3 my-4">
+          <button id="execBtn" disabled class="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-xl font-bold disabled:opacity-50">
+            <i class="fas fa-play mr-2"></i>Execute
+          </button>
+          <button id="saveBtn" disabled class="px-6 py-3 bg-gray-600 hover:bg-gray-500 rounded-xl disabled:opacity-50">
+            <i class="fas fa-save mr-2"></i>Save
+          </button>
+        </div>
+
+        <div id="result" class="hidden">
+          <h3 class="text-xl font-bold mb-3"><i class="fas fa-chart-line text-green-400 mr-2"></i>Result</h3>
+          <div id="resultContent" class="bg-gray-900 rounded-xl p-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-8 text-center text-gray-500 text-sm">
+      <a href="/workflow-builder.html" class="hover:text-white mx-3">Visual Builder</a>
+      <a href="/API.md" class="hover:text-white mx-3">API Docs</a>
+      <a href="https://github.com/creditXcredit/workstation" class="hover:text-white mx-3">GitHub</a>
+    </footer>
+  </div>
+  <script src="/gemini-dashboard.js"></script>
+</body>
+</html>

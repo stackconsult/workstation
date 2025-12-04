@@ -55,6 +55,8 @@ import workflowStateRoutes from './routes/workflow-state';
 // Phase 6: Import workspace and Slack routes
 import workspacesRoutes from './routes/workspaces';
 import slackRoutes from './routes/slack';
+// Gemini AI Integration
+import geminiRoutes from './routes/gemini';
 import { initializeDatabase } from './automation/db/database';
 // Context-Memory Intelligence Layer
 import { initializeContextMemory } from './intelligence/context-memory';
@@ -364,6 +366,10 @@ logger.info('Phase 6: Workspace management routes registered');
 // Phase 6: Slack integration routes
 app.use('/api/slack', slackRoutes);
 logger.info('Phase 6: Slack integration routes registered');
+
+// Gemini AI Integration routes
+app.use('/api/gemini', geminiRoutes);
+logger.info('Gemini AI natural language workflow routes registered');
 
 // MCP routes for GitHub Copilot integration
 app.use('/api/v2', mcpRoutes);
