@@ -2,6 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import lusca from 'lusca';
 // Validate JWT_SECRET before server initialization - FAIL FAST
 // Skip this check in test environment to allow tests to run
 if (process.env.NODE_ENV !== 'test' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'changeme')) {
@@ -196,6 +197,9 @@ app.use(session({
     sameSite: 'lax' // Additional CSRF protection for session cookies
   }
 }));
+
+// CSRF protection for session-authenticated routes
+app.use(lusca.csrf());
 
 // Initialize Passport
 app.use(passport.initialize());
