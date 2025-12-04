@@ -67,8 +67,7 @@ import { initializeMonitoring } from './services/monitoring';
 // Phase 4: Import backup service
 import { initializeBackupService } from './services/backup';
 // Phase 6: Import workspace initialization
-import { initializeWorkspaces } from './scripts/initialize-workspaces';
-// Phase 6: Workspace initialization available as separate script
+// Commented out temporarily - requires PostgreSQL database
 // import { initializeWorkspaces } from './scripts/initialize-workspaces';
 
 // Validate environment configuration
