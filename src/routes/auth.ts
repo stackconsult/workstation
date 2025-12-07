@@ -13,6 +13,11 @@ import db from '../db/connection';
 import { logger } from '../utils/logger';
 import { sendPasswordResetEmail } from '../services/email';
 import { 
+  createAndSendVerification,
+  verifyEmail,
+  resendVerificationEmail 
+} from '../services/email-verification';
+import { 
   ErrorCode, 
   createErrorResponse, 
   createSuccessResponse, 
@@ -133,6 +138,14 @@ router.post('/register', async (req: Request, res: Response) => {
 
     logger.info('User registered', { userId: user.id, email: user.email });
 
+    // Send verification email asynchronously (don't block registration)
+    createAndSendVerification(user.id, user.email).catch(error => {
+      logger.error('Failed to send verification email during registration', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId: user.id 
+      });
+    });
+
     res.status(201).json({
       success: true,
       data: {
@@ -141,10 +154,12 @@ router.post('/register', async (req: Request, res: Response) => {
           email: user.email,
           fullName: user.full_name,
           accessLevel: user.access_level,
-          licenseKey: user.license_key
+          licenseKey: user.license_key,
+          isVerified: false
         },
         token
-      }
+      },
+      message: 'Registration successful. Please check your email to verify your account.'
     });
   } catch (error) {
     logger.error('Registration error', { error });
@@ -482,18 +497,245 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Resp
 });
 
 /**
- * Verify email token (placeholder for email verification)
+ * Verify email using token
+ * GET /api/auth/verify-email?token=xxx
+ */
+router.get('/verify-email', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.query;
+
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Verification token is required'
+      });
+    }
+
+    // Verify email using token
+    const result = await verifyEmail(token);
+
+    if (result.success) {
+      logger.info('Email verified successfully via endpoint', { 
+        userId: result.userId,
+        email: result.email 
+      });
+      
+      // Return HTML response for better UX
+      return res.status(200).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Email Verified - Workstation</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+              padding: 20px;
+            }
+            .container {
+              background: white;
+              border-radius: 12px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+              padding: 40px;
+              max-width: 500px;
+              text-align: center;
+            }
+            .success-icon {
+              font-size: 64px;
+              color: #28a745;
+              margin-bottom: 20px;
+            }
+            h1 {
+              color: #333;
+              margin: 0 0 10px 0;
+              font-size: 28px;
+            }
+            p {
+              color: #666;
+              font-size: 16px;
+              line-height: 1.6;
+              margin: 0 0 30px 0;
+            }
+            .btn {
+              display: inline-block;
+              background-color: #007bff;
+              color: white;
+              padding: 12px 32px;
+              text-decoration: none;
+              border-radius: 6px;
+              font-weight: bold;
+              transition: background-color 0.3s;
+            }
+            .btn:hover {
+              background-color: #0056b3;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="success-icon">✓</div>
+            <h1>Email Verified Successfully!</h1>
+            <p>Your email address has been verified. You can now access all features of Workstation.</p>
+            <a href="${process.env.APP_URL || 'http://localhost:7042'}" class="btn">Go to Dashboard</a>
+          </div>
+        </body>
+        </html>
+      `);
+    } else {
+      logger.warn('Email verification failed via endpoint', { 
+        error: result.message 
+      });
+      
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Verification Failed - Workstation</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+              padding: 20px;
+            }
+            .container {
+              background: white;
+              border-radius: 12px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+              padding: 40px;
+              max-width: 500px;
+              text-align: center;
+            }
+            .error-icon {
+              font-size: 64px;
+              color: #dc3545;
+              margin-bottom: 20px;
+            }
+            h1 {
+              color: #333;
+              margin: 0 0 10px 0;
+              font-size: 28px;
+            }
+            p {
+              color: #666;
+              font-size: 16px;
+              line-height: 1.6;
+              margin: 0 0 30px 0;
+            }
+            .btn {
+              display: inline-block;
+              background-color: #007bff;
+              color: white;
+              padding: 12px 32px;
+              text-decoration: none;
+              border-radius: 6px;
+              font-weight: bold;
+              transition: background-color 0.3s;
+              margin: 0 5px;
+            }
+            .btn:hover {
+              background-color: #0056b3;
+            }
+            .btn-secondary {
+              background-color: #6c757d;
+            }
+            .btn-secondary:hover {
+              background-color: #5a6268;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="error-icon">✗</div>
+            <h1>Verification Failed</h1>
+            <p>${result.message}</p>
+            <a href="${process.env.APP_URL || 'http://localhost:7042'}/api/auth/resend-verification" class="btn btn-secondary">Resend Verification Email</a>
+            <a href="${process.env.APP_URL || 'http://localhost:7042'}" class="btn">Go to Home</a>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+  } catch (error) {
+    logger.error('Email verification error', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    return res.status(500).json({
+      success: false,
+      error: 'Verification failed due to server error'
+    });
+  }
+});
+
+/**
+ * Resend verification email
+ * POST /api/auth/resend-verification
+ */
+router.post('/resend-verification', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Resend verification email with rate limiting
+    const result = await resendVerificationEmail(userId);
+
+    if (result.success) {
+      logger.info('Verification email resent', { userId });
+      return res.json({
+        success: true,
+        message: result.message
+      });
+    } else {
+      logger.warn('Failed to resend verification email', { 
+        userId,
+        reason: result.message 
+      });
+      return res.status(400).json({
+        success: false,
+        error: result.message
+      });
+    }
+  } catch (error) {
+    logger.error('Resend verification error', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to resend verification email'
+    });
+  }
+});
+
+/**
+ * Verify email token (legacy endpoint - redirects to new endpoint)
  * GET /api/auth/verify/:token
  */
 router.get('/verify/:token', async (req: Request, res: Response) => {
   try {
-    // TODO: Implement email verification logic
-    res.json({
-      success: true,
-      message: 'Email verification endpoint (not yet implemented)'
-    });
+    const { token } = req.params;
+    // Redirect to new endpoint with query parameter
+    res.redirect(`/api/auth/verify-email?token=${encodeURIComponent(token)}`);
   } catch (error) {
-    logger.error('Email verification error', { error });
+    logger.error('Email verification redirect error', { error });
     res.status(500).json({
       success: false,
       error: 'Verification failed'

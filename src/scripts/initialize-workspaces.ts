@@ -1,123 +1,107 @@
+#!/usr/bin/env node
 /**
- * Phase 6: Initialize Workspaces
- * Creates 20 generic workspaces with secure random passwords
+ * Manual Workspace Initialization Script
+ * Run this script to manually initialize workspaces
+ * 
+ * Usage:
+ *   npm run build && node dist/scripts/initialize-workspaces.js
+ *   
+ * Or directly with ts-node:
+ *   npx ts-node src/scripts/initialize-workspaces.ts
  */
 
-import crypto from 'crypto';
-import bcrypt from 'bcrypt';
-import db from '../db/connection';
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { initializeWorkspaces, getWorkspaceInitializationStatus } from '../services/workspace-initialization';
 import { logger } from '../utils/logger';
 
-interface WorkspaceConfig {
-  name: string;
-  slug: string;
-  username: string;
-  description: string;
-}
-
-const WORKSPACE_CONFIGS: WorkspaceConfig[] = [
-  { name: 'Workspace Alpha', slug: 'workspace-alpha', username: 'ws_alpha_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Beta', slug: 'workspace-beta', username: 'ws_beta_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Gamma', slug: 'workspace-gamma', username: 'ws_gamma_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Delta', slug: 'workspace-delta', username: 'ws_delta_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Epsilon', slug: 'workspace-epsilon', username: 'ws_epsilon_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Zeta', slug: 'workspace-zeta', username: 'ws_zeta_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Eta', slug: 'workspace-eta', username: 'ws_eta_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Theta', slug: 'workspace-theta', username: 'ws_theta_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Iota', slug: 'workspace-iota', username: 'ws_iota_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Kappa', slug: 'workspace-kappa', username: 'ws_kappa_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Lambda', slug: 'workspace-lambda', username: 'ws_lambda_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Mu', slug: 'workspace-mu', username: 'ws_mu_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Nu', slug: 'workspace-nu', username: 'ws_nu_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Xi', slug: 'workspace-xi', username: 'ws_xi_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Omicron', slug: 'workspace-omicron', username: 'ws_omicron_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Pi', slug: 'workspace-pi', username: 'ws_pi_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Rho', slug: 'workspace-rho', username: 'ws_rho_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Sigma', slug: 'workspace-sigma', username: 'ws_sigma_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Tau', slug: 'workspace-tau', username: 'ws_tau_user', description: 'Generic workspace for initial setup' },
-  { name: 'Workspace Upsilon', slug: 'workspace-upsilon', username: 'ws_upsilon_user', description: 'Generic workspace for initial setup' },
-];
-
-export async function initializeWorkspaces(): Promise<void> {
+/**
+ * Main function
+ */
+async function main(): Promise<void> {
   try {
-    // Security Note: Each workspace gets a unique random password instead of shared default
-    // Passwords are logged for admin access and should be stored securely
-    logger.info('Initializing 20 generic workspaces with unique random passwords...');
+    console.log('='.repeat(60));
+    console.log('Workspace Initialization Script');
+    console.log('='.repeat(60));
+    console.log('');
     
-    const createdWorkspaces: Array<{ name: string; slug: string; username: string; password: string }> = [];
-    let created = 0;
-    let existing = 0;
-
-    for (const config of WORKSPACE_CONFIGS) {
-      try {
-        // Generate cryptographically secure random password (16 characters)
-        const randomPassword = crypto.randomBytes(16).toString('base64').slice(0, 16);
-        const passwordHash = await bcrypt.hash(randomPassword, 10);
-        
-        const result = await db.query(
-          `INSERT INTO workspaces (name, slug, generic_username, generic_password_hash, description, status, is_activated)
-           VALUES ($1, $2, $3, $4, $5, 'active', false)
-           ON CONFLICT (slug) DO NOTHING
-           RETURNING id`,
-          [config.name, config.slug, config.username, passwordHash, config.description]
-        );
-
-        if (result.rows.length > 0) {
-          created++;
-          createdWorkspaces.push({
-            name: config.name,
-            slug: config.slug,
-            username: config.username,
-            password: randomPassword
-          });
-          logger.info(`Created workspace: ${config.name} (${config.slug})`);
-        } else {
-          existing++;
-          logger.debug(`Workspace already exists: ${config.slug}`);
-        }
-      } catch (error) {
-        logger.error(`Failed to create workspace ${config.slug}`, { error });
-      }
+    // Check current status
+    console.log('Checking current workspace status...');
+    const status = await getWorkspaceInitializationStatus();
+    
+    console.log('');
+    console.log('Current Status:');
+    console.log(`  Database Available: ${status.databaseAvailable ? '✓' : '✗'}`);
+    console.log(`  Workspaces Table: ${status.tableExists ? '✓' : '✗'}`);
+    console.log(`  Existing Workspaces: ${status.workspaceCount} / ${status.expectedCount}`);
+    console.log('');
+    
+    if (!status.databaseAvailable) {
+      console.error('❌ Database is not available');
+      console.error('   Please check your database connection settings in .env');
+      console.error('   Required environment variables:');
+      console.error('     - DB_HOST');
+      console.error('     - DB_PORT');
+      console.error('     - DB_NAME');
+      console.error('     - DB_USER');
+      console.error('     - DB_PASSWORD');
+      process.exit(1);
     }
-
-    logger.info(`Workspace initialization complete: ${created} created, ${existing} already existed`);
     
-    if (created > 0) {
-      logger.warn('='.repeat(80));
-      logger.warn('WORKSPACE CREDENTIALS - STORE SECURELY AND DELETE THIS LOG');
-      logger.warn('='.repeat(80));
-      logger.warn('The following credentials are for initial workspace access only.');
-      logger.warn('Users MUST activate workspaces with their own email/password.');
-      logger.warn('These generic credentials will be disabled after activation.');
-      logger.warn('');
-      
-      for (const ws of createdWorkspaces) {
-        logger.warn(`${ws.slug}:`);
-        logger.warn(`  Name: ${ws.name}`);
-        logger.warn(`  Username: ${ws.username}`);
-        logger.warn(`  Password: ${ws.password}`);
-        logger.warn('');
-      }
-      
-      logger.warn('='.repeat(80));
-      logger.warn('IMPORTANT: Copy these credentials to a secure location and delete this log!');
-      logger.warn('='.repeat(80));
+    if (status.workspaceCount === status.expectedCount && status.workspaceCount > 0) {
+      console.log('✓ All workspaces are already initialized');
+      console.log('  No action needed');
+      process.exit(0);
+    }
+    
+    // Initialize workspaces
+    console.log('Starting workspace initialization...');
+    console.log('');
+    
+    const result = await initializeWorkspaces();
+    
+    console.log('');
+    console.log('='.repeat(60));
+    console.log('Initialization Results:');
+    console.log('='.repeat(60));
+    console.log(`  Status: ${result.success ? '✓ SUCCESS' : '✗ FAILED'}`);
+    console.log(`  Message: ${result.message}`);
+    console.log('');
+    console.log('Statistics:');
+    console.log(`  Total Workspaces: ${result.stats.total}`);
+    console.log(`  Created: ${result.stats.created}`);
+    console.log(`  Already Existed: ${result.stats.skipped}`);
+    console.log(`  Failed: ${result.stats.failed}`);
+    console.log('='.repeat(60));
+    console.log('');
+    
+    if (result.success && result.stats.failed === 0) {
+      console.log('✓ Workspace initialization completed successfully');
+      process.exit(0);
+    } else if (result.success && result.stats.failed > 0) {
+      console.log('⚠ Workspace initialization completed with some failures');
+      console.log('  Check logs for details');
+      process.exit(0);
+    } else {
+      console.error('✗ Workspace initialization failed');
+      console.error('  Check logs for details');
+      process.exit(1);
     }
   } catch (error) {
-    logger.error('Failed to initialize workspaces', { error });
-    throw error;
+    console.error('');
+    console.error('❌ Fatal error during workspace initialization:');
+    console.error(error instanceof Error ? error.message : 'Unknown error');
+    console.error('');
+    logger.error('Workspace initialization script failed', {
+      error: error instanceof Error ? error.stack : 'Unknown error'
+    });
+    process.exit(1);
   }
 }
 
-// Run if executed directly
+// Run main function if executed directly
 if (require.main === module) {
-  initializeWorkspaces()
-    .then(() => {
-      logger.info('Workspace initialization script completed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      logger.error('Workspace initialization script failed', { error });
-      process.exit(1);
-    });
+  main();
 }
+

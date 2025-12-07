@@ -60,6 +60,8 @@ import geminiRoutes from './routes/gemini';
 import { initializeDatabase } from './automation/db/database';
 // Context-Memory Intelligence Layer
 import { initializeContextMemory } from './intelligence/context-memory';
+// Workspace Initialization Service
+import { initializeWorkspaces, getWorkspaceInitializationStatus } from './services/workspace-initialization';
 // Phase 3: Import advanced rate limiting and monitoring
 import { 
   authRateLimiter as advancedAuthLimiter,
@@ -89,13 +91,49 @@ async function initialize() {
     initializeBackupService();
     logger.info('Phase 4: Backup service initialized successfully');
     
-    // Phase 6: Initialize workspaces
-    // Commented out temporarily for demo - requires PostgreSQL
-    // await initializeWorkspaces();
-    logger.info('Phase 6: Workspaces initialization skipped (database not available)');
-    // Phase 6: Workspace initialization is available as a separate script
-    // Run: npm run build && node dist/scripts/initialize-workspaces.js
-    // Workspaces are not initialized automatically to avoid performance issues on restarts
+    // Phase 6: Initialize workspaces with graceful degradation
+    try {
+      const workspaceStatus = await getWorkspaceInitializationStatus();
+      
+      if (!workspaceStatus.databaseAvailable) {
+        logger.warn('Phase 6: Database not available, skipping workspace initialization');
+      } else if (!workspaceStatus.tableExists) {
+        logger.info('Phase 6: Workspaces table does not exist, creating and initializing...');
+        const result = await initializeWorkspaces();
+        
+        if (result.success) {
+          logger.info('Phase 6: Workspaces initialized successfully', { 
+            stats: result.stats 
+          });
+        } else {
+          logger.warn('Phase 6: Workspace initialization failed', { 
+            message: result.message 
+          });
+        }
+      } else if (workspaceStatus.workspaceCount === 0) {
+        logger.info('Phase 6: Workspaces table exists but empty, initializing...');
+        const result = await initializeWorkspaces();
+        
+        if (result.success) {
+          logger.info('Phase 6: Workspaces initialized successfully', { 
+            stats: result.stats 
+          });
+        } else {
+          logger.warn('Phase 6: Workspace initialization failed', { 
+            message: result.message 
+          });
+        }
+      } else {
+        logger.info('Phase 6: Workspaces already initialized', { 
+          count: workspaceStatus.workspaceCount,
+          expected: workspaceStatus.expectedCount 
+        });
+      }
+    } catch (error) {
+      logger.error('Phase 6: Workspace initialization error', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
   } catch (error) {
     logger.error('Initialization failed', { error });
     process.exit(1);
@@ -358,14 +396,6 @@ logger.info('Phase 6: Workspace management routes registered');
 app.use('/api/slack', slackRoutes);
 logger.info('Phase 6: Slack integration routes registered');
 logger.info('Workflow state management routes registered');
-
-// Phase 6: Workspace management routes
-app.use('/api/workspaces', workspacesRoutes);
-logger.info('Phase 6: Workspace management routes registered');
-
-// Phase 6: Slack integration routes
-app.use('/api/slack', slackRoutes);
-logger.info('Phase 6: Slack integration routes registered');
 
 // Gemini AI Integration routes
 app.use('/api/gemini', geminiRoutes);
