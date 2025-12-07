@@ -39,6 +39,64 @@ let repoStatsCache: RepoStatsCache = {
 };
 
 /**
+ * Get dashboard metrics (simplified for React UI)
+ * GET /api/metrics/dashboard
+ * Public endpoint with rate limiting
+ */
+router.get('/metrics', publicStatsLimiter, async (req, res: Response) => {
+  try {
+    // Get system-wide statistics (not user-specific)
+    // This is a public endpoint showing overall system health
+    
+    // Demo data configuration
+    const DEMO_METRICS = {
+      DEFAULT_ACTIVE_AGENTS: 8,
+      MIN_WORKFLOWS: 2,
+      MAX_WORKFLOW_RANGE: 5,
+      MIN_COMPLETED_TODAY: 20,
+      MAX_COMPLETED_RANGE: 50,
+      MIN_SUCCESS_RATE: 95,
+      MAX_SUCCESS_RATE_RANGE: 5,
+      ACTIVE_AGENT_RATIO: 0.5 // Assume 50% of agents are active
+    };
+    
+    // Count total agents from file system
+    const agentsPath = resolve(process.cwd(), '.github', 'agents');
+    let totalAgents = 0;
+    let activeAgents = 0;
+    
+    try {
+      const agentDirs = await fs.readdir(agentsPath, { withFileTypes: true });
+      totalAgents = agentDirs.filter(dir => dir.isDirectory()).length;
+      // Calculate active agents based on configured ratio
+      activeAgents = Math.ceil(totalAgents * DEMO_METRICS.ACTIVE_AGENT_RATIO);
+    } catch (error) {
+      logger.warn('Could not read agents directory', { error });
+    }
+
+    // For now, return demo/mock data with randomized values
+    // In production, this would query the database for actual metrics
+    const metrics = {
+      activeAgents: activeAgents || DEMO_METRICS.DEFAULT_ACTIVE_AGENTS,
+      runningWorkflows: Math.floor(Math.random() * DEMO_METRICS.MAX_WORKFLOW_RANGE) + DEMO_METRICS.MIN_WORKFLOWS,
+      completedToday: Math.floor(Math.random() * DEMO_METRICS.MAX_COMPLETED_RANGE) + DEMO_METRICS.MIN_COMPLETED_TODAY,
+      successRate: DEMO_METRICS.MIN_SUCCESS_RATE + Math.floor(Math.random() * DEMO_METRICS.MAX_SUCCESS_RATE_RANGE)
+    };
+
+    res.json(metrics);
+    logger.info('Dashboard metrics retrieved');
+  } catch (error) {
+    logger.error('Dashboard metrics fetch error:', error);
+    res.status(500).json({
+      activeAgents: 0,
+      runningWorkflows: 0,
+      completedToday: 0,
+      successRate: 0
+    });
+  }
+});
+
+/**
  * Get user dashboard data
  * GET /api/dashboard
  */

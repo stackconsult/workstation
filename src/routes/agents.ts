@@ -17,14 +17,21 @@ const router = Router();
 router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const agents = await agentOrchestrator.getAllAgents();
-
-    res.json({
-      success: true,
-      data: {
-        agents,
-        total: agents.length
-      }
-    });
+    
+    // Support both legacy format and new direct array format
+    if (req.query.format === 'simple') {
+      // Return agents array directly for React UI
+      res.json(agents);
+    } else {
+      // Return with wrapper for legacy compatibility
+      res.json({
+        success: true,
+        data: {
+          agents,
+          total: agents.length
+        }
+      });
+    }
 
     logger.info(`Retrieved ${agents.length} agents`);
   } catch (error) {

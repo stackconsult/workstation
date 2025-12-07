@@ -28,7 +28,9 @@ export const AgentsPage: React.FC = () => {
       const url = filter === 'all' ? '/api/agents' : `/api/agents?status=${filter}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch agents');
-      return response.json();
+      const result = await response.json();
+      // Handle both wrapped and unwrapped response formats
+      return result.data?.agents || result.agents || result;
     },
   });
 

@@ -17,6 +17,7 @@
 
 Workstation is a **production-ready** browser automation platform that combines:
 - 🤖 **Playwright-based browser control** - Navigate, click, type, extract, screenshot (✅ LIVE)
+- 🧠 **Gemini AI Integration** - Natural language workflow creation with Google Gemini AI (✅ NEW!)
 - 🔐 **Enterprise JWT authentication** - Secure API with rate limiting and CORS (✅ LIVE)
 - 🔄 **Workflow orchestration** - Multi-step automation with retry logic (✅ LIVE)
 - 💾 **Data persistence** - SQLite/PostgreSQL workflow storage (✅ LIVE)
@@ -35,7 +36,7 @@ Workstation is a **production-ready** browser automation platform that combines:
 - 🎨 **Wiki-Artist Agent** - Visual design enhancement with agentic handoff at 6:46 AM UTC (✅ Phase 8)
 - 🎓 **EduGit-CodeAgent** - Educational content enhancement tracking GitHub updates (Monday/Saturday 5 AM UTC) (✅ Phase 8)
 
-**Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, AI-powered browser automation, and automated code deployment workflows.
+**Perfect for:** Web scraping, form automation, E2E testing, monitoring, data collection, AI-powered browser automation, natural language workflow creation, and automated code deployment workflows.
 
 **Current Status**: 
 - ✅ **Phase 1-8 Complete**: Full stack automation platform with enterprise features
@@ -51,6 +52,21 @@ Workstation is a **production-ready** browser automation platform that combines:
 - ✅ **Phase 6 Complete**: Authentication (Passport.js, OAuth), Workspaces (20 multi-tenant), Slack integration
 - ✅ **Production Ready**: Kubernetes, Docker, Railway deployment with monitoring
 - 📊 **Repository Health**: 9.2/10 - EXCELLENT (see [REPOSITORY_STATS.md](REPOSITORY_STATS.md))
+
+---
+
+## 📚 **NEW! Business User Guides**
+
+**For Non-Technical Users:**
+- 📘 **[Business User Deployment Guide](DEPLOYMENT_GUIDE_FOR_BUSINESS_USERS.md)** - Complete step-by-step setup for business professionals (no coding required!)
+- 🤖 **[Gemini AI Integration Guide](GEMINI_BUSINESS_GUIDE.md)** - Create workflows with natural language using Google Gemini AI!
+- 📄 **[Quick Start Card](QUICK_START_CARD.md)** - One-page printable reference
+- 🎥 **[Video Tutorial Script](VIDEO_TUTORIAL_SCRIPT.md)** - Follow-along video guide (10 minutes)
+
+**For Developers:**
+- 🔧 **[UI Integration Guide](UI_INTEGRATION_GUIDE.md)** - Technical integration documentation
+- 🧠 **[Gemini Integration (Technical)](docs/guides/GEMINI_INTEGRATION.md)** - AI-powered workflow generation
+- ✅ **[Task Completion Summary](TASK_COMPLETION_UI_INTEGRATION.md)** - Implementation details
 
 ---
 

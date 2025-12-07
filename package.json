@@ -201,6 +201,7 @@
     "@types/helmet": "^0.0.48",
     "@types/jest": "^29.5.11",
     "@types/jsonwebtoken": "^9.0.5",
+    "@types/lusca": "^1.7.5",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^20.19.25",
     "@types/node-cron": "^3.0.11",

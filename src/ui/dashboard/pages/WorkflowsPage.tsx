@@ -28,7 +28,9 @@ export const WorkflowsPage: React.FC = () => {
       const url = filter === 'all' ? '/api/workflows' : `/api/workflows?status=${filter}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch workflows');
-      return response.json();
+      const result = await response.json();
+      // Handle both wrapped and unwrapped response formats
+      return result.data?.workflows || result.workflows || result;
     },
   });
 
