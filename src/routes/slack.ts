@@ -407,7 +407,7 @@ router.post('/test/:workspaceId', authenticateToken, async (req: AuthenticatedRe
                           slackError === 'is_archived' ||
                           slackError === 'channel_not_member';
     
-    let errorCode = ErrorCode.SLACK_INTEGRATION_ERROR;
+    const errorCode = ErrorCode.SLACK_INTEGRATION_ERROR;
     let nextSteps = [
       'Try again in a few moments',
       'Verify Slack integration is still connected',

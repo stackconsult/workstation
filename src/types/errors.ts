@@ -170,7 +170,7 @@ export function validatePassword(
     errors.push('Password must contain at least one number');
   }
   
-  if (rules.requireSpecialChar && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(trimmed)) {
+  if (rules.requireSpecialChar && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(trimmed)) {
     errors.push('Password must contain at least one special character');
   }
   
@@ -179,7 +179,7 @@ export function validatePassword(
   const hasUpper = /[A-Z]/.test(trimmed);
   const hasLower = /[a-z]/.test(trimmed);
   const hasNumber = /\d/.test(trimmed);
-  const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(trimmed);
+  const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(trimmed);
   const criteriaCount = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
   
   if (errors.length === 0) {

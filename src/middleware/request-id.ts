@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 
 // Extend Express Request to include requestId
+// TypeScript namespace augmentation is necessary here for Express types
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Express {
     interface Request {
@@ -15,6 +17,7 @@ declare global {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
 /**
  * Middleware to add correlation ID to all requests

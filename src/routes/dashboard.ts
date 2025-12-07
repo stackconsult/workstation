@@ -39,7 +39,7 @@ let repoStatsCache: RepoStatsCache = {
 };
 
 /**
- * Get dashboard metrics (simplified for React UI)
+ * Get dashboard metrics (production-ready with real database queries)
  * GET /api/metrics/dashboard
  * Public endpoint with rate limiting
  */
@@ -48,43 +48,69 @@ router.get('/metrics', publicStatsLimiter, async (req, res: Response) => {
     // Get system-wide statistics (not user-specific)
     // This is a public endpoint showing overall system health
     
-    // Demo data configuration
-    const DEMO_METRICS = {
-      DEFAULT_ACTIVE_AGENTS: 8,
-      MIN_WORKFLOWS: 2,
-      MAX_WORKFLOW_RANGE: 5,
-      MIN_COMPLETED_TODAY: 20,
-      MAX_COMPLETED_RANGE: 50,
-      MIN_SUCCESS_RATE: 95,
-      MAX_SUCCESS_RATE_RANGE: 5,
-      ACTIVE_AGENT_RATIO: 0.5 // Assume 50% of agents are active
-    };
-    
     // Count total agents from file system
     const agentsPath = resolve(process.cwd(), '.github', 'agents');
     let totalAgents = 0;
-    let activeAgents = 0;
     
     try {
       const agentDirs = await fs.readdir(agentsPath, { withFileTypes: true });
       totalAgents = agentDirs.filter(dir => dir.isDirectory()).length;
-      // Calculate active agents based on configured ratio
-      activeAgents = Math.ceil(totalAgents * DEMO_METRICS.ACTIVE_AGENT_RATIO);
     } catch (error) {
       logger.warn('Could not read agents directory', { error });
     }
 
-    // For now, return demo/mock data with randomized values
-    // In production, this would query the database for actual metrics
+    // Query database for real workflow metrics
+    let runningWorkflows = 0;
+    let completedToday = 0;
+    let successRate = 0;
+    
+    try {
+      // Get running workflows count
+      const runningResult = await db.query(
+        `SELECT COUNT(*) as count FROM executions WHERE status IN ('pending', 'running')`
+      );
+      runningWorkflows = parseInt(runningResult.rows[0]?.count || '0');
+      
+      // Get completed today count
+      const completedResult = await db.query(
+        `SELECT COUNT(*) as count FROM executions 
+         WHERE status = 'completed' 
+         AND DATE(created_at) = DATE('now')`
+      );
+      completedToday = parseInt(completedResult.rows[0]?.count || '0');
+      
+      // Calculate success rate (last 100 executions)
+      const successResult = await db.query(
+        `SELECT 
+          COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful,
+          COUNT(*) as total
+         FROM (
+           SELECT status FROM executions 
+           WHERE status IN ('completed', 'failed')
+           ORDER BY created_at DESC 
+           LIMIT 100
+         )`
+      );
+      const successful = parseInt(successResult.rows[0]?.successful || '0');
+      const total = parseInt(successResult.rows[0]?.total || '0');
+      successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+    } catch (dbError) {
+      logger.warn('Database query failed, using fallback values', { error: dbError });
+      // Fallback to reasonable defaults if database is unavailable
+      runningWorkflows = 0;
+      completedToday = 0;
+      successRate = 0;
+    }
+
     const metrics = {
-      activeAgents: activeAgents || DEMO_METRICS.DEFAULT_ACTIVE_AGENTS,
-      runningWorkflows: Math.floor(Math.random() * DEMO_METRICS.MAX_WORKFLOW_RANGE) + DEMO_METRICS.MIN_WORKFLOWS,
-      completedToday: Math.floor(Math.random() * DEMO_METRICS.MAX_COMPLETED_RANGE) + DEMO_METRICS.MIN_COMPLETED_TODAY,
-      successRate: DEMO_METRICS.MIN_SUCCESS_RATE + Math.floor(Math.random() * DEMO_METRICS.MAX_SUCCESS_RATE_RANGE)
+      activeAgents: totalAgents,
+      runningWorkflows,
+      completedToday,
+      successRate
     };
 
     res.json(metrics);
-    logger.info('Dashboard metrics retrieved');
+    logger.info('Dashboard metrics retrieved', { metrics });
   } catch (error) {
     logger.error('Dashboard metrics fetch error:', error);
     res.status(500).json({
