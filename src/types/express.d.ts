@@ -10,7 +10,7 @@ declare global {
     // Passport User type - compatible with JWTPayload
     // Must include userId for JWT compatibility
     interface User {
-      userId: string;  // Required by JWTPayload
+      userId: string; // Required by JWTPayload
       id: string;
       email: string;
       full_name?: string;

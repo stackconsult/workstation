@@ -3,7 +3,7 @@
  * Analyzes text sentiment using natural NLP library
  */
 
-import natural from 'natural';
+import natural from "natural";
 
 /**
  * Sentiment analyzer class using AFINN sentiment analysis
@@ -13,7 +13,11 @@ export class SentimentAnalyzer {
   private tokenizer: natural.WordTokenizer;
 
   constructor() {
-    this.analyzer = new natural.SentimentAnalyzer('English', natural.PorterStemmer, 'afinn');
+    this.analyzer = new natural.SentimentAnalyzer(
+      "English",
+      natural.PorterStemmer,
+      "afinn",
+    );
     this.tokenizer = new natural.WordTokenizer();
   }
 
@@ -36,7 +40,7 @@ export class SentimentAnalyzer {
     if (texts.length === 0) return 0;
 
     let totalScore = 0;
-    texts.forEach(text => {
+    texts.forEach((text) => {
       totalScore += this.analyzeSentiment(text);
     });
 
@@ -48,10 +52,10 @@ export class SentimentAnalyzer {
    * @param score Sentiment score
    * @returns Classification string
    */
-  classifySentiment(score: number): 'Positive' | 'Neutral' | 'Negative' {
-    if (score > 0.5) return 'Positive';
-    if (score < -0.5) return 'Negative';
-    return 'Neutral';
+  classifySentiment(score: number): "Positive" | "Neutral" | "Negative" {
+    if (score > 0.5) return "Positive";
+    if (score < -0.5) return "Negative";
+    return "Neutral";
   }
 
   /**
@@ -64,20 +68,46 @@ export class SentimentAnalyzer {
     const negativeWords = new Set<string>();
 
     // Common positive keywords in reviews
-    const positiveKeywords = ['excellent', 'great', 'amazing', 'fantastic', 'easy', 'simple', 'intuitive', 'helpful', 'responsive', 'reliable', 'fast', 'powerful'];
+    const positiveKeywords = [
+      "excellent",
+      "great",
+      "amazing",
+      "fantastic",
+      "easy",
+      "simple",
+      "intuitive",
+      "helpful",
+      "responsive",
+      "reliable",
+      "fast",
+      "powerful",
+    ];
     // Common negative keywords in reviews
-    const negativeKeywords = ['poor', 'bad', 'terrible', 'difficult', 'slow', 'buggy', 'expensive', 'complicated', 'confusing', 'unreliable', 'unresponsive', 'lacking'];
+    const negativeKeywords = [
+      "poor",
+      "bad",
+      "terrible",
+      "difficult",
+      "slow",
+      "buggy",
+      "expensive",
+      "complicated",
+      "confusing",
+      "unreliable",
+      "unresponsive",
+      "lacking",
+    ];
 
-    texts.forEach(text => {
+    texts.forEach((text) => {
       const lowerText = text.toLowerCase();
-      
-      positiveKeywords.forEach(keyword => {
+
+      positiveKeywords.forEach((keyword) => {
         if (lowerText.includes(keyword)) {
           positiveWords.add(keyword);
         }
       });
 
-      negativeKeywords.forEach(keyword => {
+      negativeKeywords.forEach((keyword) => {
         if (lowerText.includes(keyword)) {
           negativeWords.add(keyword);
         }
@@ -86,7 +116,7 @@ export class SentimentAnalyzer {
 
     return {
       positive: Array.from(positiveWords),
-      negative: Array.from(negativeWords)
+      negative: Array.from(negativeWords),
     };
   }
 }
