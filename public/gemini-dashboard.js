@@ -3,6 +3,18 @@ const API = window.location.origin;
 let workflow = null;
 let token = null;
 
+
+// Helper to escape HTML entities to prevent XSS
+function escapeHTML(str) {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 async function getToken() {
   if (token) return token;
   try {
@@ -32,10 +44,14 @@ function addMsg(role, content, isWf = false) {
   const msg = document.createElement('div');
   msg.className = `fade-in ${role === 'user' ? 'flex justify-end' : 'flex justify-start'}`;
 
-  let html = content;
+  let html;
   if (isWf) {
+    // Escape workflow content before embedding as JSON in HTML
     html = `<div class="text-green-400 mb-2"><i class="fas fa-check-circle mr-1"></i>Workflow generated!</div>
-            <pre class="text-xs bg-gray-900 p-2 rounded overflow-auto max-h-32">${JSON.stringify(content, null, 2)}</pre>`;
+            <pre class="text-xs bg-gray-900 p-2 rounded overflow-auto max-h-32">${escapeHTML(JSON.stringify(content, null, 2))}</pre>`;
+  } else {
+    // Escape user/assistant content before embedding
+    html = escapeHTML(content);
   }
 
   msg.innerHTML = `<div class="max-w-[85%] px-4 py-3 rounded-2xl ${role === 'user' ? 'bg-blue-600 rounded-br-sm' : 'bg-gray-700 rounded-bl-sm'}">
