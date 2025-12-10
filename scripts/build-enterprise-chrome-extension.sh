@@ -143,12 +143,14 @@ echo "📋 Copying Playwright automation features..."
 mkdir -p "$BUILD_DIR/playwright"
 cp -r "$ROOT_DIR/chrome-extension/playwright"/* "$BUILD_DIR/playwright/"
 
-# Libraries
+# Libraries (exclude TypeScript files)
 echo "📋 Copying required libraries..."
 mkdir -p "$BUILD_DIR/lib"
-cp -r "$ROOT_DIR/chrome-extension/lib"/* "$BUILD_DIR/lib/" 2>/dev/null || true
+# Only copy JavaScript files, not TypeScript source files
+find "$ROOT_DIR/chrome-extension/lib" -name "*.js" -exec cp {} "$BUILD_DIR/lib/" \; 2>/dev/null || true
+find "$ROOT_DIR/chrome-extension/lib" -name "*.json" -exec cp {} "$BUILD_DIR/lib/" \; 2>/dev/null || true
 
-echo "✅ Extension files copied"
+echo "✅ Extension files copied (TypeScript source files excluded)"
 
 # ============================================================================
 # PHASE 6: BUNDLE BACKEND API FOR EXTENSION
@@ -483,10 +485,14 @@ rm -rf node_modules 2>/dev/null || true
 rm -rf test 2>/dev/null || true
 rm -rf tests 2>/dev/null || true
 
+# Remove TypeScript source files (keep only compiled .js)
+echo "🧹 Removing TypeScript source files..."
+find . -name "*.ts" -not -name "*.d.ts" -delete 2>/dev/null || true
+
 # Remove .map files (optional - keep for debugging)
 # find . -name "*.map" -delete
 
-echo "✅ Cleaned development files"
+echo "✅ Cleaned development files and TypeScript sources"
 
 # ============================================================================
 # PHASE 11: VALIDATE MANIFEST
