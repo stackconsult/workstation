@@ -13,6 +13,21 @@
 
 ---
 
+## 🚀 **NEW: Chrome Extension Ready!**
+
+**Production ZIP files are already built and ready to use!** No build required.
+
+📦 **Download & Load:**
+- **Simple:** `dist/workstation-ai-agent-v2.1.0.zip` (109 KB)
+- **Enterprise:** `dist/workstation-ai-agent-enterprise-v2.1.0.zip` (143 KB)
+
+📖 **Quick Start:**
+- See: [⚡_CHROME_EXTENSION_READY.txt](⚡_CHROME_EXTENSION_READY.txt) - Fastest route
+- See: [QUICK_RUN.md](QUICK_RUN.md) - 60-second setup
+- See: [README_CHROME_EXTENSION.md](README_CHROME_EXTENSION.md) - Complete guide
+
+---
+
 ## ✨ What is Workstation?
 
 Workstation is a **production-ready** browser automation platform that combines:
