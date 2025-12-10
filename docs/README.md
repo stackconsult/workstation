@@ -228,3 +228,51 @@ Add your domain to `ALLOWED_ORIGINS` in backend `.env`
 - Verify token hasn't expired (default: 24h)
 
 ### Styles Not Loading
+
+**Cause:** CDN issue or network problem
+
+**Solution:**
+Download CSS/JS files locally or use different CDN
+
+---
+
+## 📋 Chrome Web Store Documentation (NEW)
+
+### Privacy Policy
+**Location:** `docs/privacy-policy.html`
+
+**Purpose:** Privacy policy for Chrome Web Store compliance
+
+**Key Information:**
+- What data is collected (workflows, settings, history - all stored locally)
+- How data is used (automation, persistence, improvement)
+- User rights (access, deletion, opt-out)
+- Compliance with GDPR, CCPA, and Chrome Web Store policies
+
+**Usage:**
+- Host on GitHub Pages: `https://creditXcredit.github.io/workstation/docs/privacy-policy.html`
+- Or link in Chrome Web Store listing description
+- Referenced in manifest.json via `homepage_url`
+
+**Status:** ✅ Complete and ready for deployment
+
+### Screenshot Guide
+**Location:** `docs/CHROME_WEB_STORE_SCREENSHOTS.md`
+
+**Purpose:** Complete guide for creating screenshots for Chrome Web Store submission
+
+**Contents:**
+- Screenshot size and format requirements (1280x800 or 640x400, PNG/JPEG)
+- 5 recommended screenshots with detailed capture instructions
+- Optional promotional images specifications
+- Screenshot best practices and tools
+- Upload process to Chrome Web Store
+
+**Status:** ✅ Complete guide, screenshots need to be created
+
+### Related Chrome Web Store Documentation
+- [Production Checklist](../CHROME_WEB_STORE_PRODUCTION_CHECKLIST.md) - 100+ item pre-deployment verification
+- [Enterprise Deployment](../CHROME_EXTENSION_ENTERPRISE_DEPLOYMENT.md) - Complete deployment guide
+- [Build Complete](../CHROME_EXTENSION_BUILD_COMPLETE.md) - Package contents and build summary
+
+---

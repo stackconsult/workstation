@@ -133,15 +133,31 @@ This checklist ensures your Workstation AI Agent Chrome extension and backend ar
 
 #### 3.2 Store Listing Preparation
 
+- [ ] **Privacy Policy** created and accessible
+  - [ ] Created at: `docs/privacy-policy.html`
+  - [ ] Hosted URL (choose one):
+    - [ ] GitHub Pages: `https://creditXcredit.github.io/workstation/privacy-policy.html`
+    - [ ] Or add to Chrome Web Store listing description
+  - [ ] URL added to manifest.json `homepage_url` field
+  - [ ] Privacy policy clearly explains:
+    - [ ] What data is collected (workflows, settings, history)
+    - [ ] How data is used (automation, persistence, improvement)
+    - [ ] How data is stored (locally in browser)
+    - [ ] How data is protected (CSP, validation, encryption)
+    - [ ] User's rights (access, deletion, opt-out)
+  - [ ] Compliance statements included (GDPR, CCPA)
+
 - [ ] **Screenshots** prepared (5 recommended)
   - [ ] Size: 1280x800 or 640x400
   - [ ] Format: PNG or JPEG
+  - [ ] Max file size: 2 MB per image
+  - [ ] See `docs/CHROME_WEB_STORE_SCREENSHOTS.md` for detailed guide
   - [ ] Show key features:
-    1. Extension popup with Execute tab
-    2. Visual workflow builder
-    3. Template library
-    4. Execution history
-    5. Settings panel
+    1. [ ] Extension popup with Execute tab
+    2. [ ] Visual workflow builder
+    3. [ ] Template library
+    4. [ ] Execution history
+    5. [ ] Settings panel
 
 - [ ] **Promotional images** created (optional but recommended)
   - [ ] Small tile: 440x280
@@ -165,19 +181,17 @@ This checklist ensures your Workstation AI Agent Chrome extension and backend ar
 
 #### 3.3 Privacy & Permissions
 
-- [ ] **Privacy Policy** URL provided (if collecting data)
-- [ ] Privacy policy clearly explains:
-  - [ ] What data is collected
-  - [ ] How data is used
-  - [ ] How data is stored
-  - [ ] How data is protected
-  - [ ] User's rights (access, deletion, etc.)
+- [ ] **Privacy Policy** URL verified and accessible
+  - [ ] URL: `https://github.com/creditXcredit/workstation/blob/main/docs/privacy-policy.html` (or GitHub Pages)
+  - [ ] Privacy policy URL added to Chrome Web Store listing
+  - [ ] Privacy policy covers all required sections (see docs/privacy-policy.html)
 
 - [ ] **Permissions justification** documented:
-  - [ ] `activeTab` - Why needed
-  - [ ] `storage` - Why needed
-  - [ ] `scripting` - Why needed
-  - [ ] `notifications` - Why needed
+  - [ ] `activeTab` - Execute automation workflows on current tab
+  - [ ] `storage` - Save workflows, settings, and execution history locally
+  - [ ] `scripting` - Inject automation scripts into web pages
+  - [ ] `notifications` - Notify users of workflow completion/errors
+  - [ ] `<all_urls>` - Allow automation on any website user chooses
 
 #### 3.4 Submission
 
