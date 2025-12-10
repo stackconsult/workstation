@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# Allow Chrome extension enterprise ZIP for release
+!dist/workstation-ai-agent-enterprise-*.zip
 .env
 *.log
 .DS_Store

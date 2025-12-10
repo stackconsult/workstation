@@ -3,6 +3,7 @@
   "name": "Workstation AI Agent",
   "version": "2.1.0",
   "description": "Enterprise browser automation with 25+ AI agents, MCP sync, and auto-update",
+  "homepage_url": "https://github.com/creditXcredit/workstation",
   "permissions": [
     "activeTab",
     "storage",
