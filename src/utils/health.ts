@@ -1,6 +1,8 @@
 /**
  * Enhanced health check with system metrics
  */
+import { isDatabaseConnected } from '../db/connection';
+
 export interface HealthStatus {
   status: 'ok' | 'degraded' | 'error';
   timestamp: string;
@@ -11,9 +13,13 @@ export interface HealthStatus {
     percentage: number;
   };
   version: string;
-  database?: {
-    status: string;
-    error?: string;
+  database: {
+    status: 'connected' | 'disconnected' | 'unknown';
+    connected: boolean;
+  };
+  dependencies: {
+    database: boolean;
+    websocket?: boolean;
   };
 }
 
@@ -23,12 +29,18 @@ export function getHealthStatus(): HealthStatus {
   const usedMemory = memoryUsage.heapUsed;
   const memoryPercentage = (usedMemory / totalMemory) * 100;
 
-  // Consider the service healthy unless memory is critically high (>95%)
-  // This is more appropriate for health checks as 90% is still operational
+  // Check database connection
+  const databaseConnected = isDatabaseConnected();
+
+  // Determine overall health status
   let status: 'ok' | 'degraded' | 'error' = 'ok';
+  
+  // Critical: memory at 98% or higher
   if (memoryPercentage > 98) {
     status = 'error';
-  } else if (memoryPercentage > 95) {
+  }
+  // Degraded: memory 95%+ OR database disconnected
+  else if (memoryPercentage > 95 || !databaseConnected) {
     status = 'degraded';
   }
 
@@ -42,5 +54,13 @@ export function getHealthStatus(): HealthStatus {
       percentage: Math.round(memoryPercentage),
     },
     version: process.env.npm_package_version || '1.0.0',
+    database: {
+      status: databaseConnected ? 'connected' : 'disconnected',
+      connected: databaseConnected
+    },
+    dependencies: {
+      database: databaseConnected,
+      // WebSocket status would be added here if available
+    }
   };
 }

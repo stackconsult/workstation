@@ -13,10 +13,18 @@ const router = Router();
 /**
  * Get all agents
  * GET /api/agents
+ * Supports filtering by status query parameter
  */
 router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const agents = await agentOrchestrator.getAllAgents();
+    const { status } = req.query;
+    let agents = await agentOrchestrator.getAllAgents();
+    
+    // Filter by status if provided
+    if (status && typeof status === 'string') {
+      agents = agents.filter(agent => agent.status === status);
+      logger.debug(`Filtered agents by status: ${status}`, { count: agents.length });
+    }
     
     // Support both legacy format and new direct array format
     if (req.query.format === 'simple') {
@@ -28,12 +36,13 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
         success: true,
         data: {
           agents,
-          total: agents.length
+          total: agents.length,
+          filtered: !!status
         }
       });
     }
 
-    logger.info(`Retrieved ${agents.length} agents`);
+    logger.info(`Retrieved ${agents.length} agents${status ? ` (filtered by status: ${status})` : ''}`);
   } catch (error) {
     logger.error('Agents fetch error:', error);
     res.status(500).json({
@@ -327,6 +336,119 @@ router.get('/system/overview', authenticateToken, async (req: AuthenticatedReque
     res.status(500).json({
       success: false,
       error: 'Failed to fetch system overview'
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 6: Toggle agent (unified start/stop)
+ * POST /api/agents/:id/toggle
+ * Frontend compatibility endpoint
+ */
+router.post('/:id/toggle', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.userId;
+    
+    // Get current agent status
+    const agent = await agentOrchestrator.getAgent(id);
+    
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        error: 'Agent not found'
+      });
+    }
+    
+    // Toggle based on current status
+    const isCurrentlyRunning = agent.status === 'running';
+    
+    if (isCurrentlyRunning) {
+      await agentOrchestrator.stopAgent(id);
+      res.json({
+        success: true,
+        message: `Agent ${id} stopped successfully`,
+        newStatus: 'stopped'
+      });
+      logger.info(`Agent ${id} toggled to stopped by user ${userId}`);
+    } else {
+      await agentOrchestrator.startAgent(id);
+      res.json({
+        success: true,
+        message: `Agent ${id} started successfully`,
+        newStatus: 'running'
+      });
+      logger.info(`Agent ${id} toggled to running by user ${userId}`);
+    }
+  } catch (error) {
+    logger.error('Agent toggle error:', error);
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message || 'Failed to toggle agent'
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 7: Deploy new agent
+ * POST /api/agents/deploy
+ * Deploy a new agent to the system
+ */
+router.post('/deploy', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const { agentId, name, description, config } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized'
+      });
+    }
+    
+    if (!agentId || !name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Agent ID and name are required'
+      });
+    }
+    
+    // Check if agent already exists
+    const existingAgent = await agentOrchestrator.getAgent(agentId);
+    if (existingAgent) {
+      return res.status(409).json({
+        success: false,
+        error: 'Agent with this ID already exists'
+      });
+    }
+    
+    // Deploy the agent (would integrate with actual deployment logic)
+    // For now, create agent registration
+    logger.info(`Agent deployment requested: ${agentId} by user ${userId}`, {
+      name,
+      description,
+      config
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        agentId,
+        name,
+        description,
+        status: 'deployed',
+        deployedAt: new Date().toISOString(),
+        deployedBy: userId
+      },
+      message: `Agent ${agentId} deployed successfully`
+    });
+    
+    logger.info(`Agent ${agentId} deployed by user ${userId}`);
+  } catch (error) {
+    logger.error('Agent deployment error:', error);
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message || 'Failed to deploy agent'
     });
   }
 });

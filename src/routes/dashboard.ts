@@ -12,6 +12,7 @@ import { join, resolve } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import rateLimit from 'express-rate-limit';
+import os from 'os';
 
 const router = Router();
 const execAsync = promisify(exec);
@@ -620,6 +621,266 @@ router.get('/deploy/status', authenticateToken, async (req: AuthenticatedRequest
     res.status(500).json({
       success: false,
       error: 'Failed to check deployment status'
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 1: Dashboard metrics alias
+ * GET /api/metrics/dashboard
+ * Alias for /api/dashboard/metrics (frontend compatibility)
+ */
+router.get('/metrics/dashboard', publicStatsLimiter, async (req, res: Response) => {
+  try {
+    // Get system-wide statistics (public endpoint)
+    const agentsPath = resolve(process.cwd(), '.github', 'agents');
+    let totalAgents = 0;
+    
+    try {
+      const agentDirs = await fs.readdir(agentsPath, { withFileTypes: true });
+      totalAgents = agentDirs.filter(dir => dir.isDirectory()).length;
+    } catch (error) {
+      logger.warn('Could not read agents directory', { error });
+    }
+
+    let runningWorkflows = 0;
+    let completedToday = 0;
+    let successRate = 0;
+    
+    try {
+      const runningResult = await db.query(
+        `SELECT COUNT(*) as count FROM executions WHERE status IN ('pending', 'running')`
+      );
+      runningWorkflows = parseInt(runningResult.rows[0]?.count || '0');
+      
+      const completedResult = await db.query(
+        `SELECT COUNT(*) as count FROM executions 
+         WHERE status = 'completed' 
+         AND DATE(created_at) = CURRENT_DATE`
+      );
+      completedToday = parseInt(completedResult.rows[0]?.count || '0');
+      
+      const successResult = await db.query(
+        `SELECT 
+          COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful,
+          COUNT(*) as total
+         FROM (
+           SELECT status FROM executions 
+           WHERE status IN ('completed', 'failed')
+           ORDER BY created_at DESC 
+           LIMIT 100
+         ) recent_executions`
+      );
+      const successful = parseInt(successResult.rows[0]?.successful || '0');
+      const total = parseInt(successResult.rows[0]?.total || '0');
+      successRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+    } catch (dbError) {
+      logger.warn('Database query failed, using fallback values', { error: dbError });
+    }
+
+    const metrics = {
+      activeAgents: totalAgents,
+      runningWorkflows,
+      completedToday,
+      successRate
+    };
+
+    res.json(metrics);
+    logger.info('Dashboard metrics retrieved (via alias)', { metrics });
+  } catch (error) {
+    logger.error('Dashboard metrics fetch error:', error);
+    res.status(500).json({
+      activeAgents: 0,
+      runningWorkflows: 0,
+      completedToday: 0,
+      successRate: 0
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 2: Recent activity feed
+ * GET /api/activity/recent
+ * Public endpoint with rate limiting
+ */
+router.get('/activity/recent', publicStatsLimiter, async (req, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    
+    // Query recent workflow executions and agent tasks
+    const activities: any[] = [];
+    
+    try {
+      const executionsResult = await db.query(
+        `SELECT 
+          'workflow' as type,
+          e.id,
+          e.status,
+          e.created_at,
+          COALESCE(sw.name, 'Unnamed Workflow') as name
+         FROM executions e
+         LEFT JOIN saved_workflows sw ON e.workflow_id = sw.id
+         ORDER BY e.created_at DESC
+         LIMIT $1`,
+        [limit]
+      );
+      
+      activities.push(...executionsResult.rows);
+    } catch (dbError) {
+      logger.warn('Could not fetch workflow executions', { error: dbError });
+    }
+    
+    // Sort by created_at descending
+    activities.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    
+    res.json({
+      success: true,
+      data: activities.slice(0, limit),
+      total: activities.length
+    });
+    
+    logger.info('Recent activity retrieved', { count: activities.length });
+  } catch (error) {
+    logger.error('Activity feed fetch error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch recent activity',
+      data: []
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 3: Performance metrics
+ * GET /api/metrics/performance
+ * Returns system performance data
+ */
+router.get('/metrics/performance', publicStatsLimiter, async (req, res: Response) => {
+  try {
+    const metrics = {
+      cpu: {
+        usage: process.cpuUsage(),
+        loadAverage: os.loadavg()
+      },
+      memory: {
+        used: process.memoryUsage().heapUsed,
+        total: process.memoryUsage().heapTotal,
+        rss: process.memoryUsage().rss,
+        external: process.memoryUsage().external,
+        percentage: (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100
+      },
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    };
+    
+    res.json({
+      success: true,
+      data: metrics
+    });
+    
+    logger.debug('Performance metrics retrieved', { memoryUsage: metrics.memory.percentage });
+  } catch (error) {
+    logger.error('Performance metrics fetch error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch performance metrics'
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 4: Resource usage metrics
+ * GET /api/metrics/resources
+ * Returns detailed resource usage
+ */
+router.get('/metrics/resources', publicStatsLimiter, async (req, res: Response) => {
+  try {
+    const resources = {
+      cpu: {
+        count: os.cpus().length,
+        model: os.cpus()[0]?.model || 'Unknown',
+        speed: os.cpus()[0]?.speed || 0,
+        loadAverage: os.loadavg()
+      },
+      memory: {
+        total: os.totalmem(),
+        free: os.freemem(),
+        used: os.totalmem() - os.freemem(),
+        usagePercentage: ((os.totalmem() - os.freemem()) / os.totalmem()) * 100
+      },
+      process: {
+        memoryUsage: process.memoryUsage(),
+        cpuUsage: process.cpuUsage(),
+        uptime: process.uptime()
+      },
+      system: {
+        platform: os.platform(),
+        arch: os.arch(),
+        hostname: os.hostname(),
+        uptime: os.uptime()
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    res.json({
+      success: true,
+      data: resources
+    });
+    
+    logger.debug('Resource metrics retrieved');
+  } catch (error) {
+    logger.error('Resource metrics fetch error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch resource metrics'
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 5: Error logs
+ * GET /api/logs/errors
+ * Returns recent error logs (requires authentication)
+ */
+router.get('/logs/errors', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    
+    // In production, this would query a logging database or service
+    // For now, return structured error log format
+    const errors: any[] = [];
+    
+    try {
+      // Try to read from database if error_logs table exists
+      const errorResult = await db.query(
+        `SELECT id, level, message, stack, timestamp, context
+         FROM error_logs
+         ORDER BY timestamp DESC
+         LIMIT $1`,
+        [limit]
+      );
+      
+      errors.push(...errorResult.rows);
+    } catch (dbError) {
+      // Table might not exist, return empty array
+      logger.warn('Error logs table not found or inaccessible', { error: dbError });
+    }
+    
+    res.json({
+      success: true,
+      data: errors,
+      total: errors.length
+    });
+    
+    logger.info('Error logs retrieved', { count: errors.length });
+  } catch (error) {
+    logger.error('Error logs fetch error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch error logs',
+      data: []
     });
   }
 });

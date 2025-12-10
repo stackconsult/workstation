@@ -190,12 +190,8 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration with environment-based origins
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : process.env.NODE_ENV === 'production' 
-    ? [] // No origins allowed by default in production - must be explicitly set
-    : ['http://localhost:3000', 'http://localhost:3001']; // Development defaults
+// CORS configuration with environment-based origins (validated at startup)
+const allowedOrigins = envConfig.corsOrigins;
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -206,7 +202,7 @@ app.use(cors({
     
     if (allowedOrigins.length === 0 && process.env.NODE_ENV === 'production') {
       logger.warn('CORS request blocked - no allowed origins configured', { origin });
-      return callback(new Error('CORS not allowed'), false);
+      return callback(new Error('CORS not allowed - no origins configured'), false);
     }
     
     if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
@@ -221,13 +217,16 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(express.json());
+// Request size limits to prevent DOS attacks via memory exhaustion
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Phase 6: Session support for Passport
-// Note: CSRF protection for OAuth flows is handled via state parameter validation in passport strategies
+// Note: Use separate SESSION_SECRET from JWT_SECRET for security
+// CSRF protection for OAuth flows is handled via state parameter validation in passport strategies
 // JWT-authenticated API endpoints are naturally CSRF-resistant (no cookies used for auth)
 app.use(session({
-  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'dev-session-secret-change-in-production',
+  secret: envConfig.sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {

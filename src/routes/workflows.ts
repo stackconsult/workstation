@@ -13,6 +13,7 @@ const router = Router();
 /**
  * Get all user workflows
  * GET /api/workflows
+ * Supports status filter query parameter
  */
 router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -25,23 +26,27 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
       });
     }
 
-    const { category, sortBy = 'updated_at', order = 'DESC', limit = 50, offset = 0 } = req.query;
+    const { category, status, sortBy = 'updated_at', order = 'DESC', limit = 50, offset = 0 } = req.query;
 
     let query = `
       SELECT 
-        id,
-        name,
-        description,
-        category,
-        actions,
-        is_template,
-        total_executions,
-        successful_executions,
-        avg_duration_ms,
-        created_at,
-        updated_at
-      FROM saved_workflows
-      WHERE user_id = $1
+        sw.id,
+        sw.name,
+        sw.description,
+        sw.category,
+        sw.actions,
+        sw.is_template,
+        sw.total_executions,
+        sw.successful_executions,
+        sw.avg_duration_ms,
+        sw.created_at,
+        sw.updated_at,
+        COALESCE(
+          (SELECT status FROM executions WHERE workflow_id = sw.id ORDER BY created_at DESC LIMIT 1),
+          'idle'
+        ) as current_status
+      FROM saved_workflows sw
+      WHERE sw.user_id = $1
     `;
 
     const queryParams: any[] = [userId];
@@ -49,23 +54,32 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
     // Filter by category if provided
     if (category) {
       queryParams.push(category);
-      query += ` AND category = $${queryParams.length}`;
+      query += ` AND sw.category = $${queryParams.length}`;
+    }
+    
+    // Filter by status if provided (requires subquery)
+    if (status) {
+      queryParams.push(status);
+      query += ` AND COALESCE(
+        (SELECT status FROM executions WHERE workflow_id = sw.id ORDER BY created_at DESC LIMIT 1),
+        'idle'
+      ) = $${queryParams.length}`;
     }
 
     // Add sorting
     const sortFieldMap: { [key: string]: string } = {
-      created_at: "created_at",
-      updated_at: "updated_at",
-      name: "name",
-      total_executions: "total_executions",
-      avg_duration_ms: "avg_duration_ms"
+      created_at: "sw.created_at",
+      updated_at: "sw.updated_at",
+      name: "sw.name",
+      total_executions: "sw.total_executions",
+      avg_duration_ms: "sw.avg_duration_ms"
     };
     const orderMap: { [key: string]: "ASC" | "DESC" } = {
       ASC: "ASC",
       DESC: "DESC"
     };
 
-    const sortField = sortFieldMap[sortBy as string] ?? "updated_at";
+    const sortField = sortFieldMap[sortBy as string] ?? "sw.updated_at";
     const sortOrder = orderMap[(order as string).toUpperCase()] ?? "DESC";
 
     query += ` ORDER BY ${sortField} ${sortOrder}`;
@@ -84,6 +98,14 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
       countParams.push(category);
       countQuery += ` AND category = $${countParams.length}`;
     }
+    
+    if (status) {
+      countParams.push(status);
+      countQuery += ` AND COALESCE(
+        (SELECT status FROM executions WHERE workflow_id = saved_workflows.id ORDER BY created_at DESC LIMIT 1),
+        'idle'
+      ) = $${countParams.length}`;
+    }
 
     const countResult = await db.query(countQuery, countParams);
     const totalCount = parseInt(countResult.rows[0].count);
@@ -97,11 +119,15 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
           limit: parseInt(limit as string),
           offset: parseInt(offset as string),
           hasMore: (parseInt(offset as string) + result.rows.length) < totalCount
+        },
+        filters: {
+          category: category || null,
+          status: status || null
         }
       }
     });
 
-    logger.info(`Workflows retrieved for user ${userId}: ${result.rows.length} workflows`);
+    logger.info(`Retrieved ${result.rows.length} workflows for user ${userId}${status ? ` (filtered by status: ${status})` : ''}`);
   } catch (error) {
     logger.error('Workflows fetch error:', error);
     res.status(500).json({
@@ -422,6 +448,86 @@ router.get('/:id/executions', authenticateToken, async (req: AuthenticatedReques
     res.status(500).json({
       success: false,
       error: 'Failed to fetch execution history'
+    });
+  }
+});
+
+/**
+ * MISSING ENDPOINT 8: Execute workflow
+ * POST /api/workflows/:id/execute
+ * Frontend compatibility endpoint
+ */
+router.post('/:id/execute', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const { id } = req.params;
+    const { inputs } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized'
+      });
+    }
+
+    // Check workflow ownership
+    const workflowResult = await db.query(
+      'SELECT * FROM saved_workflows WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+
+    if (workflowResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Workflow not found or unauthorized'
+      });
+    }
+
+    const workflow = workflowResult.rows[0];
+
+    // Create execution record
+    const executionResult = await db.query(
+      `INSERT INTO executions 
+        (workflow_id, status, steps_completed, total_steps)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [id, 'pending', 0, workflow.actions?.length || 0]
+    );
+
+    const execution = executionResult.rows[0];
+
+    // Start workflow execution asynchronously (would integrate with actual execution engine)
+    logger.info(`Workflow execution started: ${execution.id} for workflow ${id} by user ${userId}`, {
+      workflowName: workflow.name,
+      inputs
+    });
+
+    res.json({
+      success: true,
+      data: {
+        executionId: execution.id,
+        status: execution.status,
+        workflowId: id,
+        startedAt: execution.created_at
+      },
+      message: 'Workflow execution started'
+    });
+
+    // Update workflow statistics
+    await db.query(
+      `UPDATE saved_workflows 
+       SET total_executions = total_executions + 1, 
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [id]
+    );
+
+    logger.info(`Workflow ${id} executed by user ${userId}, execution ID: ${execution.id}`);
+  } catch (error) {
+    logger.error('Workflow execution error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to execute workflow'
     });
   }
 });
