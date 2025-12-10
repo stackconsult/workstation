@@ -1,18 +1,22 @@
 /**
  * Workflow History - Context-Memory Intelligence Layer
- * 
+ *
  * Tracks workflow execution history, performance metrics, and pattern detection
  * for continuous improvement and optimization.
  */
 
-import { getDatabase, generateId, getCurrentTimestamp } from '../../automation/db/database';
-import { logger } from '../../utils/logger';
+import {
+  getDatabase,
+  generateId,
+  getCurrentTimestamp,
+} from "../../automation/db/database";
+import { logger } from "../../utils/logger";
 import {
   WorkflowHistoryRecord,
   ExecutionMetrics,
   WorkflowPattern,
-  WorkflowHistoryQueryOptions
-} from './types';
+  WorkflowHistoryQueryOptions,
+} from "./types";
 
 /**
  * WorkflowHistory manages execution tracking and pattern analysis
@@ -22,8 +26,8 @@ export class WorkflowHistory {
   private initialized: boolean = false;
 
   constructor() {
-    this.initializeSchema().catch(error => {
-      logger.error('Failed to initialize WorkflowHistory schema', { error });
+    this.initializeSchema().catch((error) => {
+      logger.error("Failed to initialize WorkflowHistory schema", { error });
     });
   }
 
@@ -76,9 +80,9 @@ export class WorkflowHistory {
       `);
 
       this.initialized = true;
-      logger.info('WorkflowHistory schema initialized');
+      logger.info("WorkflowHistory schema initialized");
     } catch (error) {
-      logger.error('WorkflowHistory schema initialization failed', { error });
+      logger.error("WorkflowHistory schema initialization failed", { error });
       throw error;
     }
   }
@@ -89,11 +93,11 @@ export class WorkflowHistory {
   async recordExecution(
     workflowId: string,
     executionId: string,
-    status: WorkflowHistoryRecord['status'],
+    status: WorkflowHistoryRecord["status"],
     metrics: ExecutionMetrics,
     entitiesAccessed: string[] = [],
     errorMessage?: string,
-    retryCount: number = 0
+    retryCount: number = 0,
   ): Promise<WorkflowHistoryRecord> {
     try {
       const db = getDatabase();
@@ -109,7 +113,7 @@ export class WorkflowHistory {
         metrics,
         entities_accessed: entitiesAccessed,
         error_message: errorMessage,
-        retry_count: retryCount
+        retry_count: retryCount,
       };
 
       await db.run(
@@ -126,22 +130,22 @@ export class WorkflowHistory {
         JSON.stringify(record.entities_accessed),
         record.error_message,
         record.retry_count,
-        timestamp
+        timestamp,
       );
 
-      logger.info('Workflow execution recorded', {
+      logger.info("Workflow execution recorded", {
         recordId,
         workflowId,
         executionId,
-        status
+        status,
       });
 
       return record;
     } catch (error) {
-      logger.error('Failed to record workflow execution', {
+      logger.error("Failed to record workflow execution", {
         error,
         workflowId,
-        executionId
+        executionId,
       });
       throw error;
     }
@@ -152,9 +156,9 @@ export class WorkflowHistory {
    */
   async completeExecution(
     recordId: string,
-    status: WorkflowHistoryRecord['status'],
+    status: WorkflowHistoryRecord["status"],
     durationMs: number,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     try {
       const db = getDatabase();
@@ -171,21 +175,21 @@ export class WorkflowHistory {
         durationMs,
         status,
         errorMessage,
-        recordId
+        recordId,
       );
 
-      logger.info('Workflow execution completed', {
+      logger.info("Workflow execution completed", {
         recordId,
         status,
-        durationMs
+        durationMs,
       });
 
       // Trigger pattern detection asynchronously
-      this.detectPatternsAsync(recordId).catch(err => {
-        logger.warn('Pattern detection failed', { error: err, recordId });
+      this.detectPatternsAsync(recordId).catch((err) => {
+        logger.warn("Pattern detection failed", { error: err, recordId });
       });
     } catch (error) {
-      logger.error('Failed to complete execution', { error, recordId });
+      logger.error("Failed to complete execution", { error, recordId });
       throw error;
     }
   }
@@ -193,53 +197,55 @@ export class WorkflowHistory {
   /**
    * Query workflow history
    */
-  async queryHistory(options: WorkflowHistoryQueryOptions = {}): Promise<WorkflowHistoryRecord[]> {
+  async queryHistory(
+    options: WorkflowHistoryQueryOptions = {},
+  ): Promise<WorkflowHistoryRecord[]> {
     try {
       const db = getDatabase();
       const conditions: string[] = [];
       const params: unknown[] = [];
 
       if (options.workflow_id) {
-        conditions.push('workflow_id = ?');
+        conditions.push("workflow_id = ?");
         params.push(options.workflow_id);
       }
 
       if (options.status) {
-        conditions.push('status = ?');
+        conditions.push("status = ?");
         params.push(options.status);
       }
 
       if (options.start_date) {
-        conditions.push('started_at >= ?');
+        conditions.push("started_at >= ?");
         params.push(options.start_date);
       }
 
       if (options.end_date) {
-        conditions.push('started_at <= ?');
+        conditions.push("started_at <= ?");
         params.push(options.end_date);
       }
 
-      let query = 'SELECT * FROM workflow_history';
+      let query = "SELECT * FROM workflow_history";
       if (conditions.length > 0) {
-        query += ' WHERE ' + conditions.join(' AND ');
+        query += " WHERE " + conditions.join(" AND ");
       }
 
-      query += ' ORDER BY started_at DESC';
+      query += " ORDER BY started_at DESC";
 
       if (options.limit) {
-        query += ' LIMIT ?';
+        query += " LIMIT ?";
         params.push(options.limit);
       }
 
       if (options.offset) {
-        query += ' OFFSET ?';
+        query += " OFFSET ?";
         params.push(options.offset);
       }
 
       const rows = await db.all(query, ...params);
-      return rows.map(row => this.deserializeRecord(row));
+      return rows.map((row) => this.deserializeRecord(row));
     } catch (error) {
-      logger.error('Failed to query workflow history', { error, options });
+      logger.error("Failed to query workflow history", { error, options });
       return [];
     }
   }
@@ -247,13 +253,15 @@ export class WorkflowHistory {
   /**
    * Get execution statistics for a workflow
    */
-  async getWorkflowStatistics(workflowId: string): Promise<Record<string, unknown>> {
+  async getWorkflowStatistics(
+    workflowId: string,
+  ): Promise<Record<string, unknown>> {
     try {
       const db = getDatabase();
 
       const total = await db.get<{ count: number }>(
-        'SELECT COUNT(*) as count FROM workflow_history WHERE workflow_id = ?',
-        workflowId
+        "SELECT COUNT(*) as count FROM workflow_history WHERE workflow_id = ?",
+        workflowId,
       );
 
       const byStatus = await db.all<Array<{ status: string; count: number }>>(
@@ -261,29 +269,29 @@ export class WorkflowHistory {
          FROM workflow_history 
          WHERE workflow_id = ? 
          GROUP BY status`,
-        workflowId
+        workflowId,
       );
 
       const avgDuration = await db.get<{ avg_duration: number }>(
         `SELECT AVG(duration_ms) as avg_duration 
          FROM workflow_history 
          WHERE workflow_id = ? AND duration_ms IS NOT NULL`,
-        workflowId
+        workflowId,
       );
 
       const recentExecutions = await this.queryHistory({
         workflow_id: workflowId,
-        limit: 10
+        limit: 10,
       });
 
       return {
         total_executions: total?.count || 0,
         by_status: byStatus || [],
         average_duration_ms: avgDuration?.avg_duration || 0,
-        recent_executions: recentExecutions
+        recent_executions: recentExecutions,
       };
     } catch (error) {
-      logger.error('Failed to get workflow statistics', { error, workflowId });
+      logger.error("Failed to get workflow statistics", { error, workflowId });
       return {};
     }
   }
@@ -299,7 +307,7 @@ export class WorkflowHistory {
       }
 
       // Analyze for failure patterns
-      if (record.status === 'failure') {
+      if (record.status === "failure") {
         await this.detectFailurePattern(record);
       }
 
@@ -309,28 +317,30 @@ export class WorkflowHistory {
       }
 
       // Analyze for success sequences
-      if (record.status === 'success') {
+      if (record.status === "success") {
         await this.detectSuccessPattern(record);
       }
     } catch (error) {
-      logger.error('Pattern detection failed', { error, recordId });
+      logger.error("Pattern detection failed", { error, recordId });
     }
   }
 
   /**
    * Detect failure patterns
    */
-  private async detectFailurePattern(record: WorkflowHistoryRecord): Promise<void> {
+  private async detectFailurePattern(
+    record: WorkflowHistoryRecord,
+  ): Promise<void> {
     try {
       const db = getDatabase();
-      
+
       // Count recent failures for this workflow
       const recentFailures = await db.get<{ count: number }>(
         `SELECT COUNT(*) as count 
          FROM workflow_history 
          WHERE workflow_id = ? AND status = 'failure' 
          AND started_at > datetime('now', '-7 days')`,
-        record.workflow_id
+        record.workflow_id,
       );
 
       const failureCount = recentFailures?.count || 0;
@@ -342,27 +352,30 @@ export class WorkflowHistory {
 
         const pattern: WorkflowPattern = {
           id: patternId,
-          pattern_type: 'failure_point',
+          pattern_type: "failure_point",
           description: `Workflow ${record.workflow_id} has failed ${failureCount} times in the past week`,
           confidence,
           occurrences: failureCount,
           first_detected: record.started_at,
           last_detected: record.started_at,
           workflow_ids: [record.workflow_id],
-          recommendation: 'Review workflow configuration and add error handling'
+          recommendation:
+            "Review workflow configuration and add error handling",
         };
 
         await this.savePattern(pattern);
       }
     } catch (error) {
-      logger.error('Failed to detect failure pattern', { error, record });
+      logger.error("Failed to detect failure pattern", { error, record });
     }
   }
 
   /**
    * Detect performance bottleneck patterns
    */
-  private async detectPerformancePattern(record: WorkflowHistoryRecord): Promise<void> {
+  private async detectPerformancePattern(
+    record: WorkflowHistoryRecord,
+  ): Promise<void> {
     try {
       const db = getDatabase();
 
@@ -371,7 +384,7 @@ export class WorkflowHistory {
         `SELECT AVG(duration_ms) as avg_duration, COUNT(*) as count 
          FROM workflow_history 
          WHERE workflow_id = ? AND duration_ms IS NOT NULL`,
-        record.workflow_id
+        record.workflow_id,
       );
 
       if (!avgData || avgData.count < 5) {
@@ -387,30 +400,36 @@ export class WorkflowHistory {
       }
       const durationMs = record.duration_ms;
       const patternId = `bottleneck_${record.workflow_id}`;
-      const confidence = Math.min((durationMs - avgDuration) / avgDuration, 1.0);
+      const confidence = Math.min(
+        (durationMs - avgDuration) / avgDuration,
+        1.0,
+      );
 
       const pattern: WorkflowPattern = {
         id: patternId,
-        pattern_type: 'performance_bottleneck',
+        pattern_type: "performance_bottleneck",
         description: `Workflow execution took ${durationMs}ms, ${Math.round((durationMs / avgDuration - 1) * 100)}% slower than average`,
         confidence,
         occurrences: 1,
         first_detected: record.started_at,
         last_detected: record.started_at,
         workflow_ids: [record.workflow_id],
-        recommendation: 'Review task dependencies and consider parallel execution'
+        recommendation:
+          "Review task dependencies and consider parallel execution",
       };
 
       await this.savePattern(pattern);
     } catch (error) {
-      logger.error('Failed to detect performance pattern', { error, record });
+      logger.error("Failed to detect performance pattern", { error, record });
     }
   }
 
   /**
    * Detect success sequence patterns
    */
-  private async detectSuccessPattern(record: WorkflowHistoryRecord): Promise<void> {
+  private async detectSuccessPattern(
+    record: WorkflowHistoryRecord,
+  ): Promise<void> {
     try {
       const db = getDatabase();
 
@@ -420,7 +439,7 @@ export class WorkflowHistory {
          FROM workflow_history 
          WHERE workflow_id = ? AND status = 'success' 
          AND started_at > datetime('now', '-7 days')`,
-        record.workflow_id
+        record.workflow_id,
       );
 
       const successCount = recentSuccesses?.count || 0;
@@ -430,20 +449,21 @@ export class WorkflowHistory {
 
         const pattern: WorkflowPattern = {
           id: patternId,
-          pattern_type: 'success_sequence',
+          pattern_type: "success_sequence",
           description: `Workflow has completed ${successCount} successful executions in the past week`,
           confidence: 0.9,
           occurrences: successCount,
           first_detected: record.started_at,
           last_detected: record.started_at,
           workflow_ids: [record.workflow_id],
-          recommendation: 'Consider increasing execution frequency or expanding workflow scope'
+          recommendation:
+            "Consider increasing execution frequency or expanding workflow scope",
         };
 
         await this.savePattern(pattern);
       }
     } catch (error) {
-      logger.error('Failed to detect success pattern', { error, record });
+      logger.error("Failed to detect success pattern", { error, record });
     }
   }
 
@@ -457,8 +477,8 @@ export class WorkflowHistory {
 
       // Check if pattern exists
       const existing = await db.get(
-        'SELECT * FROM workflow_patterns WHERE id = ?',
-        pattern.id
+        "SELECT * FROM workflow_patterns WHERE id = ?",
+        pattern.id,
       );
 
       if (existing) {
@@ -473,7 +493,7 @@ export class WorkflowHistory {
           pattern.confidence,
           pattern.last_detected,
           timestamp,
-          pattern.id
+          pattern.id,
         );
       } else {
         // Insert new pattern
@@ -493,17 +513,17 @@ export class WorkflowHistory {
           JSON.stringify(pattern.workflow_ids),
           pattern.recommendation,
           timestamp,
-          timestamp
+          timestamp,
         );
       }
 
       this.patterns.set(pattern.id, pattern);
-      logger.info('Workflow pattern saved', {
+      logger.info("Workflow pattern saved", {
         patternId: pattern.id,
-        type: pattern.pattern_type
+        type: pattern.pattern_type,
       });
     } catch (error) {
-      logger.error('Failed to save pattern', { error, pattern });
+      logger.error("Failed to save pattern", { error, pattern });
       throw error;
     }
   }
@@ -521,12 +541,12 @@ export class WorkflowHistory {
            WHERE value = ?
          )
          ORDER BY confidence DESC, last_detected DESC`,
-        workflowId
+        workflowId,
       );
 
-      return rows.map(row => this.deserializePattern(row));
+      return rows.map((row) => this.deserializePattern(row));
     } catch (error) {
-      logger.error('Failed to get workflow patterns', { error, workflowId });
+      logger.error("Failed to get workflow patterns", { error, workflowId });
       return [];
     }
   }
@@ -534,19 +554,21 @@ export class WorkflowHistory {
   /**
    * Get all patterns
    */
-  async getAllPatterns(minConfidence: number = 0.5): Promise<WorkflowPattern[]> {
+  async getAllPatterns(
+    minConfidence: number = 0.5,
+  ): Promise<WorkflowPattern[]> {
     try {
       const db = getDatabase();
       const rows = await db.all(
         `SELECT * FROM workflow_patterns 
          WHERE confidence >= ?
          ORDER BY confidence DESC, last_detected DESC`,
-        minConfidence
+        minConfidence,
       );
 
-      return rows.map(row => this.deserializePattern(row));
+      return rows.map((row) => this.deserializePattern(row));
     } catch (error) {
-      logger.error('Failed to get all patterns', { error });
+      logger.error("Failed to get all patterns", { error });
       return [];
     }
   }
@@ -554,12 +576,14 @@ export class WorkflowHistory {
   /**
    * Get record by ID
    */
-  private async getRecord(recordId: string): Promise<WorkflowHistoryRecord | null> {
+  private async getRecord(
+    recordId: string,
+  ): Promise<WorkflowHistoryRecord | null> {
     try {
       const db = getDatabase();
       const row = await db.get(
-        'SELECT * FROM workflow_history WHERE id = ?',
-        recordId
+        "SELECT * FROM workflow_history WHERE id = ?",
+        recordId,
       );
 
       if (!row) {
@@ -568,7 +592,7 @@ export class WorkflowHistory {
 
       return this.deserializeRecord(row);
     } catch (error) {
-      logger.error('Failed to get record', { error, recordId });
+      logger.error("Failed to get record", { error, recordId });
       return null;
     }
   }
@@ -584,15 +608,18 @@ export class WorkflowHistory {
       const cutoff = cutoffDate.toISOString();
 
       const result = await db.run(
-        'DELETE FROM workflow_history WHERE started_at < ?',
-        cutoff
+        "DELETE FROM workflow_history WHERE started_at < ?",
+        cutoff,
       );
 
       const deletedCount = result.changes || 0;
-      logger.info('Old history records cleaned up', { deletedCount, maxAgeDays });
+      logger.info("Old history records cleaned up", {
+        deletedCount,
+        maxAgeDays,
+      });
       return deletedCount;
     } catch (error) {
-      logger.error('Failed to cleanup old records', { error, maxAgeDays });
+      logger.error("Failed to cleanup old records", { error, maxAgeDays });
       return 0;
     }
   }
@@ -609,11 +636,11 @@ export class WorkflowHistory {
       started_at: r.started_at as string,
       completed_at: r.completed_at as string | undefined,
       duration_ms: r.duration_ms as number | undefined,
-      status: r.status as WorkflowHistoryRecord['status'],
+      status: r.status as WorkflowHistoryRecord["status"],
       metrics: JSON.parse(r.metrics as string),
       entities_accessed: JSON.parse(r.entities_accessed as string),
       error_message: r.error_message as string | undefined,
-      retry_count: r.retry_count as number
+      retry_count: r.retry_count as number,
     };
   }
 
@@ -624,14 +651,14 @@ export class WorkflowHistory {
     const r = row as Record<string, unknown>;
     return {
       id: r.id as string,
-      pattern_type: r.pattern_type as WorkflowPattern['pattern_type'],
+      pattern_type: r.pattern_type as WorkflowPattern["pattern_type"],
       description: r.description as string,
       confidence: r.confidence as number,
       occurrences: r.occurrences as number,
       first_detected: r.first_detected as string,
       last_detected: r.last_detected as string,
       workflow_ids: JSON.parse(r.workflow_ids as string),
-      recommendation: r.recommendation as string | undefined
+      recommendation: r.recommendation as string | undefined,
     };
   }
 }
