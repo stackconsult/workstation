@@ -1,4 +1,65 @@
 <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
-  <rect width="128" height="128" fill="#667eea" rx="20"/>
-  <text x="64" y="75" font-family="Arial" font-size="48" fill="white" text-anchor="middle" font-weight="bold">W</text>
+  <!-- Gradient background for depth -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGradient" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Main background with rounded corners -->
+  <rect width="128" height="128" fill="url(#bgGradient)" rx="24"/>
+  
+  <!-- Subtle glow effect -->
+  <circle cx="64" cy="48" r="40" fill="url(#glowGradient)"/>
+  
+  <!-- Modern geometric design representing AI/automation -->
+  <!-- Circuit board pattern background -->
+  <path d="M 20 40 L 30 40 M 30 35 L 30 45 M 35 40 L 45 40" stroke="#ffffff" stroke-width="1.5" opacity="0.2" fill="none"/>
+  <path d="M 83 83 L 93 83 M 93 78 L 93 88 M 98 83 L 108 83" stroke="#ffffff" stroke-width="1.5" opacity="0.2" fill="none"/>
+  <circle cx="30" cy="40" r="2" fill="#ffffff" opacity="0.3"/>
+  <circle cx="45" cy="40" r="2" fill="#ffffff" opacity="0.3"/>
+  <circle cx="93" cy="83" r="2" fill="#ffffff" opacity="0.3"/>
+  <circle cx="108" cy="83" r="2" fill="#ffffff" opacity="0.3"/>
+  
+  <!-- Central hexagonal AI node -->
+  <g transform="translate(64, 52)">
+    <!-- Hexagon shape -->
+    <path d="M 0,-22 L 19,-11 L 19,11 L 0,22 L -19,11 L -19,-11 Z" 
+          fill="url(#accentGradient)" stroke="#ffffff" stroke-width="2.5" opacity="0.95"/>
+    
+    <!-- Inner hexagon for depth -->
+    <path d="M 0,-14 L 12,-7 L 12,7 L 0,14 L -12,7 L -12,-7 Z" 
+          fill="none" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+    
+    <!-- AI brain symbol -->
+    <circle cx="0" cy="0" r="6" fill="#ffffff" opacity="0.9"/>
+    <circle cx="-3" cy="-2" r="1.5" fill="#667eea"/>
+    <circle cx="3" cy="-2" r="1.5" fill="#667eea"/>
+    <path d="M -3 2 Q 0 4 3 2" stroke="#667eea" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Connection lines radiating from center (representing network/automation) -->
+  <line x1="64" y1="30" x2="64" y2="15" stroke="#ffffff" stroke-width="2" opacity="0.4"/>
+  <line x1="45" y1="38" x2="30" y2="25" stroke="#ffffff" stroke-width="2" opacity="0.4"/>
+  <line x1="83" y1="38" x2="98" y2="25" stroke="#ffffff" stroke-width="2" opacity="0.4"/>
+  
+  <!-- Small accent nodes at connection points -->
+  <circle cx="64" cy="15" r="3" fill="#f5576c" opacity="0.8"/>
+  <circle cx="30" cy="25" r="3" fill="#f093fb" opacity="0.8"/>
+  <circle cx="98" cy="25" r="3" fill="#f5576c" opacity="0.8"/>
+  
+  <!-- Workstation text at bottom -->
+  <text x="64" y="98" font-family="Arial, sans-serif" font-size="16" font-weight="700" 
+        fill="#ffffff" text-anchor="middle" opacity="0.95">WORKSTATION</text>
+  <text x="64" y="112" font-family="Arial, sans-serif" font-size="10" font-weight="500" 
+        fill="#ffffff" text-anchor="middle" opacity="0.75">AI AGENT</text>
 </svg>
