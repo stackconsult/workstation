@@ -50,31 +50,61 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Phase 2: Generate High-Quality Icons"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Check if ImageMagick is available, install if not (quality and craftsmanship matter)
+if ! command -v convert &> /dev/null; then
+    echo "📦 ImageMagick not found. Installing for high-quality icon generation..."
+    
+    # Detect package manager and install
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq imagemagick
+        echo "✅ ImageMagick installed via apt-get"
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y -q ImageMagick
+        echo "✅ ImageMagick installed via yum"
+    elif command -v brew &> /dev/null; then
+        brew install imagemagick
+        echo "✅ ImageMagick installed via brew"
+    else
+        echo "⚠️  No supported package manager found. Using existing icons as fallback..."
+        mkdir -p "$BUILD_DIR/icons"
+        cp "$ROOT_DIR/chrome-extension/icons"/*.png "$BUILD_DIR/icons/" 2>/dev/null || true
+        cp "$ROOT_DIR/chrome-extension/icons/icon.svg" "$BUILD_DIR/icons/"
+    fi
+fi
+
+# Generate high-quality PNG icons from SVG
 if command -v convert &> /dev/null; then
-    echo "✨ Generating PNG icons from SVG..."
+    echo "✨ Generating high-quality PNG icons from SVG..."
     
     # Create temporary directory for icons
     mkdir -p "$BUILD_DIR/icons"
     
-    # Generate icons at different sizes
-    convert -background none \
-            -size 16x16 \
+    # Generate icons at different sizes with high quality settings
+    # -density 300: High DPI for crisp rendering
+    # -background none: Transparent background
+    # -resize: Scale to exact size with best quality
+    convert -density 300 -background none \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
+            -resize 16x16 \
             "$BUILD_DIR/icons/icon16.png"
     
-    convert -background none \
-            -size 48x48 \
+    convert -density 300 -background none \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
+            -resize 48x48 \
             "$BUILD_DIR/icons/icon48.png"
     
-    convert -background none \
-            -size 128x128 \
+    convert -density 300 -background none \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
+            -resize 128x128 \
             "$BUILD_DIR/icons/icon128.png"
     
-    echo "✅ Generated icons: 16x16, 48x48, 128x128"
+    # Copy SVG source as well
+    cp "$ROOT_DIR/chrome-extension/icons/icon.svg" "$BUILD_DIR/icons/"
+    
+    echo "✅ Generated high-quality icons: 16x16, 48x48, 128x128"
 else
-    echo "⚠️  ImageMagick not found, using existing icons..."
+    echo "⚠️  Could not install ImageMagick. Using existing icons as fallback..."
     mkdir -p "$BUILD_DIR/icons"
     cp "$ROOT_DIR/chrome-extension/icons"/*.png "$BUILD_DIR/icons/" 2>/dev/null || true
     cp "$ROOT_DIR/chrome-extension/icons/icon.svg" "$BUILD_DIR/icons/"
@@ -143,12 +173,16 @@ echo "📋 Copying Playwright automation features..."
 mkdir -p "$BUILD_DIR/playwright"
 cp -r "$ROOT_DIR/chrome-extension/playwright"/* "$BUILD_DIR/playwright/"
 
-# Libraries
+# Libraries (exclude TypeScript files)
 echo "📋 Copying required libraries..."
 mkdir -p "$BUILD_DIR/lib"
-cp -r "$ROOT_DIR/chrome-extension/lib"/* "$BUILD_DIR/lib/" 2>/dev/null || true
+# Only copy JavaScript files, not TypeScript source files
+if [ -d "$ROOT_DIR/chrome-extension/lib" ]; then
+    # Use rsync to preserve directory structure while filtering file types
+    rsync -av --include='*/' --include='*.js' --include='*.json' --exclude='*' "$ROOT_DIR/chrome-extension/lib/" "$BUILD_DIR/lib/" 2>/dev/null || true
+fi
 
-echo "✅ Extension files copied"
+echo "✅ Extension files copied (TypeScript source files excluded)"
 
 # ============================================================================
 # PHASE 6: BUNDLE BACKEND API FOR EXTENSION
@@ -483,10 +517,14 @@ rm -rf node_modules 2>/dev/null || true
 rm -rf test 2>/dev/null || true
 rm -rf tests 2>/dev/null || true
 
-# Remove .map files (optional - keep for debugging)
-# find . -name "*.map" -delete
+# Remove TypeScript source files (keep only compiled .js)
+echo "🧹 Removing TypeScript source files..."
+find "$BUILD_DIR" -name "*.ts" -not -name "*.d.ts" -type f -delete 2>/dev/null || true
 
-echo "✅ Cleaned development files"
+# Remove .map files (optional - keep for debugging)
+# find "$BUILD_DIR" -name "*.map" -delete
+
+echo "✅ Cleaned development files and TypeScript sources"
 
 # ============================================================================
 # PHASE 11: VALIDATE MANIFEST
