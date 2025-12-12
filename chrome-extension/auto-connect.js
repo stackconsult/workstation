@@ -3,6 +3,8 @@
  * Automatically detects and connects to local backend server
  */
 
+import { BACKEND_DISCOVERY_URLS } from './config.js';
+
 const AUTO_CONNECT = {
   // Default backend URL
   DEFAULT_BACKEND: 'http://localhost:7042',
@@ -56,14 +58,7 @@ async function checkBackendConnection(url = AUTO_CONNECT.DEFAULT_BACKEND) {
  * @returns {Promise<Object>} First available backend or null
  */
 async function findAvailableBackend() {
-  const urlsToTry = [
-    'http://localhost:7042',
-    'http://127.0.0.1:7042',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:8080',
-    'http://127.0.0.1:8080'
-  ];
+  const urlsToTry = BACKEND_DISCOVERY_URLS;
   
   for (const url of urlsToTry) {
     const result = await checkBackendConnection(url);

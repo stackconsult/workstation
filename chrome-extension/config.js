@@ -8,6 +8,19 @@
  */
 
 /**
+ * Default backend URLs to try during auto-discovery
+ * Ordered by priority (most likely first)
+ */
+export const BACKEND_DISCOVERY_URLS = [
+  'http://localhost:7042',    // Default Workstation port
+  'http://127.0.0.1:7042',
+  'http://localhost:3000',    // Alternative port
+  'http://127.0.0.1:3000',
+  'http://localhost:8080',    // Common alternative
+  'http://127.0.0.1:8080'
+];
+
+/**
  * Default configuration values
  */
 export const DEFAULT_CONFIG = {

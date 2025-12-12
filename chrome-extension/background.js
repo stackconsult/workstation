@@ -14,6 +14,9 @@ try {
   console.warn('[Background] Failed to load pako, compression will use fallback:', error);
 }
 
+// Import configuration
+import { BACKEND_DISCOVERY_URLS } from './config.js';
+
 // Import API Bridge
 import { getAPIBridge } from './api-bridge.js';
 
@@ -130,14 +133,7 @@ console.log('✅ Features: Auto-Update, Error Reporting, Enhanced MCP Sync with 
 
 // Auto-connect functionality
 async function autoConnectToBackend() {
-  const urlsToTry = [
-    'http://localhost:7042',
-    'http://127.0.0.1:7042',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:8080',
-    'http://127.0.0.1:8080'
-  ];
+  const urlsToTry = BACKEND_DISCOVERY_URLS;
   
   for (const url of urlsToTry) {
     try {

@@ -32,7 +32,7 @@ if (process.env.NODE_ENV !== 'test') {
   
   // Check if it's a known weak secret
   if (unsafeSecrets.includes(jwtSecret.toLowerCase())) {
-    console.error(`❌ FATAL: Unsafe JWT_SECRET detected: "${jwtSecret}"`);
+    console.error(`❌ FATAL: Unsafe JWT_SECRET detected (known weak secret: ${jwtSecret.substring(0, 4)}...)`);
     console.error('   This is a known default/weak secret that must not be used in production.');
     console.error('   Generate a secure secret with:');
     console.error('   node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
