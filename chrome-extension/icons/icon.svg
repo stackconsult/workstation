@@ -1,4 +1,5 @@
 <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
+<<<<<<< HEAD
   <!-- Gradient background for depth -->
   <defs>
     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -62,4 +63,8 @@
         fill="#ffffff" text-anchor="middle" opacity="0.95">WORKSTATION</text>
   <text x="64" y="112" font-family="Arial, sans-serif" font-size="10" font-weight="500" 
         fill="#ffffff" text-anchor="middle" opacity="0.75">AI AGENT</text>
+=======
+  <rect width="128" height="128" fill="#667eea" rx="20"/>
+  <text x="64" y="75" font-family="Arial" font-size="48" fill="white" text-anchor="middle" font-weight="bold">W</text>
+>>>>>>> 0e11023de0bc302c6d61d0436f1e744811084c85
 </svg>

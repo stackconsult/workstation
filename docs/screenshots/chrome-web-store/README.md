@@ -79,4 +79,4 @@ Before Chrome Web Store submission, verify:
 ---
 
 **Status:** Screenshots need to be created manually  
-**Last Updated:** December 12, 2025
+**Last Updated:** December 10, 2025

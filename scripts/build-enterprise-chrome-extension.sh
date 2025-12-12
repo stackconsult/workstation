@@ -51,36 +51,28 @@ echo "Phase 2: Generate High-Quality Icons"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 if command -v convert &> /dev/null; then
-    echo "✨ Generating high-quality PNG icons from SVG..."
+    echo "✨ Generating PNG icons from SVG..."
     
     # Create temporary directory for icons
     mkdir -p "$BUILD_DIR/icons"
     
-    # Generate icons at different sizes with high quality settings
-    # -density 300: High DPI for crisp rendering
-    # -background none: Transparent background
-    convert -density 300 -background none \
+    # Generate icons at different sizes
+    convert -background none \
             -size 16x16 \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
-            -resize 16x16 \
             "$BUILD_DIR/icons/icon16.png"
     
-    convert -density 300 -background none \
+    convert -background none \
             -size 48x48 \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
-            -resize 48x48 \
             "$BUILD_DIR/icons/icon48.png"
     
-    convert -density 300 -background none \
+    convert -background none \
             -size 128x128 \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
-            -resize 128x128 \
             "$BUILD_DIR/icons/icon128.png"
     
-    # Copy SVG source as well
-    cp "$ROOT_DIR/chrome-extension/icons/icon.svg" "$BUILD_DIR/icons/"
-    
-    echo "✅ Generated high-quality icons: 16x16, 48x48, 128x128"
+    echo "✅ Generated icons: 16x16, 48x48, 128x128"
 else
     echo "⚠️  ImageMagick not found, using existing icons..."
     mkdir -p "$BUILD_DIR/icons"
@@ -151,16 +143,12 @@ echo "📋 Copying Playwright automation features..."
 mkdir -p "$BUILD_DIR/playwright"
 cp -r "$ROOT_DIR/chrome-extension/playwright"/* "$BUILD_DIR/playwright/"
 
-# Libraries (exclude TypeScript source files)
+# Libraries
 echo "📋 Copying required libraries..."
 mkdir -p "$BUILD_DIR/lib"
-# Only copy JavaScript files, not TypeScript source files
-if [ -d "$ROOT_DIR/chrome-extension/lib" ]; then
-    # Copy only .js and .json files, exclude .ts files
-    find "$ROOT_DIR/chrome-extension/lib" -type f \( -name "*.js" -o -name "*.json" \) -exec cp --parents {} "$BUILD_DIR/" \; 2>/dev/null || true
-fi
+cp -r "$ROOT_DIR/chrome-extension/lib"/* "$BUILD_DIR/lib/" 2>/dev/null || true
 
-echo "✅ Extension files copied (TypeScript source files excluded)"
+echo "✅ Extension files copied"
 
 # ============================================================================
 # PHASE 6: BUNDLE BACKEND API FOR EXTENSION
@@ -495,14 +483,10 @@ rm -rf node_modules 2>/dev/null || true
 rm -rf test 2>/dev/null || true
 rm -rf tests 2>/dev/null || true
 
-# Remove TypeScript source files (keep only compiled .js)
-echo "🧹 Removing TypeScript source files..."
-find "$BUILD_DIR" -name "*.ts" -not -name "*.d.ts" -type f -delete 2>/dev/null || true
-
 # Remove .map files (optional - keep for debugging)
-# find "$BUILD_DIR" -name "*.map" -delete
+# find . -name "*.map" -delete
 
-echo "✅ Cleaned development files and TypeScript sources"
+echo "✅ Cleaned development files"
 
 # ============================================================================
 # PHASE 11: VALIDATE MANIFEST

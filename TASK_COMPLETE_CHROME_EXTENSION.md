@@ -24,7 +24,11 @@ README.md (UPDATED)                  ← Added Chrome section at top
 **Production ZIP Files (Already Built):**
 ```
 ✅ dist/workstation-ai-agent-v2.1.0.zip              (109 KB, 42 files)
+<<<<<<< HEAD
 ✅ dist/workstation-ai-agent-enterprise-v2.1.0.zip   (159 KB, 49 files)
+=======
+✅ dist/workstation-ai-agent-enterprise-v2.1.0.zip   (143 KB, 46 files)
+>>>>>>> 0e11023de0bc302c6d61d0436f1e744811084c85
 ```
 
 **Quality Verified:**

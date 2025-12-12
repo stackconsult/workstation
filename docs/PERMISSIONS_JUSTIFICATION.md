@@ -406,7 +406,7 @@ chrome.notifications.create({
 
 ---
 
-**Last Updated:** December 12, 2025  
+**Last Updated:** December 10, 2025  
 **Extension Version:** 2.1.0 Enterprise  
 **Manifest Version:** 3  
 **Review Status:** Ready for Chrome Web Store submission

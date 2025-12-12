@@ -337,6 +337,6 @@ Before Chrome Web Store submission:
 
 ---
 
-**Last Updated:** December 12, 2025  
+**Last Updated:** December 10, 2025  
 **For:** Workstation AI Agent v2.1.0 Enterprise  
 **Chrome Web Store Requirements:** https://developer.chrome.com/docs/webstore/images/
