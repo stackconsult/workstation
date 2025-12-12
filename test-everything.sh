@@ -33,7 +33,7 @@ check "Simple ZIP exists" "test -f dist/workstation-ai-agent-v2.1.0.zip"
 check "Enterprise ZIP exists" "test -f dist/workstation-ai-agent-enterprise-v2.1.0.zip"
 check "Simple ZIP integrity" "unzip -t dist/workstation-ai-agent-v2.1.0.zip"
 check "Enterprise ZIP integrity" "unzip -t dist/workstation-ai-agent-enterprise-v2.1.0.zip"
-check "Simple ZIP size > 100KB" "test $(stat -f%z dist/workstation-ai-agent-v2.1.0.zip 2>/dev/null || stat -c%s dist/workstation-ai-agent-v2.1.0.zip) -gt 100000"
+check "Simple ZIP size > 90KB" "test $(stat -f%z dist/workstation-ai-agent-v2.1.0.zip 2>/dev/null || stat -c%s dist/workstation-ai-agent-v2.1.0.zip) -gt 90000"
 check "Enterprise ZIP size > 140KB" "test $(stat -f%z dist/workstation-ai-agent-enterprise-v2.1.0.zip 2>/dev/null || stat -c%s dist/workstation-ai-agent-enterprise-v2.1.0.zip) -gt 140000"
 
 echo ""

@@ -47,6 +47,10 @@ rm -f *.backup
 rm -rf .git
 rm -rf node_modules
 
+# Remove TypeScript source files (keep only compiled .js)
+echo "🧹 Removing TypeScript source files..."
+find . -name "*.ts" -not -name "*.d.ts" -type f -delete 2>/dev/null || true
+
 # Step 5: Validate manifest.json
 echo "✅ Validating manifest.json..."
 if ! node -e "JSON.parse(require('fs').readFileSync('./manifest.json', 'utf8'))"; then
