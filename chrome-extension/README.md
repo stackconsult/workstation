@@ -18,7 +18,12 @@ This folder contains **SOURCE CODE** that must be built first.
 # From repository root:
 bash ./scripts/build-enterprise-chrome-extension.sh
 
-# Then load: dist/chrome-extension-unpacked/ in Chrome
+# Then:
+# 1. Go to the dist/ directory
+# 2. Extract the generated workstation-ai-agent-*.zip file to a folder of your choice
+# 3. In Chrome, go to chrome://extensions/
+# 4. Enable "Developer mode"
+# 5. Click "Load unpacked" and select the extracted folder
 ```
 
 **⚡ SHORTCUT:** Pre-built ZIP files already exist in `../dist/`!
@@ -36,8 +41,6 @@ bash ./scripts/build-enterprise-chrome-extension.sh
    - Enable "Developer mode"
    - Click "Load unpacked"
    - Select the extracted folder
-
----
 
 ---
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Display startup instructions for new users
 # Requires: bash 4.0+ for array support
+set -euo pipefail
 
 # Enable nullglob to handle case when no ZIP files exist
 shopt -s nullglob
