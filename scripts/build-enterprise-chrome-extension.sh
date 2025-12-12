@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Enterprise Chrome Extension Build Script
 # Creates a production-ready, fully functional Chrome extension ZIP
@@ -50,30 +50,6 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Phase 2: Generate High-Quality Icons"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Check if ImageMagick is available, install if not (quality and craftsmanship matter)
-if ! command -v convert &> /dev/null; then
-    echo "📦 ImageMagick not found. Installing for high-quality icon generation..."
-    
-    # Detect package manager and install
-    if command -v apt-get &> /dev/null; then
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq imagemagick
-        echo "✅ ImageMagick installed via apt-get"
-    elif command -v yum &> /dev/null; then
-        sudo yum install -y -q ImageMagick
-        echo "✅ ImageMagick installed via yum"
-    elif command -v brew &> /dev/null; then
-        brew install imagemagick
-        echo "✅ ImageMagick installed via brew"
-    else
-        echo "⚠️  No supported package manager found. Using existing icons as fallback..."
-        mkdir -p "$BUILD_DIR/icons"
-        cp "$ROOT_DIR/chrome-extension/icons"/*.png "$BUILD_DIR/icons/" 2>/dev/null || true
-        cp "$ROOT_DIR/chrome-extension/icons/icon.svg" "$BUILD_DIR/icons/"
-    fi
-fi
-
-# Generate high-quality PNG icons from SVG
 if command -v convert &> /dev/null; then
     echo "✨ Generating high-quality PNG icons from SVG..."
     
@@ -83,18 +59,20 @@ if command -v convert &> /dev/null; then
     # Generate icons at different sizes with high quality settings
     # -density 300: High DPI for crisp rendering
     # -background none: Transparent background
-    # -resize: Scale to exact size with best quality
     convert -density 300 -background none \
+            -size 16x16 \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
             -resize 16x16 \
             "$BUILD_DIR/icons/icon16.png"
     
     convert -density 300 -background none \
+            -size 48x48 \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
             -resize 48x48 \
             "$BUILD_DIR/icons/icon48.png"
     
     convert -density 300 -background none \
+            -size 128x128 \
             "$ROOT_DIR/chrome-extension/icons/icon.svg" \
             -resize 128x128 \
             "$BUILD_DIR/icons/icon128.png"
@@ -104,7 +82,7 @@ if command -v convert &> /dev/null; then
     
     echo "✅ Generated high-quality icons: 16x16, 48x48, 128x128"
 else
-    echo "⚠️  Could not install ImageMagick. Using existing icons as fallback..."
+    echo "⚠️  ImageMagick not found, using existing icons..."
     mkdir -p "$BUILD_DIR/icons"
     cp "$ROOT_DIR/chrome-extension/icons"/*.png "$BUILD_DIR/icons/" 2>/dev/null || true
     cp "$ROOT_DIR/chrome-extension/icons/icon.svg" "$BUILD_DIR/icons/"
@@ -173,13 +151,13 @@ echo "📋 Copying Playwright automation features..."
 mkdir -p "$BUILD_DIR/playwright"
 cp -r "$ROOT_DIR/chrome-extension/playwright"/* "$BUILD_DIR/playwright/"
 
-# Libraries (exclude TypeScript files)
+# Libraries (exclude TypeScript source files)
 echo "📋 Copying required libraries..."
 mkdir -p "$BUILD_DIR/lib"
 # Only copy JavaScript files, not TypeScript source files
 if [ -d "$ROOT_DIR/chrome-extension/lib" ]; then
-    # Use rsync to preserve directory structure while filtering file types
-    rsync -av --include='*/' --include='*.js' --include='*.json' --exclude='*' "$ROOT_DIR/chrome-extension/lib/" "$BUILD_DIR/lib/" 2>/dev/null || true
+    # Copy only .js and .json files, exclude .ts files
+    find "$ROOT_DIR/chrome-extension/lib" -type f \( -name "*.js" -o -name "*.json" \) -exec cp --parents {} "$BUILD_DIR/" \; 2>/dev/null || true
 fi
 
 echo "✅ Extension files copied (TypeScript source files excluded)"
