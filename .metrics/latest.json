@@ -1,0 +1,39 @@
+{
+  "timestamp": "2025-12-12T18:31:57",
+  "total_loc": 167695,
+  "total_files": 665,
+  "breakdown": {
+    "src": {
+      "loc": 36813,
+      "files": 113
+    },
+    "chrome_extension": {
+      "loc": 11829,
+      "files": 28
+    },
+    "agents": {
+      "loc": 9207,
+      "files": 40
+    },
+    "mcp_containers": {
+      "loc": 4154,
+      "files": 21
+    },
+    "tools": {
+      "loc": 627,
+      "files": 1
+    },
+    "public": {
+      "loc": 1715,
+      "files": 5
+    },
+    "tests": {
+      "loc": 15971,
+      "files": 49
+    },
+    "other": {
+      "loc": 87379,
+      "files": 408
+    }
+  }
+}
