@@ -10,35 +10,137 @@
   "createdAt": "2025-11-24T00:00:00Z",
   "updatedAt": "2025-11-24T00:00:00Z",
   "nodes": [
-    {"id": "node-1", "type": "start", "label": "Start", "x": 100, "y": 100},
-    {"id": "node-2", "type": "email_watch", "label": "Monitor Inbox", "x": 100, "y": 200, "params": {"folder": "Invoices", "filter": "has:attachment"}},
-    {"id": "node-3", "type": "extract_attachments", "label": "Extract PDF Attachments", "x": 100, "y": 300, "params": {"fileTypes": ["pdf"]}},
-    {"id": "node-4", "type": "ocr_extract", "label": "Extract Invoice Data (OCR)", "x": 100, "y": 400, "params": {"fields": ["invoice_number", "date", "vendor", "amount", "items", "tax", "total"]}},
-    {"id": "node-5", "type": "validate_data", "label": "Validate Invoice Data", "x": 100, "y": 500, "params": {"rules": ["required_fields", "valid_date", "amount_match"]}},
-    {"id": "node-6", "type": "api_call", "label": "Check Against PO System", "x": 100, "y": 600, "params": {"endpoint": "{{env.PO_API}}/match", "method": "POST"}},
-    {"id": "node-7", "type": "condition", "label": "PO Match Found?", "x": 100, "y": 700, "params": {"condition": "po_match.found === true"}},
-    {"id": "node-8", "type": "create_approval_request", "label": "Create Approval Request", "x": 200, "y": 800, "params": {"approvers": ["finance@company.com"], "priority": "normal"}},
-    {"id": "node-9", "type": "flag_for_review", "label": "Flag for Manual Review", "x": 50, "y": 800, "params": {"reason": "No matching PO", "assignTo": "ap-team@company.com"}},
-    {"id": "node-10", "type": "wait_approval", "label": "Wait for Approval", "x": 200, "y": 900, "params": {"timeout": "48h"}},
-    {"id": "node-11", "type": "update_accounting", "label": "Update Accounting System", "x": 150, "y": 1000, "params": {"system": "quickbooks", "action": "create_bill"}},
-    {"id": "node-12", "type": "archive_document", "label": "Archive Invoice", "x": 100, "y": 1100, "params": {"location": "s3://invoices/processed/{{year}}/{{month}}"}},
-    {"id": "node-13", "type": "notify", "label": "Send Notification", "x": 100, "y": 1200, "params": {"template": "invoice_processed"}},
-    {"id": "node-14", "type": "end", "label": "End", "x": 100, "y": 1300}
+    { "id": "node-1", "type": "start", "label": "Start", "x": 100, "y": 100 },
+    {
+      "id": "node-2",
+      "type": "email_watch",
+      "label": "Monitor Inbox",
+      "x": 100,
+      "y": 200,
+      "params": { "folder": "Invoices", "filter": "has:attachment" }
+    },
+    {
+      "id": "node-3",
+      "type": "extract_attachments",
+      "label": "Extract PDF Attachments",
+      "x": 100,
+      "y": 300,
+      "params": { "fileTypes": ["pdf"] }
+    },
+    {
+      "id": "node-4",
+      "type": "ocr_extract",
+      "label": "Extract Invoice Data (OCR)",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "fields": [
+          "invoice_number",
+          "date",
+          "vendor",
+          "amount",
+          "items",
+          "tax",
+          "total"
+        ]
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "validate_data",
+      "label": "Validate Invoice Data",
+      "x": 100,
+      "y": 500,
+      "params": { "rules": ["required_fields", "valid_date", "amount_match"] }
+    },
+    {
+      "id": "node-6",
+      "type": "api_call",
+      "label": "Check Against PO System",
+      "x": 100,
+      "y": 600,
+      "params": { "endpoint": "{{env.PO_API}}/match", "method": "POST" }
+    },
+    {
+      "id": "node-7",
+      "type": "condition",
+      "label": "PO Match Found?",
+      "x": 100,
+      "y": 700,
+      "params": { "condition": "po_match.found === true" }
+    },
+    {
+      "id": "node-8",
+      "type": "create_approval_request",
+      "label": "Create Approval Request",
+      "x": 200,
+      "y": 800,
+      "params": { "approvers": ["finance@company.com"], "priority": "normal" }
+    },
+    {
+      "id": "node-9",
+      "type": "flag_for_review",
+      "label": "Flag for Manual Review",
+      "x": 50,
+      "y": 800,
+      "params": {
+        "reason": "No matching PO",
+        "assignTo": "ap-team@company.com"
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "wait_approval",
+      "label": "Wait for Approval",
+      "x": 200,
+      "y": 900,
+      "params": { "timeout": "48h" }
+    },
+    {
+      "id": "node-11",
+      "type": "update_accounting",
+      "label": "Update Accounting System",
+      "x": 150,
+      "y": 1000,
+      "params": { "system": "quickbooks", "action": "create_bill" }
+    },
+    {
+      "id": "node-12",
+      "type": "archive_document",
+      "label": "Archive Invoice",
+      "x": 100,
+      "y": 1100,
+      "params": { "location": "s3://invoices/processed/{{year}}/{{month}}" }
+    },
+    {
+      "id": "node-13",
+      "type": "notify",
+      "label": "Send Notification",
+      "x": 100,
+      "y": 1200,
+      "params": { "template": "invoice_processed" }
+    },
+    { "id": "node-14", "type": "end", "label": "End", "x": 100, "y": 1300 }
   ],
   "connections": [
-    {"id": "conn-1", "source": "node-1", "target": "node-2"},
-    {"id": "conn-2", "source": "node-2", "target": "node-3"},
-    {"id": "conn-3", "source": "node-3", "target": "node-4"},
-    {"id": "conn-4", "source": "node-4", "target": "node-5"},
-    {"id": "conn-5", "source": "node-5", "target": "node-6"},
-    {"id": "conn-6", "source": "node-6", "target": "node-7"},
-    {"id": "conn-7", "source": "node-7", "target": "node-8", "label": "true"},
-    {"id": "conn-8", "source": "node-7", "target": "node-9", "label": "false"},
-    {"id": "conn-9", "source": "node-8", "target": "node-10"},
-    {"id": "conn-10", "source": "node-10", "target": "node-11"},
-    {"id": "conn-11", "source": "node-9", "target": "node-13"},
-    {"id": "conn-12", "source": "node-11", "target": "node-12"},
-    {"id": "conn-13", "source": "node-12", "target": "node-13"},
-    {"id": "conn-14", "source": "node-13", "target": "node-14"}
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8", "label": "true" },
+    {
+      "id": "conn-8",
+      "source": "node-7",
+      "target": "node-9",
+      "label": "false"
+    },
+    { "id": "conn-9", "source": "node-8", "target": "node-10" },
+    { "id": "conn-10", "source": "node-10", "target": "node-11" },
+    { "id": "conn-11", "source": "node-9", "target": "node-13" },
+    { "id": "conn-12", "source": "node-11", "target": "node-12" },
+    { "id": "conn-13", "source": "node-12", "target": "node-13" },
+    { "id": "conn-14", "source": "node-13", "target": "node-14" }
   ]
 }
