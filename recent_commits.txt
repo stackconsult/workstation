@@ -1,0 +1,4 @@
+- 6fb6a42: Fix Railway JWT_SECRET validation and Chrome extension default backend URL (#361)
+- 5820e01: Add prominent START HERE documentation for new users (#359)
+- 9d05cc1: Resolve PR #339 merge conflicts and integrate Chrome extension artifacts (#356)
+- 5b4739c: Fix Chrome extension documentation discoverability, add comprehensive testing, and resolve merge conflicts (#339)
