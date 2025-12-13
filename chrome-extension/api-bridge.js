@@ -4,7 +4,7 @@
  */
 
 export class WorkstationAPIBridge {
-  constructor(baseUrl = 'http://localhost:3000', token = null) {
+  constructor(baseUrl = 'http://localhost:7042', token = null) {
     this.baseUrl = baseUrl;
     this.token = token;
     this.wsConnection = null;

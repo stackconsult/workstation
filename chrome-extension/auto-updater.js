@@ -59,11 +59,11 @@ class AutoUpdater {
   async loadBackendUrl() {
     try {
       const result = await chrome.storage.local.get('backendUrl');
-      this.backendUrl = result.backendUrl || 'http://localhost:3000';
+      this.backendUrl = result.backendUrl || 'http://localhost:7042';
       console.log(`[AutoUpdater] Backend URL loaded: ${this.backendUrl}`);
     } catch (error) {
       console.error('[AutoUpdater] Failed to load backend URL:', error);
-      this.backendUrl = 'http://localhost:3000'; // Fallback to default
+      this.backendUrl = 'http://localhost:7042'; // Fallback to default
     }
   }
 

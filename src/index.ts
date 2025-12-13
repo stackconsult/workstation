@@ -5,10 +5,52 @@ dotenv.config();
 import lusca from 'lusca';
 // Validate JWT_SECRET before server initialization - FAIL FAST
 // Skip this check in test environment to allow tests to run
-if (process.env.NODE_ENV !== 'test' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'changeme')) {
-  console.error('❌ FATAL: Unsafe JWT_SECRET configured. Server will not start.');
-  console.error('   Set a secure JWT_SECRET in your .env file');
-  throw new Error('Unsafe JWT_SECRET configured. Server will not start.');
+if (process.env.NODE_ENV !== 'test') {
+  const jwtSecret = process.env.JWT_SECRET;
+  
+  // List of known weak/default secrets that should be rejected
+  const unsafeSecrets = [
+    'changeme',
+    'secret',
+    'your-secret-key',
+    'your-secret-key-change-this-in-production',
+    'your-secret-key-change-this-in-production-min-32-chars',
+    'test',
+    'password',
+    '123456',
+    'default',
+    'admin'
+  ];
+  
+  if (!jwtSecret) {
+    console.error('❌ FATAL: JWT_SECRET environment variable is not set.');
+    console.error('   Generate a secure secret with:');
+    console.error('   node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    console.error('   Or use Railway\'s automatic secret generator in railway.json');
+    throw new Error('JWT_SECRET is not configured. Server will not start.');
+  }
+  
+  // Check if it's a known weak secret
+  if (unsafeSecrets.includes(jwtSecret.toLowerCase())) {
+    console.error(`❌ FATAL: Unsafe JWT_SECRET detected (known weak secret: ${jwtSecret.substring(0, 4)}...)`);
+    console.error('   This is a known default/weak secret that must not be used in production.');
+    console.error('   Generate a secure secret with:');
+    console.error('   node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    throw new Error('Unsafe JWT_SECRET configured. Server will not start.');
+  }
+  
+  // Check minimum length (32 characters recommended for 256-bit security)
+  if (jwtSecret.length < 32) {
+    console.error(`❌ FATAL: JWT_SECRET is too short (${jwtSecret.length} characters).`);
+    console.error('   Minimum 32 characters required for secure token signing.');
+    console.error('   Current secret length:', jwtSecret.length);
+    console.error('   Generate a secure 64-character secret with:');
+    console.error('   node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    throw new Error('JWT_SECRET is too short. Minimum 32 characters required.');
+  }
+  
+  // Log successful validation (without revealing the secret)
+  console.log(`✅ JWT_SECRET validated: ${jwtSecret.length} characters (${jwtSecret.substring(0, 4)}...)`);
 }
 
 // CRITICAL: Global error handlers must be registered early

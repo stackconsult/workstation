@@ -81,7 +81,7 @@ The Workstation Chrome Extension is a comprehensive browser automation tool that
 
 ### Prerequisites
 
-1. **Workstation Backend Running**: The backend must be running on `http://localhost:3000`
+1. **Workstation Backend Running**: The backend must be running (default: `http://localhost:7042`)
    ```bash
    npm run dev
    ```
@@ -144,10 +144,23 @@ The Workstation Chrome Extension is a comprehensive browser automation tool that
 ### Settings Tab - Configuration
 
 Configure the extension behavior:
-- **Backend URL**: Change the API server endpoint (default: `http://localhost:3000`)
+- **Backend URL**: Change the API server endpoint (default: `http://localhost:7042`)
+  - For local development: `http://localhost:7042`
+  - For Railway deployment: `https://your-app.railway.app`
+  - For custom deployment: Your backend server URL
 - **Poll Interval**: Adjust status polling frequency (default: 2000ms)
 - **Auto Retry**: Enable/disable automatic retry on failures
 - **WebSocket**: Real-time updates connection (enabled by default)
+
+#### Configuring for Production Deployment
+
+If you've deployed the backend to Railway or another platform:
+
+1. Open the Chrome extension popup
+2. Click on the "Settings" tab
+3. Update "Backend URL" to your deployed backend URL (e.g., `https://your-app.railway.app`)
+4. Click "Save Settings"
+5. The extension will automatically reconnect to the new backend
 
 ### Recording Actions
 

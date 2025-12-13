@@ -48,7 +48,7 @@ let isRecording = false;
 let currentExecutionId = null;
 let pollingInterval = null;
 let settings = {
-  backendUrl: 'http://localhost:3000',
+  backendUrl: 'http://localhost:7042',
   pollInterval: 2000,
   autoRetry: true
 };

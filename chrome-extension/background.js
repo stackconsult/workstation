@@ -14,6 +14,9 @@ try {
   console.warn('[Background] Failed to load pako, compression will use fallback:', error);
 }
 
+// Import configuration
+import { BACKEND_DISCOVERY_URLS } from './config.js';
+
 // Import API Bridge
 import { getAPIBridge } from './api-bridge.js';
 
@@ -40,9 +43,9 @@ import { connectionPool } from './playwright/connection-pool.js';
 import { performanceMonitor } from './playwright/performance-monitor.js';
 
 let workstationToken = '';
-let backendUrl = 'http://localhost:3000';
+let backendUrl = 'http://localhost:7042';
 let settings = {
-  backendUrl: 'http://localhost:3000',
+  backendUrl: 'http://localhost:7042',
   pollInterval: 2000,
   autoRetry: true,
   enableWebSocket: true
@@ -130,12 +133,7 @@ console.log('✅ Features: Auto-Update, Error Reporting, Enhanced MCP Sync with 
 
 // Auto-connect functionality
 async function autoConnectToBackend() {
-  const urlsToTry = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:8080',
-    'http://127.0.0.1:8080'
-  ];
+  const urlsToTry = BACKEND_DISCOVERY_URLS;
   
   for (const url of urlsToTry) {
     try {
