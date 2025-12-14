@@ -99,12 +99,16 @@ function main() {
     // Check if .env already exists
     if (fs.existsSync(envPath)) {
       console.log('⚠️  Warning: .env file already exists!');
-      console.log('   Backup will be created at .env.backup');
       
-      // Create backup
-      const backupPath = path.join(__dirname, '..', '.env.backup');
+      // Create timestamped backup to avoid overwriting previous backups
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const backupPath = path.join(__dirname, '..', `.env.backup.${timestamp}`);
       fs.copyFileSync(envPath, backupPath);
-      console.log(`   ✅ Backup created: .env.backup\n`);
+      console.log(`   ✅ Backup created: .env.backup.${timestamp}\n`);
+      
+      // Also create/update .env.backup (latest backup)
+      const latestBackupPath = path.join(__dirname, '..', '.env.backup');
+      fs.copyFileSync(envPath, latestBackupPath);
     }
     
     // Write new .env file
