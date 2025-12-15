@@ -1,16 +1,16 @@
 /**
  * Workflow Execution Engine
- * 
+ *
  * Runtime executor for workflow steps with parallel execution,
  * error handling, and checkpoint management.
- * 
+ *
  * @module automation/workflow/execution-engine
  * @version 2.0.0
  */
 
-import { logger } from '../../shared/utils/logger.js';
-import { withRetry, CircuitBreaker } from '../../shared/utils/retry.js';
-import { WorkflowDefinition } from '../db/models.js';
+import { logger } from "../../shared/utils/logger.js";
+import { withRetry, CircuitBreaker } from "../../shared/utils/retry.js";
+import { WorkflowDefinition } from "../db/models.js";
 
 export interface ExecutionContext {
   workflowId: string;
@@ -23,7 +23,7 @@ export interface ExecutionContext {
 
 export interface StepResult {
   stepId: string;
-  status: 'success' | 'failed' | 'skipped';
+  status: "success" | "failed" | "skipped";
   result?: any;
   error?: string;
   duration: number;
@@ -31,7 +31,7 @@ export interface StepResult {
 
 export interface ExecutionResult {
   executionId: string;
-  status: 'completed' | 'failed' | 'partial';
+  status: "completed" | "failed" | "partial";
   steps: StepResult[];
   duration: number;
   error?: string;
@@ -55,10 +55,10 @@ export class ExecutionEngine {
     workflowId: string,
     executionId: string,
     definition: WorkflowDefinition,
-    variables: Record<string, any> = {}
+    variables: Record<string, any> = {},
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
-    
+
     const context: ExecutionContext = {
       workflowId,
       executionId,
@@ -73,7 +73,7 @@ export class ExecutionEngine {
     const stepResults: StepResult[] = [];
 
     try {
-      logger.info('Starting workflow execution', {
+      logger.info("Starting workflow execution", {
         workflowId,
         executionId,
         stepCount: context.totalSteps,
@@ -81,7 +81,7 @@ export class ExecutionEngine {
 
       // Validate steps exist
       if (!definition.steps || !Array.isArray(definition.steps)) {
-        throw new Error('Workflow definition does not contain valid steps');
+        throw new Error("Workflow definition does not contain valid steps");
       }
 
       // Execute steps sequentially
@@ -89,7 +89,7 @@ export class ExecutionEngine {
         const step = definition.steps[i];
         context.currentStep = i + 1;
 
-        logger.info('Executing workflow step', {
+        logger.info("Executing workflow step", {
           executionId,
           step: i + 1,
           totalSteps: context.totalSteps,
@@ -100,8 +100,8 @@ export class ExecutionEngine {
         stepResults.push(stepResult);
 
         // Stop execution if step failed
-        if (stepResult.status === 'failed') {
-          logger.error('Step failed, stopping execution', {
+        if (stepResult.status === "failed") {
+          logger.error("Step failed, stopping execution", {
             executionId,
             step: i + 1,
             error: stepResult.error,
@@ -115,27 +115,28 @@ export class ExecutionEngine {
         }
       }
 
-      const allSucceeded = stepResults.every(r => r.status === 'success');
+      const allSucceeded = stepResults.every((r) => r.status === "success");
       const duration = Date.now() - startTime;
 
-      logger.info('Workflow execution completed', {
+      logger.info("Workflow execution completed", {
         executionId,
-        status: allSucceeded ? 'completed' : 'partial',
+        status: allSucceeded ? "completed" : "partial",
         duration,
-        successfulSteps: stepResults.filter(r => r.status === 'success').length,
+        successfulSteps: stepResults.filter((r) => r.status === "success")
+          .length,
         totalSteps: stepResults.length,
       });
 
       return {
         executionId,
-        status: allSucceeded ? 'completed' : 'partial',
+        status: allSucceeded ? "completed" : "partial",
         steps: stepResults,
         duration,
       };
     } catch (error) {
       const duration = Date.now() - startTime;
-      
-      logger.error('Workflow execution failed', {
+
+      logger.error("Workflow execution failed", {
         executionId,
         error: (error as Error).message,
         duration,
@@ -143,7 +144,7 @@ export class ExecutionEngine {
 
       return {
         executionId,
-        status: 'failed',
+        status: "failed",
         steps: stepResults,
         duration,
         error: (error as Error).message,
@@ -158,7 +159,7 @@ export class ExecutionEngine {
    */
   private async executeStep(
     step: any,
-    context: ExecutionContext
+    context: ExecutionContext,
   ): Promise<StepResult> {
     const startTime = Date.now();
 
@@ -171,7 +172,7 @@ export class ExecutionEngine {
             maxRetries: step.retryCount || 3,
             baseDelay: 1000,
             maxDelay: 10000,
-          }
+          },
         );
       });
 
@@ -179,21 +180,21 @@ export class ExecutionEngine {
 
       return {
         stepId: step.id,
-        status: 'success',
+        status: "success",
         result,
         duration,
       };
     } catch (error) {
       const duration = Date.now() - startTime;
 
-      logger.error('Step execution failed', {
+      logger.error("Step execution failed", {
         stepId: step.id,
         error: (error as Error).message,
       });
 
       return {
         stepId: step.id,
-        status: 'failed',
+        status: "failed",
         error: (error as Error).message,
         duration,
       };
@@ -205,10 +206,10 @@ export class ExecutionEngine {
    */
   private async executeStepAction(
     step: any,
-    context: ExecutionContext
+    context: ExecutionContext,
   ): Promise<any> {
     // Simulate step execution
-    logger.debug('Executing step action', {
+    logger.debug("Executing step action", {
       stepId: step.id,
       stepName: step.name,
       executionId: context.executionId,
@@ -245,8 +246,8 @@ export class ExecutionEngine {
     }
 
     this.activeExecutions.delete(executionId);
-    
-    logger.info('Execution cancelled', { executionId });
+
+    logger.info("Execution cancelled", { executionId });
     return true;
   }
 
@@ -261,7 +262,7 @@ export class ExecutionEngine {
    * Sleep utility
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

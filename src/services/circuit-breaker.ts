@@ -3,24 +3,24 @@
  * Prevents cascading failures by failing fast when a service is unhealthy
  */
 
-import { logger } from '../utils/logger';
+import { logger } from "../utils/logger";
 
 // ============================================
 // Types and Interfaces
 // ============================================
 
 export enum CircuitState {
-  CLOSED = 'CLOSED',     // Normal operation
-  OPEN = 'OPEN',         // Failure threshold exceeded
-  HALF_OPEN = 'HALF_OPEN', // Testing if service recovered
+  CLOSED = "CLOSED", // Normal operation
+  OPEN = "OPEN", // Failure threshold exceeded
+  HALF_OPEN = "HALF_OPEN", // Testing if service recovered
 }
 
 export interface CircuitBreakerConfig {
-  failureThreshold: number;     // Number of failures before opening
-  successThreshold: number;     // Number of successes to close from half-open
-  timeout: number;              // Time in ms before trying half-open
-  resetTimeout: number;         // Time in ms to wait in open state
-  monitoringPeriod: number;     // Time window for counting failures
+  failureThreshold: number; // Number of failures before opening
+  successThreshold: number; // Number of successes to close from half-open
+  timeout: number; // Time in ms before trying half-open
+  resetTimeout: number; // Time in ms to wait in open state
+  monitoringPeriod: number; // Time window for counting failures
 }
 
 export interface CircuitBreakerStats {
@@ -52,12 +52,12 @@ export class CircuitBreaker {
   private totalFailures: number = 0;
   private totalSuccesses: number = 0;
   private nextAttempt: number = Date.now();
-  
+
   constructor(
     private name: string,
-    private config: CircuitBreakerConfig
+    private config: CircuitBreakerConfig,
   ) {
-    logger.info('Circuit breaker initialized', {
+    logger.info("Circuit breaker initialized", {
       name,
       config,
     });
@@ -72,25 +72,22 @@ export class CircuitBreaker {
     // Check if circuit is open
     if (this.state === CircuitState.OPEN) {
       if (Date.now() < this.nextAttempt) {
-        logger.warn('Circuit breaker is OPEN', {
+        logger.warn("Circuit breaker is OPEN", {
           name: this.name,
           nextAttempt: new Date(this.nextAttempt).toISOString(),
         });
         throw new CircuitBreakerError(`Circuit breaker "${this.name}" is OPEN`);
       }
-      
+
       // Try half-open state
       this.state = CircuitState.HALF_OPEN;
-      logger.info('Circuit breaker entering HALF_OPEN state', {
+      logger.info("Circuit breaker entering HALF_OPEN state", {
         name: this.name,
       });
     }
 
     try {
-      const result = await Promise.race([
-        fn(),
-        this.timeout(),
-      ]);
+      const result = await Promise.race([fn(), this.timeout()]);
 
       this.onSuccess();
       return result as T;
@@ -125,7 +122,7 @@ export class CircuitBreaker {
       if (this.consecutiveSuccesses >= this.config.successThreshold) {
         this.state = CircuitState.CLOSED;
         this.resetCounts();
-        logger.info('Circuit breaker closed after recovery', {
+        logger.info("Circuit breaker closed after recovery", {
           name: this.name,
         });
       }
@@ -142,7 +139,7 @@ export class CircuitBreaker {
     this.consecutiveSuccesses = 0;
     this.lastFailureTime = Date.now();
 
-    logger.warn('Circuit breaker recorded failure', {
+    logger.warn("Circuit breaker recorded failure", {
       name: this.name,
       consecutiveFailures: this.consecutiveFailures,
       threshold: this.config.failureThreshold,
@@ -162,8 +159,8 @@ export class CircuitBreaker {
   private openCircuit(): void {
     this.state = CircuitState.OPEN;
     this.nextAttempt = Date.now() + this.config.resetTimeout;
-    
-    logger.error('Circuit breaker opened', {
+
+    logger.error("Circuit breaker opened", {
       name: this.name,
       consecutiveFailures: this.consecutiveFailures,
       nextAttempt: new Date(this.nextAttempt).toISOString(),
@@ -204,7 +201,7 @@ export class CircuitBreaker {
   forceOpen(): void {
     this.state = CircuitState.OPEN;
     this.nextAttempt = Date.now() + this.config.resetTimeout;
-    logger.warn('Circuit breaker manually forced open', {
+    logger.warn("Circuit breaker manually forced open", {
       name: this.name,
     });
   }
@@ -215,7 +212,7 @@ export class CircuitBreaker {
   forceClose(): void {
     this.state = CircuitState.CLOSED;
     this.resetCounts();
-    logger.info('Circuit breaker manually forced closed', {
+    logger.info("Circuit breaker manually forced closed", {
       name: this.name,
     });
   }
@@ -228,7 +225,7 @@ export class CircuitBreaker {
 export class CircuitBreakerError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'CircuitBreakerError';
+    this.name = "CircuitBreakerError";
   }
 }
 
@@ -242,7 +239,10 @@ export class CircuitBreakerRegistry {
   /**
    * Get or create a circuit breaker
    */
-  getOrCreate(name: string, config?: Partial<CircuitBreakerConfig>): CircuitBreaker {
+  getOrCreate(
+    name: string,
+    config?: Partial<CircuitBreakerConfig>,
+  ): CircuitBreaker {
     if (!this.breakers.has(name)) {
       const defaultConfig: CircuitBreakerConfig = {
         failureThreshold: 5,
@@ -264,7 +264,7 @@ export class CircuitBreakerRegistry {
    */
   getAllStats(): Record<string, CircuitBreakerStats> {
     const stats: Record<string, CircuitBreakerStats> = {};
-    
+
     this.breakers.forEach((breaker, name) => {
       stats[name] = breaker.getStats();
     });
@@ -276,8 +276,8 @@ export class CircuitBreakerRegistry {
    * Reset all circuit breakers
    */
   resetAll(): void {
-    this.breakers.forEach(breaker => breaker.forceClose());
-    logger.info('All circuit breakers reset');
+    this.breakers.forEach((breaker) => breaker.forceClose());
+    logger.info("All circuit breakers reset");
   }
 }
 
@@ -289,25 +289,31 @@ export const circuitBreakerRegistry = new CircuitBreakerRegistry();
 // ============================================
 
 // Database circuit breaker
-export const databaseCircuitBreaker = circuitBreakerRegistry.getOrCreate('database', {
-  failureThreshold: 5,
-  successThreshold: 2,
-  timeout: 5000,
-  resetTimeout: 30000,
-  monitoringPeriod: 60000,
-});
+export const databaseCircuitBreaker = circuitBreakerRegistry.getOrCreate(
+  "database",
+  {
+    failureThreshold: 5,
+    successThreshold: 2,
+    timeout: 5000,
+    resetTimeout: 30000,
+    monitoringPeriod: 60000,
+  },
+);
 
 // External API circuit breaker
-export const apiCircuitBreaker = circuitBreakerRegistry.getOrCreate('external-api', {
-  failureThreshold: 3,
-  successThreshold: 2,
-  timeout: 10000,
-  resetTimeout: 60000,
-  monitoringPeriod: 120000,
-});
+export const apiCircuitBreaker = circuitBreakerRegistry.getOrCreate(
+  "external-api",
+  {
+    failureThreshold: 3,
+    successThreshold: 2,
+    timeout: 10000,
+    resetTimeout: 60000,
+    monitoringPeriod: 120000,
+  },
+);
 
 // Redis circuit breaker
-export const redisCircuitBreaker = circuitBreakerRegistry.getOrCreate('redis', {
+export const redisCircuitBreaker = circuitBreakerRegistry.getOrCreate("redis", {
   failureThreshold: 5,
   successThreshold: 2,
   timeout: 3000,
@@ -316,10 +322,13 @@ export const redisCircuitBreaker = circuitBreakerRegistry.getOrCreate('redis', {
 });
 
 // Browser automation circuit breaker
-export const browserCircuitBreaker = circuitBreakerRegistry.getOrCreate('browser-automation', {
-  failureThreshold: 3,
-  successThreshold: 2,
-  timeout: 30000,
-  resetTimeout: 120000,
-  monitoringPeriod: 180000,
-});
+export const browserCircuitBreaker = circuitBreakerRegistry.getOrCreate(
+  "browser-automation",
+  {
+    failureThreshold: 3,
+    successThreshold: 2,
+    timeout: 30000,
+    resetTimeout: 120000,
+    monitoringPeriod: 180000,
+  },
+);
