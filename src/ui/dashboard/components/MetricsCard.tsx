@@ -3,23 +3,26 @@
  * Display individual metric with trend
  */
 
-import React from 'react';
+import React from "react";
 
 interface MetricsCardProps {
   title: string;
   value: number | string;
   icon: string;
   trend?: number;
-  color?: 'blue' | 'purple' | 'green' | 'emerald' | 'orange' | 'red';
+  color?: "blue" | "purple" | "green" | "emerald" | "orange" | "red";
 }
 
 const colorClasses = {
-  blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300',
-  purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300',
-  green: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300',
-  emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300',
-  orange: 'bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300',
-  red: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300',
+  blue: "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
+  purple:
+    "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300",
+  green: "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300",
+  emerald:
+    "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300",
+  orange:
+    "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300",
+  red: "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300",
 };
 
 export const MetricsCard: React.FC<MetricsCardProps> = ({
@@ -27,7 +30,7 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({
   value,
   icon,
   trend,
-  color = 'blue',
+  color = "blue",
 }) => {
   return (
     <div className="card">
@@ -40,8 +43,10 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({
             {value}
           </p>
           {trend !== undefined && (
-            <p className={`text-sm mt-2 ${trend >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% from yesterday
+            <p
+              className={`text-sm mt-2 ${trend >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+            >
+              {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}% from yesterday
             </p>
           )}
         </div>

@@ -3,16 +3,16 @@
  * Manage and monitor agents
  */
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { AgentCard } from '../components/AgentCard';
-import { AgentDeployModal } from '../components/AgentDeployModal';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { AgentCard } from "../components/AgentCard";
+import { AgentDeployModal } from "../components/AgentDeployModal";
 
 interface Agent {
   id: string;
   name: string;
   type: string;
-  status: 'active' | 'inactive' | 'error';
+  status: "active" | "inactive" | "error";
   lastRun?: string;
   successRate: number;
   totalRuns: number;
@@ -20,14 +20,19 @@ interface Agent {
 
 export const AgentsPage: React.FC = () => {
   const [showDeployModal, setShowDeployModal] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const { data: agents, isLoading, refetch } = useQuery<Agent[]>({
-    queryKey: ['agents', filter],
+  const {
+    data: agents,
+    isLoading,
+    refetch,
+  } = useQuery<Agent[]>({
+    queryKey: ["agents", filter],
     queryFn: async () => {
-      const url = filter === 'all' ? '/api/agents' : `/api/agents?status=${filter}`;
+      const url =
+        filter === "all" ? "/api/agents" : `/api/agents?status=${filter}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch agents');
+      if (!response.ok) throw new Error("Failed to fetch agents");
       const result = await response.json();
       // Handle both wrapped and unwrapped response formats
       return result.data?.agents || result.agents || result;
@@ -59,14 +64,14 @@ export const AgentsPage: React.FC = () => {
 
       {/* Filters */}
       <div className="flex gap-2">
-        {(['all', 'active', 'inactive'] as const).map((status) => (
+        {(["all", "active", "inactive"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === status
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                ? "bg-primary-600 text-white"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}

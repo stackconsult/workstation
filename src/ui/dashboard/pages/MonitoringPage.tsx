@@ -3,18 +3,18 @@
  * System metrics and performance monitoring
  */
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { PerformanceChart } from '../components/PerformanceChart';
-import { ResourceUsage } from '../components/ResourceUsage';
-import { ErrorLogs } from '../components/ErrorLogs';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { PerformanceChart } from "../components/PerformanceChart";
+import { ResourceUsage } from "../components/ResourceUsage";
+import { ErrorLogs } from "../components/ErrorLogs";
 
 export const MonitoringPage: React.FC = () => {
   const { data: metrics } = useQuery({
-    queryKey: ['performance-metrics'],
+    queryKey: ["performance-metrics"],
     queryFn: async () => {
-      const response = await fetch('/api/metrics/performance');
-      if (!response.ok) throw new Error('Failed to fetch metrics');
+      const response = await fetch("/api/metrics/performance");
+      if (!response.ok) throw new Error("Failed to fetch metrics");
       return response.json();
     },
     refetchInterval: 5000,
