@@ -3,9 +3,13 @@
  * Advanced workflow orchestration with versioning, rollback, and recovery
  */
 
-import { getDatabase, generateId, getCurrentTimestamp } from '../db/database';
-import { Workflow, CreateWorkflowInput, WorkflowDefinition } from '../db/models';
-import { logger } from '../../utils/logger';
+import { getDatabase, generateId, getCurrentTimestamp } from "../db/database";
+import {
+  Workflow,
+  CreateWorkflowInput,
+  WorkflowDefinition,
+} from "../db/models";
+import { logger } from "../../utils/logger";
 
 /**
  * Workflow version history entry
@@ -63,13 +67,13 @@ export class WorkflowService {
       definition: input.definition,
       owner_id: input.owner_id,
       workspace_id: input.workspace_id,
-      status: 'active',
+      status: "active",
       version: 1,
       timeout_seconds: input.timeout_seconds || 3600,
       max_retries: input.max_retries || 3,
       cron_schedule: input.cron_schedule,
       created_at: getCurrentTimestamp(),
-      updated_at: getCurrentTimestamp()
+      updated_at: getCurrentTimestamp(),
     };
 
     await db.run(
@@ -89,10 +93,10 @@ export class WorkflowService {
       workflow.max_retries,
       workflow.cron_schedule,
       workflow.created_at,
-      workflow.updated_at
+      workflow.updated_at,
     );
 
-    logger.info('Workflow created', { workflowId, name: workflow.name });
+    logger.info("Workflow created", { workflowId, name: workflow.name });
     return workflow;
   }
 
@@ -101,13 +105,17 @@ export class WorkflowService {
    */
   async getWorkflow(workflowId: string): Promise<Workflow | null> {
     const db = getDatabase();
-    
+
     const workflow = await db.get<Workflow>(
-      'SELECT * FROM workflows WHERE id = ?',
-      workflowId
+      "SELECT * FROM workflows WHERE id = ?",
+      workflowId,
     );
 
-    if (workflow && workflow.definition && typeof workflow.definition === 'string') {
+    if (
+      workflow &&
+      workflow.definition &&
+      typeof workflow.definition === "string"
+    ) {
       workflow.definition = JSON.parse(workflow.definition);
     }
 
@@ -119,22 +127,25 @@ export class WorkflowService {
    */
   async listWorkflows(ownerId?: string): Promise<Workflow[]> {
     const db = getDatabase();
-    
-    let query = 'SELECT * FROM workflows';
+
+    let query = "SELECT * FROM workflows";
     const params: string[] = [];
 
     if (ownerId) {
-      query += ' WHERE owner_id = ?';
+      query += " WHERE owner_id = ?";
       params.push(ownerId);
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += " ORDER BY created_at DESC";
 
     const workflows = await db.all<Workflow[]>(query, ...params);
 
-    return workflows.map(w => ({
+    return workflows.map((w) => ({
       ...w,
-      definition: typeof w.definition === 'string' ? JSON.parse(w.definition) : w.definition
+      definition:
+        typeof w.definition === "string"
+          ? JSON.parse(w.definition)
+          : w.definition,
     }));
   }
 
@@ -143,10 +154,10 @@ export class WorkflowService {
    */
   async updateWorkflow(
     workflowId: string,
-    updates: Partial<CreateWorkflowInput>
+    updates: Partial<CreateWorkflowInput>,
   ): Promise<Workflow | null> {
     const db = getDatabase();
-    
+
     const workflow = await this.getWorkflow(workflowId);
     if (!workflow) {
       return null;
@@ -155,7 +166,7 @@ export class WorkflowService {
     const updatedWorkflow: Workflow = {
       ...workflow,
       ...updates,
-      updated_at: getCurrentTimestamp()
+      updated_at: getCurrentTimestamp(),
     };
 
     if (updates.definition) {
@@ -178,10 +189,10 @@ export class WorkflowService {
       updatedWorkflow.max_retries,
       updatedWorkflow.cron_schedule,
       updatedWorkflow.updated_at,
-      workflowId
+      workflowId,
     );
 
-    logger.info('Workflow updated', { workflowId });
+    logger.info("Workflow updated", { workflowId });
     return updatedWorkflow;
   }
 
@@ -190,13 +201,13 @@ export class WorkflowService {
    */
   async deleteWorkflow(workflowId: string): Promise<boolean> {
     const db = getDatabase();
-    
+
     const result = await db.run(
-      'DELETE FROM workflows WHERE id = ?',
-      workflowId
+      "DELETE FROM workflows WHERE id = ?",
+      workflowId,
     );
 
-    logger.info('Workflow deleted', { workflowId });
+    logger.info("Workflow deleted", { workflowId });
     return (result.changes || 0) > 0;
   }
 
@@ -205,18 +216,18 @@ export class WorkflowService {
    */
   async updateWorkflowStatus(
     workflowId: string,
-    status: 'active' | 'inactive' | 'archived'
+    status: "active" | "inactive" | "archived",
   ): Promise<void> {
     const db = getDatabase();
-    
+
     await db.run(
-      'UPDATE workflows SET status = ?, updated_at = ? WHERE id = ?',
+      "UPDATE workflows SET status = ?, updated_at = ? WHERE id = ?",
       status,
       getCurrentTimestamp(),
-      workflowId
+      workflowId,
     );
 
-    logger.info('Workflow status updated', { workflowId, status });
+    logger.info("Workflow status updated", { workflowId, status });
   }
 
   /**
@@ -229,7 +240,7 @@ export class WorkflowService {
   async createVersionSnapshot(
     workflowId: string,
     createdBy: string,
-    changeNotes?: string
+    changeNotes?: string,
   ): Promise<WorkflowVersion> {
     const workflow = await this.getWorkflow(workflowId);
     if (!workflow) {
@@ -243,7 +254,7 @@ export class WorkflowService {
       definition: workflow.definition,
       created_by: createdBy,
       created_at: getCurrentTimestamp(),
-      change_notes: changeNotes
+      change_notes: changeNotes,
     };
 
     // Store in memory (in production, this would go to a versions table)
@@ -255,17 +266,17 @@ export class WorkflowService {
     const snapshot: WorkflowSnapshot = {
       workflow: { ...workflow },
       version: workflow.version,
-      snapshot_at: getCurrentTimestamp()
+      snapshot_at: getCurrentTimestamp(),
     };
 
     const snapshots = this.snapshots.get(workflowId) || [];
     snapshots.push(snapshot);
     this.snapshots.set(workflowId, snapshots);
 
-    logger.info('Workflow version snapshot created', {
+    logger.info("Workflow version snapshot created", {
       workflowId,
       version: workflow.version,
-      versionId: versionEntry.id
+      versionId: versionEntry.id,
     });
 
     return versionEntry;
@@ -284,7 +295,7 @@ export class WorkflowService {
   async rollbackToVersion(
     workflowId: string,
     targetVersion: number,
-    rolledBackBy: string
+    rolledBackBy: string,
   ): Promise<Workflow> {
     const workflow = await this.getWorkflow(workflowId);
     if (!workflow) {
@@ -293,17 +304,19 @@ export class WorkflowService {
 
     // Find the target version snapshot
     const snapshots = this.snapshots.get(workflowId) || [];
-    const targetSnapshot = snapshots.find(s => s.version === targetVersion);
+    const targetSnapshot = snapshots.find((s) => s.version === targetVersion);
 
     if (!targetSnapshot) {
-      throw new Error(`Version ${targetVersion} not found for workflow ${workflowId}`);
+      throw new Error(
+        `Version ${targetVersion} not found for workflow ${workflowId}`,
+      );
     }
 
     // Create a snapshot of current state before rollback
     await this.createVersionSnapshot(
       workflowId,
       rolledBackBy,
-      `Pre-rollback snapshot from version ${workflow.version}`
+      `Pre-rollback snapshot from version ${workflow.version}`,
     );
 
     // Restore the workflow to target version
@@ -313,14 +326,14 @@ export class WorkflowService {
       definition: targetSnapshot.workflow.definition,
       timeout_seconds: targetSnapshot.workflow.timeout_seconds,
       max_retries: targetSnapshot.workflow.max_retries,
-      cron_schedule: targetSnapshot.workflow.cron_schedule
+      cron_schedule: targetSnapshot.workflow.cron_schedule,
     });
 
-    logger.info('Workflow rolled back', {
+    logger.info("Workflow rolled back", {
       workflowId,
       fromVersion: workflow.version,
       toVersion: targetVersion,
-      rolledBackBy
+      rolledBackBy,
     });
 
     return restoredWorkflow!;
@@ -332,18 +345,21 @@ export class WorkflowService {
   async initializeOrchestrationContext(
     workflowId: string,
     executionId?: string,
-    initialVariables?: Record<string, unknown>
+    initialVariables?: Record<string, unknown>,
   ): Promise<OrchestrationContext> {
     const context: OrchestrationContext = {
       workflow_id: workflowId,
       execution_id: executionId,
       variables: initialVariables || {},
       state: {},
-      checkpoints: []
+      checkpoints: [],
     };
 
     this.orchestrationContexts.set(executionId || workflowId, context);
-    logger.info('Orchestration context initialized', { workflowId, executionId });
+    logger.info("Orchestration context initialized", {
+      workflowId,
+      executionId,
+    });
 
     return context;
   }
@@ -354,7 +370,7 @@ export class WorkflowService {
   async createCheckpoint(
     contextId: string,
     taskName: string,
-    state: Record<string, unknown>
+    state: Record<string, unknown>,
   ): Promise<void> {
     const context = this.orchestrationContexts.get(contextId);
     if (!context) {
@@ -364,10 +380,10 @@ export class WorkflowService {
     context.checkpoints.push({
       task_name: taskName,
       timestamp: getCurrentTimestamp(),
-      state: { ...state }
+      state: { ...state },
     });
 
-    logger.info('Checkpoint created', { contextId, taskName });
+    logger.info("Checkpoint created", { contextId, taskName });
   }
 
   /**
@@ -375,7 +391,7 @@ export class WorkflowService {
    */
   async recoverFromCheckpoint(
     contextId: string,
-    checkpointIndex: number
+    checkpointIndex: number,
   ): Promise<OrchestrationContext> {
     const context = this.orchestrationContexts.get(contextId);
     if (!context) {
@@ -389,10 +405,10 @@ export class WorkflowService {
     const checkpoint = context.checkpoints[checkpointIndex];
     context.state = { ...checkpoint.state };
 
-    logger.info('Recovered from checkpoint', {
+    logger.info("Recovered from checkpoint", {
       contextId,
       checkpointIndex,
-      taskName: checkpoint.task_name
+      taskName: checkpoint.task_name,
     });
 
     return context;
@@ -403,27 +419,33 @@ export class WorkflowService {
    */
   async orchestrateParallelTasks(
     workflowId: string,
-    taskGroups: Array<string[]>
+    taskGroups: Array<string[]>,
   ): Promise<Map<string, any>> {
     const results = new Map<string, any>();
 
     for (const group of taskGroups) {
-      logger.info('Executing parallel task group', { workflowId, tasks: group });
-      
+      logger.info("Executing parallel task group", {
+        workflowId,
+        tasks: group,
+      });
+
       // In production, this would execute tasks in parallel
       // For now, we simulate parallel execution
       const groupResults = await Promise.all(
         group.map(async (taskName) => {
-          return { taskName, status: 'completed', result: {} };
-        })
+          return { taskName, status: "completed", result: {} };
+        }),
       );
 
-      groupResults.forEach(result => {
+      groupResults.forEach((result) => {
         results.set(result.taskName, result);
       });
     }
 
-    logger.info('Parallel orchestration completed', { workflowId, taskCount: results.size });
+    logger.info("Parallel orchestration completed", {
+      workflowId,
+      taskCount: results.size,
+    });
     return results;
   }
 
@@ -434,20 +456,22 @@ export class WorkflowService {
     workflowId: string,
     condition: (context: OrchestrationContext) => boolean,
     trueBranch: string[],
-    falseBranch: string[]
+    falseBranch: string[],
   ): Promise<string[]> {
     const context = this.orchestrationContexts.get(workflowId);
     if (!context) {
-      throw new Error(`Orchestration context for workflow ${workflowId} not found`);
+      throw new Error(
+        `Orchestration context for workflow ${workflowId} not found`,
+      );
     }
 
     const shouldExecuteTrueBranch = condition(context);
     const tasksToExecute = shouldExecuteTrueBranch ? trueBranch : falseBranch;
 
-    logger.info('Conditional branch evaluated', {
+    logger.info("Conditional branch evaluated", {
       workflowId,
-      branch: shouldExecuteTrueBranch ? 'true' : 'false',
-      tasks: tasksToExecute
+      branch: shouldExecuteTrueBranch ? "true" : "false",
+      tasks: tasksToExecute,
     });
 
     return tasksToExecute;
@@ -460,26 +484,38 @@ export class WorkflowService {
     workflowId: string,
     tasks: string[],
     maxIterations: number,
-    continueCondition: (iteration: number, context: OrchestrationContext) => boolean
+    continueCondition: (
+      iteration: number,
+      context: OrchestrationContext,
+    ) => boolean,
   ): Promise<number> {
     const context = this.orchestrationContexts.get(workflowId);
     if (!context) {
-      throw new Error(`Orchestration context for workflow ${workflowId} not found`);
+      throw new Error(
+        `Orchestration context for workflow ${workflowId} not found`,
+      );
     }
 
     let iteration = 0;
     while (iteration < maxIterations && continueCondition(iteration, context)) {
-      logger.info('Loop iteration', { workflowId, iteration, tasks });
-      
+      logger.info("Loop iteration", { workflowId, iteration, tasks });
+
       // Execute tasks in this iteration
       for (const task of tasks) {
-        await this.createCheckpoint(workflowId, `${task}_iter_${iteration}`, context.state);
+        await this.createCheckpoint(
+          workflowId,
+          `${task}_iter_${iteration}`,
+          context.state,
+        );
       }
-      
+
       iteration++;
     }
 
-    logger.info('Loop orchestration completed', { workflowId, iterations: iteration });
+    logger.info("Loop orchestration completed", {
+      workflowId,
+      iterations: iteration,
+    });
     return iteration;
   }
 
@@ -490,40 +526,46 @@ export class WorkflowService {
     workflowId: string,
     executionId: string,
     error: Error,
-    recoveryStrategy: 'retry' | 'skip' | 'fallback' | 'rollback'
+    recoveryStrategy: "retry" | "skip" | "fallback" | "rollback",
   ): Promise<{ recovered: boolean; action: string }> {
-    logger.error('Workflow error occurred', {
+    logger.error("Workflow error occurred", {
       workflowId,
       executionId,
       error: error.message,
-      strategy: recoveryStrategy
+      strategy: recoveryStrategy,
     });
 
     switch (recoveryStrategy) {
-      case 'retry':
-        logger.info('Attempting retry', { workflowId, executionId });
-        return { recovered: true, action: 'retried' };
+      case "retry":
+        logger.info("Attempting retry", { workflowId, executionId });
+        return { recovered: true, action: "retried" };
 
-      case 'skip':
-        logger.info('Skipping failed task', { workflowId, executionId });
-        return { recovered: true, action: 'skipped' };
+      case "skip":
+        logger.info("Skipping failed task", { workflowId, executionId });
+        return { recovered: true, action: "skipped" };
 
-      case 'fallback':
-        logger.info('Executing fallback logic', { workflowId, executionId });
-        return { recovered: true, action: 'fallback_executed' };
+      case "fallback":
+        logger.info("Executing fallback logic", { workflowId, executionId });
+        return { recovered: true, action: "fallback_executed" };
 
-      case 'rollback': {
+      case "rollback": {
         const context = this.orchestrationContexts.get(executionId);
         if (context && context.checkpoints.length > 0) {
-          await this.recoverFromCheckpoint(executionId, context.checkpoints.length - 1);
-          logger.info('Rolled back to last checkpoint', { workflowId, executionId });
-          return { recovered: true, action: 'rolled_back' };
+          await this.recoverFromCheckpoint(
+            executionId,
+            context.checkpoints.length - 1,
+          );
+          logger.info("Rolled back to last checkpoint", {
+            workflowId,
+            executionId,
+          });
+          return { recovered: true, action: "rolled_back" };
         }
-        return { recovered: false, action: 'no_checkpoint' };
+        return { recovered: false, action: "no_checkpoint" };
       }
 
       default:
-        return { recovered: false, action: 'unknown_strategy' };
+        return { recovered: false, action: "unknown_strategy" };
     }
   }
 
@@ -545,7 +587,9 @@ export class WorkflowService {
       checkpoints: context.checkpoints.length,
       variables: Object.keys(context.variables).length,
       stateSize: Object.keys(context.state).length,
-      uptime: Date.now() - new Date(context.checkpoints[0]?.timestamp || Date.now()).getTime()
+      uptime:
+        Date.now() -
+        new Date(context.checkpoints[0]?.timestamp || Date.now()).getTime(),
     };
   }
 
@@ -554,7 +598,7 @@ export class WorkflowService {
    */
   async cleanupOrchestrationContext(contextId: string): Promise<void> {
     this.orchestrationContexts.delete(contextId);
-    logger.info('Orchestration context cleaned up', { contextId });
+    logger.info("Orchestration context cleaned up", { contextId });
   }
 }
 

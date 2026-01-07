@@ -2,8 +2,8 @@
  * Resource Usage Component
  */
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface ResourceData {
   cpu: number;
@@ -17,26 +17,28 @@ interface ResourceData {
 
 export const ResourceUsage: React.FC = () => {
   const { data: resources } = useQuery<ResourceData>({
-    queryKey: ['resource-usage'],
+    queryKey: ["resource-usage"],
     queryFn: async () => {
-      const response = await fetch('/api/metrics/resources');
-      if (!response.ok) throw new Error('Failed to fetch resources');
+      const response = await fetch("/api/metrics/resources");
+      if (!response.ok) throw new Error("Failed to fetch resources");
       return response.json();
     },
     refetchInterval: 2000,
   });
 
   const getUsageColor = (value: number) => {
-    if (value >= 90) return 'bg-red-500';
-    if (value >= 70) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (value >= 90) return "bg-red-500";
+    if (value >= 70) return "bg-yellow-500";
+    return "bg-green-500";
   };
 
   const UsageBar = ({ label, value }: { label: string; value: number }) => (
     <div>
       <div className="flex justify-between text-sm mb-2">
         <span className="text-gray-700 dark:text-gray-300">{label}</span>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">{value}%</span>
+        <span className="font-semibold text-gray-900 dark:text-gray-100">
+          {value}%
+        </span>
       </div>
       <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
         <div
@@ -56,7 +58,7 @@ export const ResourceUsage: React.FC = () => {
         <UsageBar label="CPU" value={resources?.cpu || 0} />
         <UsageBar label="Memory" value={resources?.memory || 0} />
         <UsageBar label="Disk" value={resources?.disk || 0} />
-        
+
         <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Network
