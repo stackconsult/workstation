@@ -1,6 +1,6 @@
-import { IncomingMessage } from 'http';
-import { verifyToken } from '../auth/jwt';
-import { URL } from 'url';
+import { IncomingMessage } from "http";
+import { verifyToken } from "../auth/jwt";
+import { URL } from "url";
 
 export interface AuthenticatedWebSocket {
   user?: {
@@ -13,16 +13,18 @@ export interface AuthenticatedWebSocket {
  * WebSocket authentication middleware
  * Validates JWT token from query parameter or upgrade headers
  */
-export async function authenticateWebSocket(req: IncomingMessage): Promise<{ authenticated: boolean; user?: any; error?: string }> {
+export async function authenticateWebSocket(
+  req: IncomingMessage,
+): Promise<{ authenticated: boolean; user?: any; error?: string }> {
   try {
     //Extract token from query parameter
-    const url = new URL(req.url || '', `http://${req.headers.host}`);
-    let token = url.searchParams.get('token');
+    const url = new URL(req.url || "", `http://${req.headers.host}`);
+    let token = url.searchParams.get("token");
 
     // Fallback to Authorization header
     if (!token && req.headers.authorization) {
       const authHeader = req.headers.authorization;
-      if (authHeader.startsWith('Bearer ')) {
+      if (authHeader.startsWith("Bearer ")) {
         token = authHeader.substring(7);
       }
     }
@@ -30,17 +32,17 @@ export async function authenticateWebSocket(req: IncomingMessage): Promise<{ aut
     if (!token) {
       return {
         authenticated: false,
-        error: 'No authentication token provided'
+        error: "No authentication token provided",
       };
     }
 
     // Verify JWT token
     const decoded = verifyToken(token);
-    
+
     if (!decoded || !decoded.userId) {
       return {
         authenticated: false,
-        error: 'Invalid token'
+        error: "Invalid token",
       };
     }
 
@@ -48,13 +50,13 @@ export async function authenticateWebSocket(req: IncomingMessage): Promise<{ aut
       authenticated: true,
       user: {
         userId: decoded.userId,
-        role: decoded.role
-      }
+        role: decoded.role,
+      },
     };
   } catch (error) {
     return {
       authenticated: false,
-      error: `Authentication failed: ${(error as Error).message}`
+      error: `Authentication failed: ${(error as Error).message}`,
     };
   }
 }
@@ -65,7 +67,8 @@ export async function authenticateWebSocket(req: IncomingMessage): Promise<{ aut
  */
 export class WebSocketRateLimiter {
   private connections: Map<string, number> = new Map();
-  private messages: Map<string, { count: number; resetTime: number }> = new Map();
+  private messages: Map<string, { count: number; resetTime: number }> =
+    new Map();
 
   private readonly maxConnectionsPerUser = 10;
   private readonly maxMessagesPerMinute = 100;
@@ -108,7 +111,7 @@ export class WebSocketRateLimiter {
       // New window
       this.messages.set(userId, {
         count: 1,
-        resetTime: now + this.messageWindowMs
+        resetTime: now + this.messageWindowMs,
       });
       return true;
     }
