@@ -1,14 +1,14 @@
 /**
  * Shared Retry Utility
- * 
+ *
  * Provides retry logic with exponential backoff, custom conditions,
  * and circuit breaker pattern for resilient agent operations.
- * 
+ *
  * @module shared/utils/retry
  * @version 1.0.0
  */
 
-import { logger } from './logger.js';
+import { logger } from "./logger.js";
 
 export interface RetryOptions {
   maxRetries?: number;
@@ -31,7 +31,7 @@ export interface RetryUntilOptions<T> {
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const {
     maxRetries = 3,
@@ -57,7 +57,7 @@ export async function withRetry<T>(
 
       // Last attempt, throw error
       if (attempt === maxRetries - 1) {
-        logger.error('All retry attempts failed', {
+        logger.error("All retry attempts failed", {
           attempts: maxRetries,
           error: lastError.message,
         });
@@ -67,10 +67,10 @@ export async function withRetry<T>(
       // Calculate delay with exponential backoff
       const delay = Math.min(
         baseDelay * Math.pow(backoffMultiplier, attempt),
-        maxDelay
+        maxDelay,
       );
 
-      logger.warn('Retry attempt', {
+      logger.warn("Retry attempt", {
         attempt: attempt + 1,
         maxRetries,
         delay,
@@ -95,20 +95,15 @@ export async function withRetry<T>(
  */
 export async function retryUntil<T>(
   fn: () => Promise<T>,
-  options: RetryUntilOptions<T>
+  options: RetryUntilOptions<T>,
 ): Promise<T> {
-  const {
-    maxAttempts = 10,
-    delay = 1000,
-    condition,
-    onAttempt,
-  } = options;
+  const { maxAttempts = 10, delay = 1000, condition, onAttempt } = options;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const result = await fn();
 
     if (condition(result)) {
-      logger.debug('Condition met', { attempt: attempt + 1 });
+      logger.debug("Condition met", { attempt: attempt + 1 });
       return result;
     }
 
@@ -117,7 +112,7 @@ export async function retryUntil<T>(
     }
 
     if (attempt < maxAttempts - 1) {
-      logger.info('Condition not met, retrying', {
+      logger.info("Condition not met, retrying", {
         attempt: attempt + 1,
         maxAttempts,
       });
@@ -136,22 +131,22 @@ export async function retryUntil<T>(
 export class CircuitBreaker {
   private failureCount = 0;
   private lastFailureTime = 0;
-  private state: 'closed' | 'open' | 'half-open' = 'closed';
-  
+  private state: "closed" | "open" | "half-open" = "closed";
+
   constructor(
     private readonly threshold: number = 5,
     private readonly timeout: number = 60000, // 1 minute
-    private readonly resetTimeout: number = 30000 // 30 seconds
+    private readonly resetTimeout: number = 30000, // 30 seconds
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     // If circuit is open, check if we should try half-open
-    if (this.state === 'open') {
+    if (this.state === "open") {
       if (Date.now() - this.lastFailureTime > this.resetTimeout) {
-        this.state = 'half-open';
-        logger.info('Circuit breaker entering half-open state');
+        this.state = "half-open";
+        logger.info("Circuit breaker entering half-open state");
       } else {
-        throw new Error('Circuit breaker is OPEN - too many failures');
+        throw new Error("Circuit breaker is OPEN - too many failures");
       }
     }
 
@@ -159,10 +154,10 @@ export class CircuitBreaker {
       const result = await fn();
 
       // Success - reset circuit
-      if (this.state === 'half-open') {
-        this.state = 'closed';
+      if (this.state === "half-open") {
+        this.state = "closed";
         this.failureCount = 0;
-        logger.info('Circuit breaker closed - system recovered');
+        logger.info("Circuit breaker closed - system recovered");
       }
 
       return result;
@@ -172,8 +167,8 @@ export class CircuitBreaker {
 
       // Open circuit if threshold exceeded
       if (this.failureCount >= this.threshold) {
-        this.state = 'open';
-        logger.error('Circuit breaker OPENED', {
+        this.state = "open";
+        logger.error("Circuit breaker OPENED", {
           failureCount: this.failureCount,
           threshold: this.threshold,
         });
@@ -188,10 +183,10 @@ export class CircuitBreaker {
   }
 
   reset(): void {
-    this.state = 'closed';
+    this.state = "closed";
     this.failureCount = 0;
     this.lastFailureTime = 0;
-    logger.info('Circuit breaker manually reset');
+    logger.info("Circuit breaker manually reset");
   }
 }
 
@@ -205,13 +200,13 @@ export class RateLimiter {
 
   constructor(
     private readonly maxConcurrent: number = 5,
-    private readonly minInterval: number = 0
+    private readonly minInterval: number = 0,
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     // Wait for available slot
     while (this.activeCount >= this.maxConcurrent) {
-      await new Promise<void>(resolve => this.queue.push(resolve));
+      await new Promise<void>((resolve) => this.queue.push(resolve));
     }
 
     this.activeCount++;
@@ -241,7 +236,7 @@ export class RateLimiter {
 export async function withTimeout<T>(
   fn: () => Promise<T>,
   timeoutMs: number,
-  timeoutMessage = 'Operation timed out'
+  timeoutMessage = "Operation timed out",
 ): Promise<T> {
   return Promise.race([
     fn(),
@@ -255,7 +250,7 @@ export async function withTimeout<T>(
  * Sleep utility
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -264,16 +259,16 @@ export function sleep(ms: number): Promise<void> {
 export async function retryBatch<T>(
   items: T[],
   fn: (item: T) => Promise<any>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<Array<{ success: boolean; result?: any; error?: Error }>> {
   return Promise.all(
-    items.map(async item => {
+    items.map(async (item) => {
       try {
         const result = await withRetry(() => fn(item), options);
         return { success: true, result };
       } catch (error) {
         return { success: false, error: error as Error };
       }
-    })
+    }),
   );
 }

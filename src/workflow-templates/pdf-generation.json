@@ -35,7 +35,13 @@
       "x": 100,
       "y": 300,
       "params": {
-        "removeSelectors": [".ads", ".navigation", ".sidebar", "header", "footer"]
+        "removeSelectors": [
+          ".ads",
+          ".navigation",
+          ".sidebar",
+          "header",
+          "footer"
+        ]
       }
     },
     {
