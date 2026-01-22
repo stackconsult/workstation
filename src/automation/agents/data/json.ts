@@ -4,7 +4,7 @@
  * Phase 1: Data Agents
  */
 
-import { logger } from '../../../utils/logger';
+import { logger } from "../../../utils/logger";
 
 export interface JsonParseOptions {
   strict?: boolean;
@@ -22,7 +22,7 @@ export interface JsonValidateOptions {
 export interface JsonTransformOptions {
   map?: Record<string, string | ((value: any) => any)>;
   filter?: (obj: any) => boolean;
-  sort?: { key: string; order: 'asc' | 'desc' };
+  sort?: { key: string; order: "asc" | "desc" };
 }
 
 /**
@@ -44,23 +44,23 @@ export class JsonAgent {
     try {
       const options: JsonParseOptions = {
         strict: true,
-        ...params.options
+        ...params.options,
       };
 
       const data = JSON.parse(params.input, options.reviver);
 
-      logger.info('JSON parsed successfully');
+      logger.info("JSON parsed successfully");
 
       return {
         success: true,
-        data
+        data,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('JSON parse error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("JSON parse error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -69,10 +69,7 @@ export class JsonAgent {
    * Query JSON data using simplified JSONPath syntax
    * Supports: $.key, $.array[0], $.nested.key, $.array[*].key
    */
-  async queryJson(params: {
-    data: any;
-    query: string;
-  }): Promise<{
+  async queryJson(params: { data: any; query: string }): Promise<{
     success: boolean;
     result?: any;
     error?: string;
@@ -84,14 +81,14 @@ export class JsonAgent {
 
       return {
         success: true,
-        result
+        result,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('JSON query error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("JSON query error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -110,42 +107,44 @@ export class JsonAgent {
   }> {
     try {
       // If schema is a Joi schema or has validate method, use it
-      if (params.schema && typeof params.schema.validate === 'function') {
+      if (params.schema && typeof params.schema.validate === "function") {
         const { error } = params.schema.validate(params.data, {
-          abortEarly: false
+          abortEarly: false,
         });
 
         if (error) {
           return {
             success: true,
             valid: false,
-            errors: error.details.map((d: any) => d.message)
+            errors: error.details.map((d: any) => d.message),
           };
         }
 
-        logger.info('JSON validation passed (schema validator)');
+        logger.info("JSON validation passed (schema validator)");
         return {
           success: true,
-          valid: true
+          valid: true,
         };
       }
 
       // Simple type checking for plain object schemas
       const errors = this.validateAgainstSchema(params.data, params.schema);
 
-      logger.info(`JSON validation: ${errors.length > 0 ? 'failed' : 'passed'}`);
+      logger.info(
+        `JSON validation: ${errors.length > 0 ? "failed" : "passed"}`,
+      );
 
       return {
         success: true,
         valid: errors.length === 0,
-        errors: errors.length > 0 ? errors : undefined
+        errors: errors.length > 0 ? errors : undefined,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('JSON validation error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("JSON validation error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -179,18 +178,18 @@ export class JsonAgent {
         result = this.applySorting(result, params.transforms.sort);
       }
 
-      logger.info('JSON transformed successfully');
+      logger.info("JSON transformed successfully");
 
       return {
         success: true,
-        data: result
+        data: result,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('JSON transform error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("JSON transform error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -208,19 +207,19 @@ export class JsonAgent {
     error?: string;
   }> {
     try {
-      const indent = params.pretty ? (params.indent || 2) : undefined;
+      const indent = params.pretty ? params.indent || 2 : undefined;
       const json = JSON.stringify(params.data, null, indent);
 
       return {
         success: true,
-        json
+        json,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('JSON stringify error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("JSON stringify error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -228,17 +227,14 @@ export class JsonAgent {
   /**
    * Merge multiple JSON objects
    */
-  async mergeJson(params: {
-    objects: any[];
-    deep?: boolean;
-  }): Promise<{
+  async mergeJson(params: { objects: any[]; deep?: boolean }): Promise<{
     success: boolean;
     data?: any;
     error?: string;
   }> {
     try {
       if (!Array.isArray(params.objects) || params.objects.length === 0) {
-        throw new Error('Objects must be a non-empty array');
+        throw new Error("Objects must be a non-empty array");
       }
 
       const merged = params.deep
@@ -249,14 +245,14 @@ export class JsonAgent {
 
       return {
         success: true,
-        data: merged
+        data: merged,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('JSON merge error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("JSON merge error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -266,19 +262,19 @@ export class JsonAgent {
    */
   private executeQuery(data: any, query: string): any {
     // Remove leading $. if present
-    const path = query.replace(/^\$\.?/, '');
-    
+    const path = query.replace(/^\$\.?/, "");
+
     if (!path) {
       return data;
     }
 
-    const parts = path.split('.');
+    const parts = path.split(".");
     let current = data;
 
     for (const part of parts) {
       // Handle array notation: array[0] or array[*]
       const arrayMatch = part.match(/^(\w+)\[(\*|\d+)\]$/);
-      
+
       if (arrayMatch) {
         const [, key, index] = arrayMatch;
         current = current[key];
@@ -287,7 +283,7 @@ export class JsonAgent {
           throw new Error(`${key} is not an array`);
         }
 
-        if (index === '*') {
+        if (index === "*") {
           // Return all items
           return current;
         } else {
@@ -308,10 +304,10 @@ export class JsonAgent {
   /**
    * Validate data against a simple schema
    */
-  private validateAgainstSchema(data: any, schema: any, path = ''): string[] {
+  private validateAgainstSchema(data: any, schema: any, path = ""): string[] {
     const errors: string[] = [];
 
-    if (typeof schema !== 'object' || schema === null) {
+    if (typeof schema !== "object" || schema === null) {
       return errors;
     }
 
@@ -329,16 +325,26 @@ export class JsonAgent {
       // Check type
       if (dataValue !== undefined && schemaValue.type) {
         const expectedType = schemaValue.type;
-        const actualType = Array.isArray(dataValue) ? 'array' : typeof dataValue;
+        const actualType = Array.isArray(dataValue)
+          ? "array"
+          : typeof dataValue;
 
         if (expectedType !== actualType) {
-          errors.push(`${currentPath} should be ${expectedType}, got ${actualType}`);
+          errors.push(
+            `${currentPath} should be ${expectedType}, got ${actualType}`,
+          );
         }
       }
 
       // Recursively validate nested objects
-      if (typeof schemaValue === 'object' && !schemaValue.type && dataValue !== undefined) {
-        errors.push(...this.validateAgainstSchema(dataValue, schemaValue, currentPath));
+      if (
+        typeof schemaValue === "object" &&
+        !schemaValue.type &&
+        dataValue !== undefined
+      ) {
+        errors.push(
+          ...this.validateAgainstSchema(dataValue, schemaValue, currentPath),
+        );
       }
     }
 
@@ -348,21 +354,24 @@ export class JsonAgent {
   /**
    * Apply mapping transformations
    */
-  private applyMapping(data: any, mapping: Record<string, string | ((value: any) => any)>): any {
+  private applyMapping(
+    data: any,
+    mapping: Record<string, string | ((value: any) => any)>,
+  ): any {
     if (Array.isArray(data)) {
-      return data.map(item => this.applyMapping(item, mapping));
+      return data.map((item) => this.applyMapping(item, mapping));
     }
 
-    if (typeof data !== 'object' || data === null) {
+    if (typeof data !== "object" || data === null) {
       return data;
     }
 
     const result: any = {};
 
     for (const [key, transform] of Object.entries(mapping)) {
-      if (typeof transform === 'function') {
+      if (typeof transform === "function") {
         result[key] = transform(data);
-      } else if (typeof transform === 'string') {
+      } else if (typeof transform === "string") {
         // Map one key to another
         result[transform] = data[key];
       }
@@ -381,13 +390,16 @@ export class JsonAgent {
   /**
    * Apply sorting to array
    */
-  private applySorting(data: any[], sort: { key: string; order: 'asc' | 'desc' }): any[] {
+  private applySorting(
+    data: any[],
+    sort: { key: string; order: "asc" | "desc" },
+  ): any[] {
     return [...data].sort((a, b) => {
       const aVal = a[sort.key];
       const bVal = b[sort.key];
 
-      if (aVal < bVal) return sort.order === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sort.order === 'asc' ? 1 : -1;
+      if (aVal < bVal) return sort.order === "asc" ? -1 : 1;
+      if (aVal > bVal) return sort.order === "asc" ? 1 : -1;
       return 0;
     });
   }
@@ -397,7 +409,7 @@ export class JsonAgent {
    */
   private deepMerge(...objects: any[]): any {
     return objects.reduce((acc, obj) => {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         const accValue = acc[key];
         const objValue = obj[key];
 
@@ -417,7 +429,7 @@ export class JsonAgent {
    * Check if value is a plain object
    */
   private isObject(val: any): boolean {
-    return val !== null && typeof val === 'object' && !Array.isArray(val);
+    return val !== null && typeof val === "object" && !Array.isArray(val);
   }
 }
 
