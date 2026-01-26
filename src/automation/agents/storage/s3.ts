@@ -14,13 +14,13 @@ import {
   CopyObjectCommand,
   GetObjectCommandOutput,
   ListObjectsV2CommandOutput,
-  HeadObjectCommandOutput
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { logger } from '../../../utils/logger';
-import fs from 'fs/promises';
-import path from 'path';
-import { Readable } from 'stream';
+  HeadObjectCommandOutput,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { logger } from "../../../utils/logger";
+import fs from "fs/promises";
+import path from "path";
+import { Readable } from "stream";
 
 export interface S3Config {
   region: string;
@@ -36,7 +36,7 @@ export interface UploadParams {
   content: Buffer | string | Readable;
   contentType?: string;
   metadata?: Record<string, string>;
-  acl?: 'private' | 'public-read' | 'public-read-write' | 'authenticated-read';
+  acl?: "private" | "public-read" | "public-read-write" | "authenticated-read";
 }
 
 export interface DownloadParams {
@@ -68,7 +68,7 @@ export interface CopyParams {
   destinationKey: string;
   sourceBucket?: string; // If copying from different bucket
   metadata?: Record<string, string>;
-  metadataDirective?: 'COPY' | 'REPLACE';
+  metadataDirective?: "COPY" | "REPLACE";
 }
 
 export interface MoveParams {
@@ -79,7 +79,7 @@ export interface MoveParams {
 export interface PresignedUrlParams {
   key: string;
   expiresIn?: number; // Seconds, default 3600 (1 hour)
-  operation?: 'getObject' | 'putObject';
+  operation?: "getObject" | "putObject";
 }
 
 /**
@@ -92,22 +92,22 @@ export class S3Agent {
 
   constructor(config: S3Config) {
     this.config = config;
-    
+
     // Initialize S3 client with configuration
     this.client = new S3Client({
       region: config.region,
       credentials: {
         accessKeyId: config.accessKeyId,
-        secretAccessKey: config.secretAccessKey
+        secretAccessKey: config.secretAccessKey,
       },
       endpoint: config.endpoint,
-      forcePathStyle: config.forcePathStyle || false
+      forcePathStyle: config.forcePathStyle || false,
     });
 
-    logger.info('S3 Agent initialized', { 
-      region: config.region, 
+    logger.info("S3 Agent initialized", {
+      region: config.region,
       bucket: config.bucket,
-      endpoint: config.endpoint || 'AWS S3'
+      endpoint: config.endpoint || "AWS S3",
     });
   }
 
@@ -120,16 +120,16 @@ export class S3Agent {
     etag?: string;
     location: string;
   }> {
-    logger.info('Uploading file to S3', { 
-      key: params.key, 
-      bucket: this.config.bucket 
+    logger.info("Uploading file to S3", {
+      key: params.key,
+      bucket: this.config.bucket,
     });
 
     try {
       let body: Buffer | Readable;
-      
-      if (typeof params.content === 'string') {
-        body = Buffer.from(params.content, 'utf-8');
+
+      if (typeof params.content === "string") {
+        body = Buffer.from(params.content, "utf-8");
       } else {
         body = params.content;
       }
@@ -138,27 +138,27 @@ export class S3Agent {
         Bucket: this.config.bucket,
         Key: params.key,
         Body: body,
-        ContentType: params.contentType || 'application/octet-stream',
+        ContentType: params.contentType || "application/octet-stream",
         Metadata: params.metadata,
-        ACL: params.acl || 'private'
+        ACL: params.acl || "private",
       });
 
       const response = await this.client.send(command);
 
-      const location = this.config.endpoint 
+      const location = this.config.endpoint
         ? `${this.config.endpoint}/${this.config.bucket}/${params.key}`
         : `https://${this.config.bucket}.s3.${this.config.region}.amazonaws.com/${params.key}`;
 
-      logger.info('File uploaded successfully', { key: params.key });
+      logger.info("File uploaded successfully", { key: params.key });
 
       return {
         success: true,
         key: params.key,
         etag: response.ETag,
-        location
+        location,
       };
     } catch (error) {
-      logger.error('File upload failed', { error, key: params.key });
+      logger.error("File upload failed", { error, key: params.key });
       throw error;
     }
   }
@@ -172,21 +172,21 @@ export class S3Agent {
     savedPath?: string;
     metadata?: Record<string, string>;
   }> {
-    logger.info('Downloading file from S3', { 
-      key: params.key, 
-      bucket: this.config.bucket 
+    logger.info("Downloading file from S3", {
+      key: params.key,
+      bucket: this.config.bucket,
     });
 
     try {
       const command = new GetObjectCommand({
         Bucket: this.config.bucket,
-        Key: params.key
+        Key: params.key,
       });
 
       const response: GetObjectCommandOutput = await this.client.send(command);
 
       if (!response.Body) {
-        throw new Error('No data received from S3');
+        throw new Error("No data received from S3");
       }
 
       // Convert stream to buffer
@@ -200,28 +200,28 @@ export class S3Agent {
       if (params.savePath) {
         await fs.mkdir(path.dirname(params.savePath), { recursive: true });
         await fs.writeFile(params.savePath, buffer);
-        
-        logger.info('File downloaded and saved', { 
-          key: params.key, 
-          path: params.savePath 
+
+        logger.info("File downloaded and saved", {
+          key: params.key,
+          path: params.savePath,
         });
 
         return {
           success: true,
           savedPath: params.savePath,
-          metadata: response.Metadata
+          metadata: response.Metadata,
         };
       }
 
-      logger.info('File downloaded to buffer', { key: params.key });
+      logger.info("File downloaded to buffer", { key: params.key });
 
       return {
         success: true,
         data: buffer,
-        metadata: response.Metadata
+        metadata: response.Metadata,
       };
     } catch (error) {
-      logger.error('File download failed', { error, key: params.key });
+      logger.error("File download failed", { error, key: params.key });
       throw error;
     }
   }
@@ -240,9 +240,9 @@ export class S3Agent {
     nextContinuationToken?: string;
     count: number;
   }> {
-    logger.info('Listing files in S3', { 
-      bucket: this.config.bucket, 
-      prefix: params.prefix 
+    logger.info("Listing files in S3", {
+      bucket: this.config.bucket,
+      prefix: params.prefix,
     });
 
     try {
@@ -250,31 +250,32 @@ export class S3Agent {
         Bucket: this.config.bucket,
         Prefix: params.prefix,
         MaxKeys: params.maxKeys || 1000,
-        ContinuationToken: params.continuationToken
+        ContinuationToken: params.continuationToken,
       });
 
-      const response: ListObjectsV2CommandOutput = await this.client.send(command);
+      const response: ListObjectsV2CommandOutput =
+        await this.client.send(command);
 
-      const files = (response.Contents || []).map(item => ({
-        key: item.Key || '',
+      const files = (response.Contents || []).map((item) => ({
+        key: item.Key || "",
         size: item.Size || 0,
         lastModified: item.LastModified || new Date(),
-        etag: item.ETag || ''
+        etag: item.ETag || "",
       }));
 
-      logger.info('Files listed successfully', { 
+      logger.info("Files listed successfully", {
         count: files.length,
-        isTruncated: response.IsTruncated 
+        isTruncated: response.IsTruncated,
       });
 
       return {
         files,
         isTruncated: response.IsTruncated || false,
         nextContinuationToken: response.NextContinuationToken,
-        count: files.length
+        count: files.length,
       };
     } catch (error) {
-      logger.error('List files failed', { error });
+      logger.error("List files failed", { error });
       throw error;
     }
   }
@@ -286,27 +287,27 @@ export class S3Agent {
     success: boolean;
     key: string;
   }> {
-    logger.info('Deleting file from S3', { 
-      key: params.key, 
-      bucket: this.config.bucket 
+    logger.info("Deleting file from S3", {
+      key: params.key,
+      bucket: this.config.bucket,
     });
 
     try {
       const command = new DeleteObjectCommand({
         Bucket: this.config.bucket,
-        Key: params.key
+        Key: params.key,
       });
 
       await this.client.send(command);
 
-      logger.info('File deleted successfully', { key: params.key });
+      logger.info("File deleted successfully", { key: params.key });
 
       return {
         success: true,
-        key: params.key
+        key: params.key,
       };
     } catch (error) {
-      logger.error('File deletion failed', { error, key: params.key });
+      logger.error("File deletion failed", { error, key: params.key });
       throw error;
     }
   }
@@ -315,15 +316,15 @@ export class S3Agent {
    * Get file metadata
    */
   async getFileInfo(params: { key: string }): Promise<FileInfo> {
-    logger.info('Getting file info from S3', { 
-      key: params.key, 
-      bucket: this.config.bucket 
+    logger.info("Getting file info from S3", {
+      key: params.key,
+      bucket: this.config.bucket,
     });
 
     try {
       const command = new HeadObjectCommand({
         Bucket: this.config.bucket,
-        Key: params.key
+        Key: params.key,
       });
 
       const response: HeadObjectCommandOutput = await this.client.send(command);
@@ -332,16 +333,19 @@ export class S3Agent {
         key: params.key,
         size: response.ContentLength || 0,
         lastModified: response.LastModified || new Date(),
-        etag: response.ETag || '',
+        etag: response.ETag || "",
         contentType: response.ContentType,
-        metadata: response.Metadata
+        metadata: response.Metadata,
       };
 
-      logger.info('File info retrieved', { key: params.key, size: fileInfo.size });
+      logger.info("File info retrieved", {
+        key: params.key,
+        size: fileInfo.size,
+      });
 
       return fileInfo;
     } catch (error) {
-      logger.error('Get file info failed', { error, key: params.key });
+      logger.error("Get file info failed", { error, key: params.key });
       throw error;
     }
   }
@@ -353,40 +357,43 @@ export class S3Agent {
     url: string;
     expiresIn: number;
   }> {
-    logger.info('Generating presigned URL', { 
+    logger.info("Generating presigned URL", {
       key: params.key,
-      operation: params.operation || 'getObject'
+      operation: params.operation || "getObject",
     });
 
     try {
       const expiresIn = params.expiresIn || 3600; // Default 1 hour
-      
+
       let command;
-      if (params.operation === 'putObject') {
+      if (params.operation === "putObject") {
         command = new PutObjectCommand({
           Bucket: this.config.bucket,
-          Key: params.key
+          Key: params.key,
         });
       } else {
         command = new GetObjectCommand({
           Bucket: this.config.bucket,
-          Key: params.key
+          Key: params.key,
         });
       }
 
       const url = await getSignedUrl(this.client, command, { expiresIn });
 
-      logger.info('Presigned URL generated', { 
-        key: params.key, 
-        expiresIn 
+      logger.info("Presigned URL generated", {
+        key: params.key,
+        expiresIn,
       });
 
       return {
         url,
-        expiresIn
+        expiresIn,
       };
     } catch (error) {
-      logger.error('Presigned URL generation failed', { error, key: params.key });
+      logger.error("Presigned URL generation failed", {
+        error,
+        key: params.key,
+      });
       throw error;
     }
   }
@@ -399,9 +406,9 @@ export class S3Agent {
     destinationKey: string;
     etag?: string;
   }> {
-    logger.info('Copying file in S3', { 
-      source: params.sourceKey, 
-      destination: params.destinationKey 
+    logger.info("Copying file in S3", {
+      source: params.sourceKey,
+      destination: params.destinationKey,
     });
 
     try {
@@ -413,26 +420,26 @@ export class S3Agent {
         CopySource: copySource,
         Key: params.destinationKey,
         Metadata: params.metadata,
-        MetadataDirective: params.metadataDirective || 'COPY'
+        MetadataDirective: params.metadataDirective || "COPY",
       });
 
       const response = await this.client.send(command);
 
-      logger.info('File copied successfully', { 
+      logger.info("File copied successfully", {
         source: params.sourceKey,
-        destination: params.destinationKey 
+        destination: params.destinationKey,
       });
 
       return {
         success: true,
         destinationKey: params.destinationKey,
-        etag: response.CopyObjectResult?.ETag
+        etag: response.CopyObjectResult?.ETag,
       };
     } catch (error) {
-      logger.error('File copy failed', { 
-        error, 
+      logger.error("File copy failed", {
+        error,
         source: params.sourceKey,
-        destination: params.destinationKey 
+        destination: params.destinationKey,
       });
       throw error;
     }
@@ -445,35 +452,35 @@ export class S3Agent {
     success: boolean;
     destinationKey: string;
   }> {
-    logger.info('Moving file in S3', { 
-      source: params.sourceKey, 
-      destination: params.destinationKey 
+    logger.info("Moving file in S3", {
+      source: params.sourceKey,
+      destination: params.destinationKey,
     });
 
     try {
       // Copy to new location
       await this.copyFile({
         sourceKey: params.sourceKey,
-        destinationKey: params.destinationKey
+        destinationKey: params.destinationKey,
       });
 
       // Delete original
       await this.deleteFile({ key: params.sourceKey });
 
-      logger.info('File moved successfully', { 
+      logger.info("File moved successfully", {
         source: params.sourceKey,
-        destination: params.destinationKey 
+        destination: params.destinationKey,
       });
 
       return {
         success: true,
-        destinationKey: params.destinationKey
+        destinationKey: params.destinationKey,
       };
     } catch (error) {
-      logger.error('File move failed', { 
-        error, 
+      logger.error("File move failed", {
+        error,
         source: params.sourceKey,
-        destination: params.destinationKey 
+        destination: params.destinationKey,
       });
       throw error;
     }
@@ -493,7 +500,7 @@ export class S3Agent {
     etag?: string;
     location: string;
   }> {
-    logger.info('Uploading file from local path', { path: params.localPath });
+    logger.info("Uploading file from local path", { path: params.localPath });
 
     try {
       const buffer = await fs.readFile(params.localPath);
@@ -503,10 +510,13 @@ export class S3Agent {
         key,
         content: buffer,
         contentType: params.contentType,
-        metadata: params.metadata
+        metadata: params.metadata,
       });
     } catch (error) {
-      logger.error('Upload from path failed', { error, path: params.localPath });
+      logger.error("Upload from path failed", {
+        error,
+        path: params.localPath,
+      });
       throw error;
     }
   }
@@ -519,7 +529,12 @@ export class S3Agent {
       await this.getFileInfo(params);
       return true;
     } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'name' in error && error.name === 'NotFound') {
+      if (
+        error &&
+        typeof error === "object" &&
+        "name" in error &&
+        error.name === "NotFound"
+      ) {
         return false;
       }
       throw error;
@@ -551,16 +566,22 @@ export function getS3Agent(config?: S3Config): S3Agent {
 
   if (!defaultS3Agent) {
     const defaultConfig: S3Config = {
-      region: process.env.AWS_REGION || 'us-east-1',
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-      bucket: process.env.AWS_S3_BUCKET || '',
+      region: process.env.AWS_REGION || "us-east-1",
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+      bucket: process.env.AWS_S3_BUCKET || "",
       endpoint: process.env.AWS_S3_ENDPOINT,
-      forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === 'true'
+      forcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE === "true",
     };
 
-    if (!defaultConfig.accessKeyId || !defaultConfig.secretAccessKey || !defaultConfig.bucket) {
-      throw new Error('AWS S3 credentials not configured. Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_S3_BUCKET environment variables.');
+    if (
+      !defaultConfig.accessKeyId ||
+      !defaultConfig.secretAccessKey ||
+      !defaultConfig.bucket
+    ) {
+      throw new Error(
+        "AWS S3 credentials not configured. Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_S3_BUCKET environment variables.",
+      );
     }
 
     defaultS3Agent = new S3Agent(defaultConfig);

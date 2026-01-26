@@ -1,14 +1,14 @@
 /**
  * Shared Logger Utility
- * 
+ *
  * Provides structured logging with levels, metadata, and context for all agents.
  * Used across the Workstation ecosystem for consistent logging.
- * 
+ *
  * @module shared/utils/logger
  * @version 1.0.0
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export interface LogEntry {
   level: LogLevel;
@@ -33,11 +33,11 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 };
 
 const COLORS = {
-  debug: '\x1b[36m',  // Cyan
-  info: '\x1b[32m',   // Green
-  warn: '\x1b[33m',   // Yellow
-  error: '\x1b[31m',  // Red
-  reset: '\x1b[0m',   // Reset
+  debug: "\x1b[36m", // Cyan
+  info: "\x1b[32m", // Green
+  warn: "\x1b[33m", // Yellow
+  error: "\x1b[31m", // Red
+  reset: "\x1b[0m", // Reset
 };
 
 class Logger {
@@ -47,8 +47,8 @@ class Logger {
   private enableTimestamp: boolean;
 
   constructor(options: LoggerOptions = {}) {
-    this.level = options.level || (process.env.LOG_LEVEL as LogLevel) || 'info';
-    this.context = options.context || 'default';
+    this.level = options.level || (process.env.LOG_LEVEL as LogLevel) || "info";
+    this.context = options.context || "default";
     this.enableColors = options.enableColors !== false;
     this.enableTimestamp = options.enableTimestamp !== false;
   }
@@ -57,7 +57,11 @@ class Logger {
     return LOG_LEVELS[level] >= LOG_LEVELS[this.level];
   }
 
-  private formatMessage(level: LogLevel, message: string, metadata?: Record<string, any>): string {
+  private formatMessage(
+    level: LogLevel,
+    message: string,
+    metadata?: Record<string, any>,
+  ): string {
     const parts: string[] = [];
 
     if (this.enableTimestamp) {
@@ -72,7 +76,7 @@ class Logger {
 
     parts.push(message);
 
-    let formatted = parts.join(' ');
+    let formatted = parts.join(" ");
 
     if (metadata && Object.keys(metadata).length > 0) {
       formatted += ` ${JSON.stringify(metadata)}`;
@@ -81,20 +85,24 @@ class Logger {
     return formatted;
   }
 
-  private log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    metadata?: Record<string, any>,
+  ): void {
     if (!this.shouldLog(level)) return;
 
     const formatted = this.formatMessage(level, message, metadata);
-    const color = this.enableColors ? COLORS[level] : '';
-    const reset = this.enableColors ? COLORS.reset : '';
+    const color = this.enableColors ? COLORS[level] : "";
+    const reset = this.enableColors ? COLORS.reset : "";
 
     const output = `${color}${formatted}${reset}`;
 
     switch (level) {
-      case 'error':
+      case "error":
         console.error(output);
         break;
-      case 'warn':
+      case "warn":
         console.warn(output);
         break;
       default:
@@ -103,19 +111,19 @@ class Logger {
   }
 
   debug(message: string, metadata?: Record<string, any>): void {
-    this.log('debug', message, metadata);
+    this.log("debug", message, metadata);
   }
 
   info(message: string, metadata?: Record<string, any>): void {
-    this.log('info', message, metadata);
+    this.log("info", message, metadata);
   }
 
   warn(message: string, metadata?: Record<string, any>): void {
-    this.log('warn', message, metadata);
+    this.log("warn", message, metadata);
   }
 
   error(message: string, metadata?: Record<string, any>): void {
-    this.log('error', message, metadata);
+    this.log("error", message, metadata);
   }
 
   /**
@@ -141,19 +149,26 @@ class Logger {
 /**
  * Create a logger instance
  */
-export function createLogger(context: string, options?: Omit<LoggerOptions, 'context'>): Logger {
+export function createLogger(
+  context: string,
+  options?: Omit<LoggerOptions, "context">,
+): Logger {
   return new Logger({ ...options, context });
 }
 
 /**
  * Default logger instance
  */
-export const logger = new Logger({ context: 'workstation' });
+export const logger = new Logger({ context: "workstation" });
 
 /**
  * Simple logging functions (backwards compatible)
  */
-export function log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+export function log(
+  level: LogLevel,
+  message: string,
+  metadata?: Record<string, any>,
+): void {
   logger[level](message, metadata);
 }
 
