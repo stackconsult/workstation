@@ -1,23 +1,23 @@
 /**
  * WebSocket Client for Real-Time Workflow Preview
- * 
+ *
  * Provides WebSocket connection for real-time workflow execution updates
  * and live preview of workflow changes.
- * 
+ *
  * @module ui/workflow-builder/websocket-client
  * @version 2.0.0
  */
 
-import { logger } from '../../shared/utils/logger.js';
+import { logger } from "../../shared/utils/logger.js";
 
 export type WebSocketMessageType =
-  | 'execution.started'
-  | 'execution.updated'
-  | 'execution.completed'
-  | 'execution.failed'
-  | 'step.started'
-  | 'step.completed'
-  | 'step.failed';
+  | "execution.started"
+  | "execution.updated"
+  | "execution.completed"
+  | "execution.failed"
+  | "step.started"
+  | "step.completed"
+  | "step.failed";
 
 export interface WebSocketMessage {
   type: WebSocketMessageType;
@@ -49,11 +49,11 @@ export class WebSocketClient {
    * Get WebSocket URL from current location
    */
   private getWebSocketUrl(): string {
-    if (typeof window === 'undefined') {
-      return 'ws://localhost:3000/ws';
+    if (typeof window === "undefined") {
+      return "ws://localhost:3000/ws";
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
     return `${protocol}//${host}/ws`;
   }
@@ -64,12 +64,12 @@ export class WebSocketClient {
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        logger.info('Connecting to WebSocket', { url: this.url });
+        logger.info("Connecting to WebSocket", { url: this.url });
 
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
-          logger.info('WebSocket connected');
+          logger.info("WebSocket connected");
           this.reconnectAttempts = 0;
           this.startHeartbeat();
           this.notifyConnectionCallbacks(true);
@@ -81,25 +81,25 @@ export class WebSocketClient {
             const message: WebSocketMessage = JSON.parse(event.data);
             this.handleMessage(message);
           } catch (error) {
-            logger.error('Failed to parse WebSocket message', {
+            logger.error("Failed to parse WebSocket message", {
               error: (error as Error).message,
             });
           }
         };
 
         this.ws.onerror = (error) => {
-          logger.error('WebSocket error', { error });
+          logger.error("WebSocket error", { error });
           reject(error);
         };
 
         this.ws.onclose = () => {
-          logger.info('WebSocket disconnected');
+          logger.info("WebSocket disconnected");
           this.stopHeartbeat();
           this.notifyConnectionCallbacks(false);
           this.attemptReconnect();
         };
       } catch (error) {
-        logger.error('Failed to create WebSocket connection', {
+        logger.error("Failed to create WebSocket connection", {
           error: (error as Error).message,
         });
         reject(error);
@@ -115,7 +115,7 @@ export class WebSocketClient {
       this.stopHeartbeat();
       this.ws.close();
       this.ws = null;
-      logger.info('WebSocket disconnected manually');
+      logger.info("WebSocket disconnected manually");
     }
   }
 
@@ -124,7 +124,7 @@ export class WebSocketClient {
    */
   subscribeToExecution(executionId: string): void {
     this.send({
-      type: 'subscribe',
+      type: "subscribe",
       executionId,
     });
   }
@@ -134,7 +134,7 @@ export class WebSocketClient {
    */
   unsubscribeFromExecution(executionId: string): void {
     this.send({
-      type: 'unsubscribe',
+      type: "unsubscribe",
       executionId,
     });
   }
@@ -146,7 +146,7 @@ export class WebSocketClient {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data));
     } else {
-      logger.warn('WebSocket not connected, cannot send message');
+      logger.warn("WebSocket not connected, cannot send message");
     }
   }
 
@@ -154,16 +154,16 @@ export class WebSocketClient {
    * Handle incoming message
    */
   private handleMessage(message: WebSocketMessage): void {
-    logger.debug('WebSocket message received', {
+    logger.debug("WebSocket message received", {
       type: message.type,
       executionId: message.executionId,
     });
 
-    this.messageCallbacks.forEach(callback => {
+    this.messageCallbacks.forEach((callback) => {
       try {
         callback(message);
       } catch (error) {
-        logger.error('Error in message callback', {
+        logger.error("Error in message callback", {
           error: (error as Error).message,
         });
       }
@@ -198,11 +198,11 @@ export class WebSocketClient {
    * Notify connection callbacks
    */
   private notifyConnectionCallbacks(connected: boolean): void {
-    this.connectionCallbacks.forEach(callback => {
+    this.connectionCallbacks.forEach((callback) => {
       try {
         callback(connected);
       } catch (error) {
-        logger.error('Error in connection callback', {
+        logger.error("Error in connection callback", {
           error: (error as Error).message,
         });
       }
@@ -214,21 +214,21 @@ export class WebSocketClient {
    */
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      logger.error('Max reconnection attempts reached');
+      logger.error("Max reconnection attempts reached");
       return;
     }
 
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
 
-    logger.info('Attempting to reconnect', {
+    logger.info("Attempting to reconnect", {
       attempt: this.reconnectAttempts,
       delay,
     });
 
     setTimeout(() => {
-      this.connect().catch(error => {
-        logger.error('Reconnection failed', { error });
+      this.connect().catch((error) => {
+        logger.error("Reconnection failed", { error });
       });
     }, delay);
   }
@@ -239,7 +239,7 @@ export class WebSocketClient {
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.send({ type: 'ping' });
+        this.send({ type: "ping" });
       }
     }, 30000); // 30 seconds
   }
@@ -264,21 +264,21 @@ export class WebSocketClient {
   /**
    * Get connection state
    */
-  getConnectionState(): 'connecting' | 'open' | 'closing' | 'closed' {
+  getConnectionState(): "connecting" | "open" | "closing" | "closed" {
     if (!this.ws) {
-      return 'closed';
+      return "closed";
     }
 
     switch (this.ws.readyState) {
       case WebSocket.CONNECTING:
-        return 'connecting';
+        return "connecting";
       case WebSocket.OPEN:
-        return 'open';
+        return "open";
       case WebSocket.CLOSING:
-        return 'closing';
+        return "closing";
       case WebSocket.CLOSED:
       default:
-        return 'closed';
+        return "closed";
     }
   }
 }
