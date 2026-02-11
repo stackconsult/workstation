@@ -2,13 +2,13 @@
  * Error Logs Component
  */
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface ErrorLog {
   id: string;
   timestamp: string;
-  level: 'error' | 'warning' | 'critical';
+  level: "error" | "warning" | "critical";
   message: string;
   source: string;
   stack?: string;
@@ -16,10 +16,10 @@ interface ErrorLog {
 
 export const ErrorLogs: React.FC = () => {
   const { data: logs } = useQuery<ErrorLog[]>({
-    queryKey: ['error-logs'],
+    queryKey: ["error-logs"],
     queryFn: async () => {
-      const response = await fetch('/api/logs/errors?limit=10');
-      if (!response.ok) throw new Error('Failed to fetch logs');
+      const response = await fetch("/api/logs/errors?limit=10");
+      if (!response.ok) throw new Error("Failed to fetch logs");
       return response.json();
     },
     refetchInterval: 10000,
@@ -27,14 +27,14 @@ export const ErrorLogs: React.FC = () => {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'error':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'warning':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case "critical":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "error":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
+      case "warning":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
