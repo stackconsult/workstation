@@ -139,7 +139,7 @@ jobs:
       
       - name: Create Pull Request for MCP sync
         if: steps.sync.outputs.sync_completed == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: auto/mcp-sync-${{ github.run_number }}
