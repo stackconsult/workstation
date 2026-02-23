@@ -78,7 +78,7 @@ jobs:
           echo "✅ Rollback image prepared"
       
       - name: Create Pull Request for curriculum updates
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: auto/edugit-curriculum-update-${{ github.run_number }}
