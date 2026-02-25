@@ -7,9 +7,11 @@ This directory contains React components for the visual workflow builder interfa
 ## Components
 
 ### WorkflowBuilder.tsx
+
 Main workflow designer component with drag-and-drop functionality.
 
 **Features:**
+
 - Visual node-based editor
 - Drag-and-drop interface
 - Real-time validation
@@ -17,9 +19,11 @@ Main workflow designer component with drag-and-drop functionality.
 - Save and execute workflows
 
 ### TemplateGallery.tsx
+
 Template selection and browsing interface.
 
 **Features:**
+
 - Browse 32+ templates
 - Filter by category
 - Search functionality
@@ -27,27 +31,33 @@ Template selection and browsing interface.
 - Template preview
 
 ### NodeEditor.tsx
+
 Side panel for editing node properties.
 
 **Features:**
+
 - Edit node labels
 - Modify node parameters
 - Add/remove parameters
 - Delete nodes
 
 ### WorkflowValidator.tsx
+
 Validation feedback display.
 
 **Features:**
+
 - Real-time validation
 - Error highlighting
 - Warning messages
 - Success indicators
 
 ### RealTimePreview.tsx
+
 Live workflow execution preview.
 
 **Features:**
+
 - Step-by-step execution visualization
 - Variable inspection
 - Performance metrics
@@ -78,21 +88,23 @@ These components require the following dependencies in your frontend project:
 
 1. Copy this entire directory to your React project
 2. Install dependencies:
+
 ```bash
 npm install react react-dom reactflow
 npm install --save-dev @types/react @types/react-dom
 ```
 
 3. Import and use:
+
 ```tsx
-import WorkflowBuilder from './workflow-builder/WorkflowBuilder';
+import WorkflowBuilder from "./workflow-builder/WorkflowBuilder";
 
 function App() {
   return (
     <WorkflowBuilder
       mode="create"
-      onSave={(workflow) => console.log('Saved:', workflow)}
-      onExecute={(workflow) => console.log('Execute:', workflow)}
+      onSave={(workflow) => console.log("Saved:", workflow)}
+      onExecute={(workflow) => console.log("Execute:", workflow)}
     />
   );
 }
@@ -107,41 +119,36 @@ These components serve as a reference implementation. You can adapt them to your
 ### Creating a New Workflow
 
 ```tsx
-import WorkflowBuilder from './workflow-builder/WorkflowBuilder';
+import WorkflowBuilder from "./workflow-builder/WorkflowBuilder";
 
 function WorkflowCreator() {
   const handleSave = async (workflow) => {
-    const response = await fetch('/api/workflows', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/workflows", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(workflow),
     });
     const saved = await response.json();
-    console.log('Workflow saved:', saved);
+    console.log("Workflow saved:", saved);
   };
 
-  return (
-    <WorkflowBuilder
-      mode="create"
-      onSave={handleSave}
-    />
-  );
+  return <WorkflowBuilder mode="create" onSave={handleSave} />;
 }
 ```
 
 ### Editing an Existing Workflow
 
 ```tsx
-import WorkflowBuilder from './workflow-builder/WorkflowBuilder';
-import { useState, useEffect } from 'react';
+import WorkflowBuilder from "./workflow-builder/WorkflowBuilder";
+import { useState, useEffect } from "react";
 
 function WorkflowEditor({ workflowId }) {
   const [workflow, setWorkflow] = useState(null);
 
   useEffect(() => {
     fetch(`/api/workflows/${workflowId}`)
-      .then(res => res.json())
-      .then(data => setWorkflow(data));
+      .then((res) => res.json())
+      .then((data) => setWorkflow(data));
   }, [workflowId]);
 
   if (!workflow) return <div>Loading...</div>;
@@ -152,8 +159,8 @@ function WorkflowEditor({ workflowId }) {
       initialWorkflow={workflow}
       onSave={async (updated) => {
         await fetch(`/api/workflows/${workflowId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updated),
         });
       }}
@@ -165,17 +172,14 @@ function WorkflowEditor({ workflowId }) {
 ### View-Only Mode
 
 ```tsx
-<WorkflowBuilder
-  mode="view"
-  initialWorkflow={workflow}
-/>
+<WorkflowBuilder mode="view" initialWorkflow={workflow} />
 ```
 
 ### Using the Template Gallery
 
 ```tsx
-import { TemplateGallery } from './workflow-builder/TemplateGallery';
-import { WORKFLOW_TEMPLATES } from '../workflow-templates';
+import { TemplateGallery } from "./workflow-builder/TemplateGallery";
+import { WORKFLOW_TEMPLATES } from "../workflow-templates";
 
 function TemplateSelector() {
   const [showGallery, setShowGallery] = useState(true);
@@ -186,7 +190,7 @@ function TemplateSelector() {
         <TemplateGallery
           templates={WORKFLOW_TEMPLATES}
           onSelect={(template) => {
-            console.log('Selected:', template);
+            console.log("Selected:", template);
             setShowGallery(false);
           }}
           onClose={() => setShowGallery(false)}
@@ -200,17 +204,15 @@ function TemplateSelector() {
 ### Using the Real-Time Preview
 
 ```tsx
-import { RealTimePreview } from './workflow-builder/RealTimePreview';
+import { RealTimePreview } from "./workflow-builder/RealTimePreview";
 
 function WorkflowPreviewDemo() {
   const [showPreview, setShowPreview] = useState(false);
 
   return (
     <>
-      <button onClick={() => setShowPreview(true)}>
-        Preview Workflow
-      </button>
-      
+      <button onClick={() => setShowPreview(true)}>Preview Workflow</button>
+
       {showPreview && (
         <RealTimePreview
           workflow={myWorkflow}
@@ -229,18 +231,21 @@ function WorkflowPreviewDemo() {
 Components use inline styles for portability. To customize:
 
 1. **Use CSS Modules:**
+
 ```tsx
-import styles from './WorkflowBuilder.module.css';
-<div className={styles.container}>...</div>
+import styles from "./WorkflowBuilder.module.css";
+<div className={styles.container}>...</div>;
 ```
 
 2. **Use Styled Components:**
+
 ```tsx
-import styled from 'styled-components';
+import styled from "styled-components";
 const Container = styled.div`...`;
 ```
 
 3. **Use Tailwind CSS:**
+
 ```tsx
 <div className="flex items-center justify-between">...</div>
 ```
@@ -257,12 +262,18 @@ const nodeTypes = {
   condition: ConditionNode,
   loop: LoopNode,
   parallel: ParallelNode,
-  customType: CustomNode,  // Add your custom node
+  customType: CustomNode, // Add your custom node
 };
 
 function CustomNode({ data }) {
   return (
-    <div style={{ /* custom styles */ }}>
+    <div
+      style={
+        {
+          /* custom styles */
+        }
+      }
+    >
       {data.label}
     </div>
   );
@@ -274,6 +285,7 @@ function CustomNode({ data }) {
 These components are designed to work with the enhanced `WorkflowService` in `src/automation/workflow/service.ts`.
 
 **API Endpoints Expected:**
+
 - `POST /api/workflows` - Create workflow
 - `GET /api/workflows/:id` - Get workflow
 - `PUT /api/workflows/:id` - Update workflow
@@ -286,8 +298,8 @@ These components are designed to work with the enhanced `WorkflowService` in `sr
 All components are fully typed. Import types from:
 
 ```tsx
-import type { WorkflowTemplate } from '../workflow-templates/types';
-import type { Node, Edge } from 'reactflow';
+import type { WorkflowTemplate } from "../workflow-templates/types";
+import type { Node, Edge } from "reactflow";
 ```
 
 ## Testing
@@ -295,12 +307,12 @@ import type { Node, Edge } from 'reactflow';
 These components can be tested using React Testing Library:
 
 ```tsx
-import { render, screen } from '@testing-library/react';
-import WorkflowBuilder from './WorkflowBuilder';
+import { render, screen } from "@testing-library/react";
+import WorkflowBuilder from "./WorkflowBuilder";
 
-test('renders workflow builder', () => {
+test("renders workflow builder", () => {
   render(<WorkflowBuilder mode="create" />);
-  expect(screen.getByText('New Workflow')).toBeInTheDocument();
+  expect(screen.getByText("New Workflow")).toBeInTheDocument();
 });
 ```
 
@@ -309,6 +321,7 @@ test('renders workflow builder', () => {
 For large workflows (100+ nodes):
 
 1. Enable ReactFlow's performance mode:
+
 ```tsx
 <ReactFlow
   nodes={nodes}
@@ -323,6 +336,7 @@ For large workflows (100+ nodes):
 ```
 
 2. Use React.memo for custom nodes:
+
 ```tsx
 const ActionNode = React.memo(({ data }) => {
   return <div>{data.label}</div>;
@@ -330,15 +344,16 @@ const ActionNode = React.memo(({ data }) => {
 ```
 
 3. Debounce node updates:
+
 ```tsx
-import { useCallback } from 'react';
-import debounce from 'lodash/debounce';
+import { useCallback } from "react";
+import debounce from "lodash/debounce";
 
 const debouncedUpdate = useCallback(
   debounce((nodeId, data) => {
     updateNodeData(nodeId, data);
   }, 300),
-  []
+  [],
 );
 ```
 
@@ -357,6 +372,7 @@ These components are part of the Workstation project and follow the same license
 ## Support
 
 For issues or questions:
+
 - Check the main WORKFLOW_BUILDER_DOCUMENTATION.md
 - Review ReactFlow documentation: https://reactflow.dev/
 - Open an issue in the repository
@@ -364,6 +380,7 @@ For issues or questions:
 ## Future Enhancements
 
 Planned features:
+
 - [ ] Undo/redo functionality
 - [ ] Workflow diff viewer
 - [ ] Collaborative editing
