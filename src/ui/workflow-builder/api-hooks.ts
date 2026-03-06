@@ -1,14 +1,14 @@
 /**
  * Workflow Builder API Hooks
- * 
+ *
  * React hooks for interacting with workflow backend APIs.
  * Provides data fetching, caching, and state management.
- * 
+ *
  * @module ui/workflow-builder/api-hooks
  * @version 2.0.0
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export interface UseWorkflowsResult {
   workflows: any[];
@@ -46,7 +46,7 @@ export function useWorkflows(ownerId?: string): UseWorkflowsResult {
 
       const url = ownerId
         ? `/api/workflows?owner_id=${ownerId}`
-        : '/api/workflows';
+        : "/api/workflows";
 
       const response = await fetch(url);
       const data = await response.json();
@@ -54,7 +54,7 @@ export function useWorkflows(ownerId?: string): UseWorkflowsResult {
       if (data.success) {
         setWorkflows(data.data || []);
       } else {
-        setError(data.error || 'Failed to fetch workflows');
+        setError(data.error || "Failed to fetch workflows");
       }
     } catch (err) {
       setError((err as Error).message);
@@ -88,13 +88,13 @@ export function useTemplates(): UseTemplatesResult {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/workflows/templates');
+      const response = await fetch("/api/workflows/templates");
       const data = await response.json();
 
       if (data.success) {
         setTemplates(data.data || []);
       } else {
-        setError(data.error || 'Failed to fetch templates');
+        setError(data.error || "Failed to fetch templates");
       }
     } catch (err) {
       setError((err as Error).message);
@@ -129,8 +129,8 @@ export function useWorkflowExecution(): UseWorkflowExecutionResult {
       setError(null);
 
       const response = await fetch(`/api/workflows/${workflowId}/execute`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ variables }),
       });
 
@@ -140,7 +140,7 @@ export function useWorkflowExecution(): UseWorkflowExecutionResult {
         setExecution(data.data);
         return data.data;
       } else {
-        setError(data.error || 'Failed to execute workflow');
+        setError(data.error || "Failed to execute workflow");
         throw new Error(data.error);
       }
     } catch (err) {
@@ -163,7 +163,10 @@ export function useWorkflowExecution(): UseWorkflowExecutionResult {
 /**
  * Hook for monitoring workflow execution
  */
-export function useExecutionStatus(executionId: string | null, interval = 2000) {
+export function useExecutionStatus(
+  executionId: string | null,
+  interval = 2000,
+) {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -182,7 +185,9 @@ export function useExecutionStatus(executionId: string | null, interval = 2000) 
 
       try {
         setLoading(true);
-        const response = await fetch(`/api/workflows/executions/${executionId}`);
+        const response = await fetch(
+          `/api/workflows/executions/${executionId}`,
+        );
         const data = await response.json();
 
         if (cancelled) return;
@@ -192,11 +197,14 @@ export function useExecutionStatus(executionId: string | null, interval = 2000) 
           setError(null);
 
           // Continue polling if still running
-          if (data.data.status === 'running' || data.data.status === 'pending') {
+          if (
+            data.data.status === "running" ||
+            data.data.status === "pending"
+          ) {
             timeoutId = setTimeout(fetchStatus, interval);
           }
         } else {
-          setError(data.error || 'Failed to fetch execution status');
+          setError(data.error || "Failed to fetch execution status");
         }
       } catch (err) {
         if (!cancelled) {
@@ -238,10 +246,10 @@ export function useCreateFromTemplate() {
         const response = await fetch(
           `/api/workflows/templates/${templateId}/create`,
           {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, variables }),
-          }
+          },
         );
 
         const data = await response.json();
@@ -249,7 +257,7 @@ export function useCreateFromTemplate() {
         if (data.success) {
           return data.data;
         } else {
-          setError(data.error || 'Failed to create workflow');
+          setError(data.error || "Failed to create workflow");
           throw new Error(data.error);
         }
       } catch (err) {
@@ -260,7 +268,7 @@ export function useCreateFromTemplate() {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   return { createFromTemplate, loading, error };
@@ -273,33 +281,36 @@ export function useUpdateWorkflow() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateWorkflow = useCallback(async (workflowId: string, updates: any) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const updateWorkflow = useCallback(
+    async (workflowId: string, updates: any) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const response = await fetch(`/api/workflows/${workflowId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
+        const response = await fetch(`/api/workflows/${workflowId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updates),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data.success) {
-        return data.data;
-      } else {
-        setError(data.error || 'Failed to update workflow');
-        throw new Error(data.error);
+        if (data.success) {
+          return data.data;
+        } else {
+          setError(data.error || "Failed to update workflow");
+          throw new Error(data.error);
+        }
+      } catch (err) {
+        const errorMessage = (err as Error).message;
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      const errorMessage = (err as Error).message;
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   return { updateWorkflow, loading, error };
 }
@@ -317,7 +328,7 @@ export function useDeleteWorkflow() {
       setError(null);
 
       const response = await fetch(`/api/workflows/${workflowId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       const data = await response.json();
@@ -325,7 +336,7 @@ export function useDeleteWorkflow() {
       if (data.success) {
         return true;
       } else {
-        setError(data.error || 'Failed to delete workflow');
+        setError(data.error || "Failed to delete workflow");
         throw new Error(data.error);
       }
     } catch (err) {

@@ -30,6 +30,7 @@ The Context-Memory Intelligence Layer provides persistent memory, pattern recogn
 Tracks entities across workflow executions with deduplication and relationship mapping.
 
 **Features:**
+
 - Track files, repositories, issues, PRs, agents, workflows, users
 - Relationship mapping (depends_on, modifies, created_by, etc.)
 - Importance scoring (0-100)
@@ -38,32 +39,33 @@ Tracks entities across workflow executions with deduplication and relationship m
 - Query interface with filters
 
 **Usage:**
+
 ```typescript
-import { getEntityStore } from './intelligence/context-memory';
+import { getEntityStore } from "./intelligence/context-memory";
 
 const entityStore = getEntityStore();
 
 // Track an entity
 const entity = await entityStore.trackEntity(
-  'repository',
-  'creditXcredit/workstation',
-  { language: 'TypeScript', stars: 42 },
-  ['automation', 'ai']
+  "repository",
+  "creditXcredit/workstation",
+  { language: "TypeScript", stars: 42 },
+  ["automation", "ai"],
 );
 
 // Create relationship
 await entityStore.createRelationship(
   entityId1,
   entityId2,
-  'depends_on',
-  0.8 // strength
+  "depends_on",
+  0.8, // strength
 );
 
 // Query entities
 const repos = await entityStore.queryEntities({
-  type: 'repository',
-  tags: ['automation'],
-  min_importance: 70
+  type: "repository",
+  tags: ["automation"],
+  min_importance: 70,
 });
 ```
 
@@ -72,6 +74,7 @@ const repos = await entityStore.queryEntities({
 Records workflow executions, performance metrics, and detects patterns.
 
 **Features:**
+
 - Execution tracking with metrics
 - Success/failure analytics
 - Pattern detection:
@@ -83,8 +86,9 @@ Records workflow executions, performance metrics, and detects patterns.
 - Historical analytics
 
 **Usage:**
+
 ```typescript
-import { getWorkflowHistory } from './intelligence/context-memory';
+import { getWorkflowHistory } from "./intelligence/context-memory";
 
 const workflowHistory = getWorkflowHistory();
 
@@ -92,21 +96,21 @@ const workflowHistory = getWorkflowHistory();
 const record = await workflowHistory.recordExecution(
   workflowId,
   executionId,
-  'success',
+  "success",
   {
     task_count: 5,
     tasks_completed: 5,
     tasks_failed: 0,
-    average_task_duration_ms: 1500
+    average_task_duration_ms: 1500,
   },
-  [entityId1, entityId2] // entities accessed
+  [entityId1, entityId2], // entities accessed
 );
 
 // Complete execution
 await workflowHistory.completeExecution(
   record.id,
-  'success',
-  7500 // duration in ms
+  "success",
+  7500, // duration in ms
 );
 
 // Get patterns
@@ -119,6 +123,7 @@ console.log(patterns[0].recommendation);
 Provides adaptive learning from workflow patterns and generates optimization suggestions.
 
 **Features:**
+
 - Multiple model types:
   - Workflow optimization
   - Error prediction
@@ -130,25 +135,26 @@ Provides adaptive learning from workflow patterns and generates optimization sug
 - Performance tracking
 
 **Usage:**
+
 ```typescript
-import { getLearningModel } from './intelligence/context-memory';
+import { getLearningModel } from "./intelligence/context-memory";
 
 const learningModel = getLearningModel();
 
 // Train model
 const model = await learningModel.trainModel({
-  model_type: 'workflow_optimization',
+  model_type: "workflow_optimization",
   training_window_days: 30,
   min_samples: 100,
   auto_retrain: true,
   retrain_interval_hours: 168, // weekly
-  confidence_threshold: 0.7
+  confidence_threshold: 0.7,
 });
 
 // Generate suggestions
 const suggestions = await learningModel.generateSuggestions(
   model.id,
-  workflowId
+  workflowId,
 );
 
 // Apply suggestion with feedback
@@ -156,10 +162,10 @@ await learningModel.applySuggestion(suggestionId, {
   applied: true,
   helpful: true,
   actual_impact: {
-    time_change_ms: -3000 // 3s faster
+    time_change_ms: -3000, // 3s faster
   },
-  user_comment: 'Great suggestion!',
-  recorded_at: new Date().toISOString()
+  user_comment: "Great suggestion!",
+  recorded_at: new Date().toISOString(),
 });
 ```
 
@@ -168,20 +174,20 @@ await learningModel.applySuggestion(suggestionId, {
 ### Agent Orchestrator Integration
 
 ```typescript
-import { getEntityStore } from './intelligence/context-memory';
+import { getEntityStore } from "./intelligence/context-memory";
 
 class AgentOrchestrator {
   async executeWorkflow(workflow) {
     const entityStore = getEntityStore();
-    
+
     // Track workflow entity
     await entityStore.trackEntity(
-      'workflow',
+      "workflow",
       workflow.name,
       { id: workflow.id },
-      ['active']
+      ["active"],
     );
-    
+
     // Execute workflow...
   }
 }
@@ -190,28 +196,24 @@ class AgentOrchestrator {
 ### Workflow Service Integration
 
 ```typescript
-import { getWorkflowHistory } from './intelligence/context-memory';
+import { getWorkflowHistory } from "./intelligence/context-memory";
 
 class WorkflowService {
   async executeWorkflow(workflow) {
     const history = getWorkflowHistory();
-    
+
     // Record execution start
     const record = await history.recordExecution(
       workflow.id,
       executionId,
-      'running',
-      initialMetrics
+      "running",
+      initialMetrics,
     );
-    
+
     // Execute...
-    
+
     // Complete execution
-    await history.completeExecution(
-      record.id,
-      'success',
-      durationMs
-    );
+    await history.completeExecution(record.id, "success", durationMs);
   }
 }
 ```
@@ -219,31 +221,34 @@ class WorkflowService {
 ### LLM Service Integration
 
 ```typescript
-import { getEntityStore, getLearningModel } from './intelligence/context-memory';
+import {
+  getEntityStore,
+  getLearningModel,
+} from "./intelligence/context-memory";
 
 class LLMService {
   async enhancePrompt(prompt, context) {
     const entityStore = getEntityStore();
     const learningModel = getLearningModel();
-    
+
     // Get relevant entities
     const entities = await entityStore.queryEntities({
       workflow_id: context.workflowId,
-      limit: 10
+      limit: 10,
     });
-    
+
     // Get suggestions
     const suggestions = await learningModel.getWorkflowSuggestions(
-      context.workflowId
+      context.workflowId,
     );
-    
+
     // Enhance prompt with context
     return {
       ...prompt,
       context: {
         entities,
-        suggestions
-      }
+        suggestions,
+      },
     };
   }
 }
@@ -255,14 +260,14 @@ The context-memory layer can be exposed to the Chrome extension for entity visib
 
 ```typescript
 // In routes/automation.ts
-app.get('/api/context/entities', async (req, res) => {
+app.get("/api/context/entities", async (req, res) => {
   const entityStore = getEntityStore();
   const entities = await entityStore.queryEntities({
     limit: 100,
-    sort_by: 'importance',
-    sort_order: 'desc'
+    sort_by: "importance",
+    sort_order: "desc",
   });
-  
+
   res.json({ entities });
 });
 ```
@@ -270,6 +275,7 @@ app.get('/api/context/entities', async (req, res) => {
 ## Database Schema
 
 ### Entities Table
+
 ```sql
 CREATE TABLE entities (
   id TEXT PRIMARY KEY,
@@ -287,6 +293,7 @@ CREATE TABLE entities (
 ```
 
 ### Entity Relationships Table
+
 ```sql
 CREATE TABLE entity_relationships (
   id TEXT PRIMARY KEY,
@@ -301,6 +308,7 @@ CREATE TABLE entity_relationships (
 ```
 
 ### Workflow History Table
+
 ```sql
 CREATE TABLE workflow_history (
   id TEXT PRIMARY KEY,
@@ -319,6 +327,7 @@ CREATE TABLE workflow_history (
 ```
 
 ### Workflow Patterns Table
+
 ```sql
 CREATE TABLE workflow_patterns (
   id TEXT PRIMARY KEY,
@@ -336,6 +345,7 @@ CREATE TABLE workflow_patterns (
 ```
 
 ### Learning Models Table
+
 ```sql
 CREATE TABLE learning_models (
   id TEXT PRIMARY KEY,
@@ -352,6 +362,7 @@ CREATE TABLE learning_models (
 ```
 
 ### Learning Suggestions Table
+
 ```sql
 CREATE TABLE learning_suggestions (
   id TEXT PRIMARY KEY,
@@ -373,15 +384,18 @@ CREATE TABLE learning_suggestions (
 ## Performance Considerations
 
 ### Caching
+
 - Entities are cached in memory after first retrieval
 - Models are cached after training
 - Cache invalidation on updates
 
 ### Indexing
+
 - All tables have appropriate indexes for common queries
 - Composite indexes on frequently joined columns
 
 ### Cleanup
+
 - Automatic cleanup of old entities (configurable max age)
 - Automatic cleanup of old history records
 - Configurable retention policies
@@ -389,6 +403,7 @@ CREATE TABLE learning_suggestions (
 ## Error Handling
 
 All methods include comprehensive error handling:
+
 - Try-catch blocks with detailed logging
 - Graceful degradation (return empty arrays on query failures)
 - Transaction rollback on failures
@@ -397,6 +412,7 @@ All methods include comprehensive error handling:
 ## Testing
 
 See `tests/intelligence/context-memory/` for comprehensive test suite:
+
 - Unit tests for each component
 - Integration tests for workflows
 - Edge case coverage
@@ -414,19 +430,24 @@ See `tests/intelligence/context-memory/` for comprehensive test suite:
 ## Troubleshooting
 
 ### Issue: Schema initialization fails
+
 **Solution**: Ensure database is initialized first
+
 ```typescript
-import { initializeDatabase } from './automation/db/database';
+import { initializeDatabase } from "./automation/db/database";
 await initializeDatabase();
 ```
 
 ### Issue: Entities not persisting
+
 **Solution**: Check database file permissions and path
 
 ### Issue: Pattern detection not working
+
 **Solution**: Ensure sufficient historical data (minimum 5 executions)
 
 ### Issue: Low model accuracy
+
 **Solution**: Increase training window and ensure data quality
 
 ## License

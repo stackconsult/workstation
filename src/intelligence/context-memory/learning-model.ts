@@ -1,20 +1,24 @@
 /**
  * Learning Model - Context-Memory Intelligence Layer
- * 
+ *
  * Provides adaptive learning capabilities based on workflow patterns,
  * generates suggestions for optimization, and learns from feedback.
  */
 
-import { getDatabase, generateId, getCurrentTimestamp } from '../../automation/db/database';
-import { logger } from '../../utils/logger';
+import {
+  getDatabase,
+  generateId,
+  getCurrentTimestamp,
+} from "../../automation/db/database";
+import { logger } from "../../utils/logger";
 import {
   LearningModel,
   LearningModelSuggestion,
   LearningModelConfig,
   SuggestionFeedback,
-  PerformanceSnapshot
-} from './types';
-import { getWorkflowHistory } from './workflow-history';
+  PerformanceSnapshot,
+} from "./types";
+import { getWorkflowHistory } from "./workflow-history";
 
 /**
  * LearningModelService manages adaptive learning and suggestions
@@ -24,8 +28,8 @@ export class LearningModelService {
   private initialized: boolean = false;
 
   constructor() {
-    this.initializeSchema().catch(error => {
-      logger.error('Failed to initialize LearningModel schema', { error });
+    this.initializeSchema().catch((error) => {
+      logger.error("Failed to initialize LearningModel schema", { error });
     });
   }
 
@@ -75,9 +79,9 @@ export class LearningModelService {
       `);
 
       this.initialized = true;
-      logger.info('LearningModel schema initialized');
+      logger.info("LearningModel schema initialized");
     } catch (error) {
-      logger.error('LearningModel schema initialization failed', { error });
+      logger.error("LearningModel schema initialization failed", { error });
       throw error;
     }
   }
@@ -95,7 +99,7 @@ export class LearningModelService {
 
       if (trainingData.length < config.min_samples) {
         throw new Error(
-          `Insufficient training data: ${trainingData.length} < ${config.min_samples}`
+          `Insufficient training data: ${trainingData.length} < ${config.min_samples}`,
         );
       }
 
@@ -108,14 +112,14 @@ export class LearningModelService {
       // Train the model
       const { accuracy, parameters } = await this.performTraining(
         config.model_type,
-        trainingData
+        trainingData,
       );
 
       // Create performance snapshot
       const snapshot: PerformanceSnapshot = {
         timestamp,
         accuracy,
-        sample_count: trainingData.length
+        sample_count: trainingData.length,
       };
 
       const performanceHistory = existing
@@ -130,7 +134,7 @@ export class LearningModelService {
         accuracy,
         training_samples: trainingData.length,
         parameters,
-        performance_history: performanceHistory
+        performance_history: performanceHistory,
       };
 
       if (existing) {
@@ -152,7 +156,7 @@ export class LearningModelService {
           JSON.stringify(model.parameters),
           JSON.stringify(model.performance_history),
           timestamp,
-          modelId
+          modelId,
         );
       } else {
         // Insert new model
@@ -171,21 +175,21 @@ export class LearningModelService {
           JSON.stringify(model.parameters),
           JSON.stringify(model.performance_history),
           timestamp,
-          timestamp
+          timestamp,
         );
       }
 
       this.models.set(modelId, model);
-      logger.info('Learning model trained', {
+      logger.info("Learning model trained", {
         modelId,
         type: model.model_type,
         version: model.version,
-        accuracy: model.accuracy
+        accuracy: model.accuracy,
       });
 
       return model;
     } catch (error) {
-      logger.error('Failed to train model', { error, config });
+      logger.error("Failed to train model", { error, config });
       throw error;
     }
   }
@@ -194,7 +198,7 @@ export class LearningModelService {
    * Collect training data for a model type
    */
   private async collectTrainingData(
-    config: LearningModelConfig
+    config: LearningModelConfig,
   ): Promise<Record<string, unknown>[]> {
     try {
       const workflowHistory = getWorkflowHistory();
@@ -203,19 +207,19 @@ export class LearningModelService {
 
       const records = await workflowHistory.queryHistory({
         start_date: cutoffDate.toISOString(),
-        limit: 1000
+        limit: 1000,
       });
 
-      return records.map(record => ({
+      return records.map((record) => ({
         workflow_id: record.workflow_id,
         execution_id: record.execution_id,
         status: record.status,
         duration_ms: record.duration_ms,
         metrics: record.metrics,
-        retry_count: record.retry_count
+        retry_count: record.retry_count,
       }));
     } catch (error) {
-      logger.error('Failed to collect training data', { error, config });
+      logger.error("Failed to collect training data", { error, config });
       return [];
     }
   }
@@ -224,23 +228,23 @@ export class LearningModelService {
    * Perform model training based on type
    */
   private async performTraining(
-    modelType: LearningModel['model_type'],
-    data: Record<string, unknown>[]
+    modelType: LearningModel["model_type"],
+    data: Record<string, unknown>[],
   ): Promise<{ accuracy: number; parameters: Record<string, unknown> }> {
     // Simplified training logic - in production, use actual ML algorithms
     switch (modelType) {
-      case 'workflow_optimization':
+      case "workflow_optimization":
         return this.trainWorkflowOptimization(data);
-      
-      case 'error_prediction':
+
+      case "error_prediction":
         return this.trainErrorPrediction(data);
-      
-      case 'resource_allocation':
+
+      case "resource_allocation":
         return this.trainResourceAllocation(data);
-      
-      case 'task_sequencing':
+
+      case "task_sequencing":
         return this.trainTaskSequencing(data);
-      
+
       default:
         throw new Error(`Unknown model type: ${modelType}`);
     }
@@ -250,24 +254,25 @@ export class LearningModelService {
    * Train workflow optimization model
    */
   private async trainWorkflowOptimization(
-    data: Record<string, unknown>[]
+    data: Record<string, unknown>[],
   ): Promise<{ accuracy: number; parameters: Record<string, unknown> }> {
     // Analyze successful workflows for optimization patterns
-    const successful = data.filter(d => d.status === 'success');
-    
+    const successful = data.filter((d) => d.status === "success");
+
     if (successful.length === 0) {
       return { accuracy: 0.5, parameters: {} };
     }
 
     // Calculate average metrics
-    const avgDuration = successful.reduce((sum, d) => {
-      const duration = d.duration_ms as number || 0;
-      return sum + duration;
-    }, 0) / successful.length;
+    const avgDuration =
+      successful.reduce((sum, d) => {
+        const duration = (d.duration_ms as number) || 0;
+        return sum + duration;
+      }, 0) / successful.length;
 
     // Identify fast workflows (below average)
-    const fastWorkflows = successful.filter(d => {
-      const duration = d.duration_ms as number || 0;
+    const fastWorkflows = successful.filter((d) => {
+      const duration = (d.duration_ms as number) || 0;
       return duration < avgDuration;
     });
 
@@ -276,7 +281,7 @@ export class LearningModelService {
     const parameters = {
       avg_duration_ms: avgDuration,
       fast_workflow_threshold: avgDuration * 0.8,
-      sample_size: successful.length
+      sample_size: successful.length,
     };
 
     return { accuracy, parameters };
@@ -286,9 +291,9 @@ export class LearningModelService {
    * Train error prediction model
    */
   private async trainErrorPrediction(
-    data: Record<string, unknown>[]
+    data: Record<string, unknown>[],
   ): Promise<{ accuracy: number; parameters: Record<string, unknown> }> {
-    const failed = data.filter(d => d.status === 'failure');
+    const failed = data.filter((d) => d.status === "failure");
     const totalCount = data.length;
 
     if (totalCount === 0) {
@@ -296,12 +301,13 @@ export class LearningModelService {
     }
 
     const failureRate = failed.length / totalCount;
-    
+
     // Analyze retry patterns
-    const avgRetries = failed.reduce((sum, d) => {
-      const retries = d.retry_count as number || 0;
-      return sum + retries;
-    }, 0) / (failed.length || 1);
+    const avgRetries =
+      failed.reduce((sum, d) => {
+        const retries = (d.retry_count as number) || 0;
+        return sum + retries;
+      }, 0) / (failed.length || 1);
 
     const accuracy = 1 - failureRate;
 
@@ -309,7 +315,7 @@ export class LearningModelService {
       failure_rate: failureRate,
       avg_retries: avgRetries,
       total_failures: failed.length,
-      sample_size: totalCount
+      sample_size: totalCount,
     };
 
     return { accuracy, parameters };
@@ -319,10 +325,10 @@ export class LearningModelService {
    * Train resource allocation model
    */
   private async trainResourceAllocation(
-    data: Record<string, unknown>[]
+    data: Record<string, unknown>[],
   ): Promise<{ accuracy: number; parameters: Record<string, unknown> }> {
     // Analyze resource usage patterns
-    const withMetrics = data.filter(d => {
+    const withMetrics = data.filter((d) => {
       const metrics = d.metrics as Record<string, unknown>;
       return metrics && metrics.resource_usage;
     });
@@ -335,7 +341,7 @@ export class LearningModelService {
 
     const parameters = {
       workflows_with_metrics: withMetrics.length,
-      sample_size: data.length
+      sample_size: data.length,
     };
 
     return { accuracy, parameters };
@@ -345,27 +351,28 @@ export class LearningModelService {
    * Train task sequencing model
    */
   private async trainTaskSequencing(
-    data: Record<string, unknown>[]
+    data: Record<string, unknown>[],
   ): Promise<{ accuracy: number; parameters: Record<string, unknown> }> {
-    const successful = data.filter(d => d.status === 'success');
+    const successful = data.filter((d) => d.status === "success");
 
     if (successful.length === 0) {
       return { accuracy: 0.5, parameters: {} };
     }
 
     // Analyze task completion patterns
-    const avgTaskCount = successful.reduce((sum, d) => {
-      const metrics = d.metrics as Record<string, unknown>;
-      const taskCount = metrics?.task_count as number || 0;
-      return sum + taskCount;
-    }, 0) / successful.length;
+    const avgTaskCount =
+      successful.reduce((sum, d) => {
+        const metrics = d.metrics as Record<string, unknown>;
+        const taskCount = (metrics?.task_count as number) || 0;
+        return sum + taskCount;
+      }, 0) / successful.length;
 
     const accuracy = 0.7 + (successful.length / data.length) * 0.3;
 
     const parameters = {
       avg_task_count: avgTaskCount,
       successful_workflows: successful.length,
-      sample_size: data.length
+      sample_size: data.length,
     };
 
     return { accuracy, parameters };
@@ -376,7 +383,7 @@ export class LearningModelService {
    */
   async generateSuggestions(
     modelId: string,
-    workflowId?: string
+    workflowId?: string,
   ): Promise<LearningModelSuggestion[]> {
     try {
       const model = await this.getModel(modelId);
@@ -388,20 +395,31 @@ export class LearningModelService {
 
       // Generate suggestions based on model type
       switch (model.model_type) {
-        case 'workflow_optimization':
-          suggestions.push(...await this.generateOptimizationSuggestions(model, workflowId));
+        case "workflow_optimization":
+          suggestions.push(
+            ...(await this.generateOptimizationSuggestions(model, workflowId)),
+          );
           break;
-        
-        case 'error_prediction':
-          suggestions.push(...await this.generateErrorPreventionSuggestions(model, workflowId));
+
+        case "error_prediction":
+          suggestions.push(
+            ...(await this.generateErrorPreventionSuggestions(
+              model,
+              workflowId,
+            )),
+          );
           break;
-        
-        case 'resource_allocation':
-          suggestions.push(...await this.generateResourceSuggestions(model, workflowId));
+
+        case "resource_allocation":
+          suggestions.push(
+            ...(await this.generateResourceSuggestions(model, workflowId)),
+          );
           break;
-        
-        case 'task_sequencing':
-          suggestions.push(...await this.generateSequencingSuggestions(model, workflowId));
+
+        case "task_sequencing":
+          suggestions.push(
+            ...(await this.generateSequencingSuggestions(model, workflowId)),
+          );
           break;
       }
 
@@ -412,7 +430,7 @@ export class LearningModelService {
 
       return suggestions;
     } catch (error) {
-      logger.error('Failed to generate suggestions', { error, modelId });
+      logger.error("Failed to generate suggestions", { error, modelId });
       return [];
     }
   }
@@ -422,26 +440,30 @@ export class LearningModelService {
    */
   private async generateOptimizationSuggestions(
     model: LearningModel,
-    workflowId?: string
+    workflowId?: string,
   ): Promise<LearningModelSuggestion[]> {
     const suggestions: LearningModelSuggestion[] = [];
     const params = model.parameters;
 
-    if (params.avg_duration_ms && typeof params.avg_duration_ms === 'number' && params.avg_duration_ms > 60000) {
+    if (
+      params.avg_duration_ms &&
+      typeof params.avg_duration_ms === "number" &&
+      params.avg_duration_ms > 60000
+    ) {
       const suggestionId = generateId();
       const avgDuration = params.avg_duration_ms as number;
       suggestions.push({
         id: suggestionId,
-        suggestion_type: 'workflow_optimization',
+        suggestion_type: "workflow_optimization",
         description: `Workflow average execution time is ${Math.round(avgDuration / 1000)}s. Consider task parallelization.`,
         confidence: model.accuracy,
         estimated_impact: {
-          time_savings_ms: avgDuration * 0.3
+          time_savings_ms: avgDuration * 0.3,
         },
         workflow_id: workflowId,
         actionable: true,
         auto_apply: false,
-        created_at: getCurrentTimestamp()
+        created_at: getCurrentTimestamp(),
       });
     }
 
@@ -453,7 +475,7 @@ export class LearningModelService {
    */
   private async generateErrorPreventionSuggestions(
     model: LearningModel,
-    workflowId?: string
+    workflowId?: string,
   ): Promise<LearningModelSuggestion[]> {
     const suggestions: LearningModelSuggestion[] = [];
     const params = model.parameters;
@@ -462,16 +484,16 @@ export class LearningModelService {
       const suggestionId = generateId();
       suggestions.push({
         id: suggestionId,
-        suggestion_type: 'error_prevention',
+        suggestion_type: "error_prevention",
         description: `Failure rate is ${Math.round((params.failure_rate as number) * 100)}%. Add error handling and validation.`,
         confidence: model.accuracy,
         estimated_impact: {
-          error_reduction_percent: 50
+          error_reduction_percent: 50,
         },
         workflow_id: workflowId,
         actionable: true,
         auto_apply: false,
-        created_at: getCurrentTimestamp()
+        created_at: getCurrentTimestamp(),
       });
     }
 
@@ -483,25 +505,26 @@ export class LearningModelService {
    */
   private async generateResourceSuggestions(
     model: LearningModel,
-    workflowId?: string
+    workflowId?: string,
   ): Promise<LearningModelSuggestion[]> {
     const suggestions: LearningModelSuggestion[] = [];
-    
+
     // Placeholder for resource-based suggestions
     if (model.accuracy > 0.7) {
       const suggestionId = generateId();
       suggestions.push({
         id: suggestionId,
-        suggestion_type: 'resource_tuning',
-        description: 'Consider implementing resource monitoring for better allocation',
+        suggestion_type: "resource_tuning",
+        description:
+          "Consider implementing resource monitoring for better allocation",
         confidence: model.accuracy,
         estimated_impact: {
-          resource_savings_percent: 20
+          resource_savings_percent: 20,
         },
         workflow_id: workflowId,
         actionable: true,
         auto_apply: false,
-        created_at: getCurrentTimestamp()
+        created_at: getCurrentTimestamp(),
       });
     }
 
@@ -513,7 +536,7 @@ export class LearningModelService {
    */
   private async generateSequencingSuggestions(
     model: LearningModel,
-    workflowId?: string
+    workflowId?: string,
   ): Promise<LearningModelSuggestion[]> {
     const suggestions: LearningModelSuggestion[] = [];
     const params = model.parameters;
@@ -522,16 +545,16 @@ export class LearningModelService {
       const suggestionId = generateId();
       suggestions.push({
         id: suggestionId,
-        suggestion_type: 'sequence_improvement',
+        suggestion_type: "sequence_improvement",
         description: `Workflow has ${params.avg_task_count} tasks on average. Consider grouping related tasks.`,
         confidence: model.accuracy,
         estimated_impact: {
-          time_savings_ms: 5000
+          time_savings_ms: 5000,
         },
         workflow_id: workflowId,
         actionable: true,
         auto_apply: false,
-        created_at: getCurrentTimestamp()
+        created_at: getCurrentTimestamp(),
       });
     }
 
@@ -543,7 +566,7 @@ export class LearningModelService {
    */
   private async saveSuggestion(
     modelId: string,
-    suggestion: LearningModelSuggestion
+    suggestion: LearningModelSuggestion,
   ): Promise<void> {
     try {
       const db = getDatabase();
@@ -562,34 +585,36 @@ export class LearningModelService {
         suggestion.workflow_id,
         suggestion.actionable ? 1 : 0,
         suggestion.auto_apply ? 1 : 0,
-        suggestion.created_at
+        suggestion.created_at,
       );
 
-      logger.info('Suggestion saved', {
+      logger.info("Suggestion saved", {
         suggestionId: suggestion.id,
-        type: suggestion.suggestion_type
+        type: suggestion.suggestion_type,
       });
     } catch (error) {
-      logger.error('Failed to save suggestion', { error, suggestion });
+      logger.error("Failed to save suggestion", { error, suggestion });
     }
   }
 
   /**
    * Get suggestions for a workflow
    */
-  async getWorkflowSuggestions(workflowId: string): Promise<LearningModelSuggestion[]> {
+  async getWorkflowSuggestions(
+    workflowId: string,
+  ): Promise<LearningModelSuggestion[]> {
     try {
       const db = getDatabase();
       const rows = await db.all(
         `SELECT * FROM learning_suggestions 
          WHERE workflow_id = ? AND applied_at IS NULL
          ORDER BY confidence DESC, created_at DESC`,
-        workflowId
+        workflowId,
       );
 
-      return rows.map(row => this.deserializeSuggestion(row));
+      return rows.map((row) => this.deserializeSuggestion(row));
     } catch (error) {
-      logger.error('Failed to get workflow suggestions', { error, workflowId });
+      logger.error("Failed to get workflow suggestions", { error, workflowId });
       return [];
     }
   }
@@ -599,7 +624,7 @@ export class LearningModelService {
    */
   async applySuggestion(
     suggestionId: string,
-    feedback: SuggestionFeedback
+    feedback: SuggestionFeedback,
   ): Promise<void> {
     try {
       const db = getDatabase();
@@ -612,12 +637,15 @@ export class LearningModelService {
         WHERE id = ?`,
         timestamp,
         JSON.stringify(feedback),
-        suggestionId
+        suggestionId,
       );
 
-      logger.info('Suggestion applied with feedback', { suggestionId, feedback });
+      logger.info("Suggestion applied with feedback", {
+        suggestionId,
+        feedback,
+      });
     } catch (error) {
-      logger.error('Failed to apply suggestion', { error, suggestionId });
+      logger.error("Failed to apply suggestion", { error, suggestionId });
       throw error;
     }
   }
@@ -633,8 +661,8 @@ export class LearningModelService {
 
       const db = getDatabase();
       const row = await db.get(
-        'SELECT * FROM learning_models WHERE id = ?',
-        modelId
+        "SELECT * FROM learning_models WHERE id = ?",
+        modelId,
       );
 
       if (!row) {
@@ -645,7 +673,7 @@ export class LearningModelService {
       this.models.set(modelId, model);
       return model;
     } catch (error) {
-      logger.error('Failed to get model', { error, modelId });
+      logger.error("Failed to get model", { error, modelId });
       return null;
     }
   }
@@ -654,13 +682,13 @@ export class LearningModelService {
    * Get model by type
    */
   async getModelByType(
-    modelType: LearningModel['model_type']
+    modelType: LearningModel["model_type"],
   ): Promise<LearningModel | null> {
     try {
       const db = getDatabase();
       const row = await db.get(
-        'SELECT * FROM learning_models WHERE model_type = ? ORDER BY version DESC LIMIT 1',
-        modelType
+        "SELECT * FROM learning_models WHERE model_type = ? ORDER BY version DESC LIMIT 1",
+        modelType,
       );
 
       if (!row) {
@@ -669,7 +697,7 @@ export class LearningModelService {
 
       return this.deserializeModel(row);
     } catch (error) {
-      logger.error('Failed to get model by type', { error, modelType });
+      logger.error("Failed to get model by type", { error, modelType });
       return null;
     }
   }
@@ -681,13 +709,13 @@ export class LearningModelService {
     const r = row as Record<string, unknown>;
     return {
       id: r.id as string,
-      model_type: r.model_type as LearningModel['model_type'],
+      model_type: r.model_type as LearningModel["model_type"],
       version: r.version as number,
       trained_at: r.trained_at as string,
       accuracy: r.accuracy as number,
       training_samples: r.training_samples as number,
       parameters: JSON.parse(r.parameters as string),
-      performance_history: JSON.parse(r.performance_history as string)
+      performance_history: JSON.parse(r.performance_history as string),
     };
   }
 
@@ -698,7 +726,8 @@ export class LearningModelService {
     const r = row as Record<string, unknown>;
     return {
       id: r.id as string,
-      suggestion_type: r.suggestion_type as LearningModelSuggestion['suggestion_type'],
+      suggestion_type:
+        r.suggestion_type as LearningModelSuggestion["suggestion_type"],
       description: r.description as string,
       confidence: r.confidence as number,
       estimated_impact: JSON.parse(r.estimated_impact as string),
@@ -707,7 +736,7 @@ export class LearningModelService {
       auto_apply: r.auto_apply === 1,
       created_at: r.created_at as string,
       applied_at: r.applied_at as string | undefined,
-      feedback: r.feedback ? JSON.parse(r.feedback as string) : undefined
+      feedback: r.feedback ? JSON.parse(r.feedback as string) : undefined,
     };
   }
 }

@@ -159,11 +159,26 @@
     { "id": "conn-6", "source": "node-6", "target": "node-7" },
     { "id": "conn-7", "source": "node-7", "target": "node-8" },
     { "id": "conn-8", "source": "node-8", "target": "node-9" },
-    { "id": "conn-9", "source": "node-9", "target": "node-10", "label": "true" },
-    { "id": "conn-10", "source": "node-9", "target": "node-11", "label": "false" },
+    {
+      "id": "conn-9",
+      "source": "node-9",
+      "target": "node-10",
+      "label": "true"
+    },
+    {
+      "id": "conn-10",
+      "source": "node-9",
+      "target": "node-11",
+      "label": "false"
+    },
     { "id": "conn-11", "source": "node-10", "target": "node-11" },
     { "id": "conn-12", "source": "node-11", "target": "node-3" },
-    { "id": "conn-13", "source": "node-11", "target": "node-12", "label": "complete" },
+    {
+      "id": "conn-13",
+      "source": "node-11",
+      "target": "node-12",
+      "label": "complete"
+    },
     { "id": "conn-14", "source": "node-12", "target": "node-13" }
   ]
 }

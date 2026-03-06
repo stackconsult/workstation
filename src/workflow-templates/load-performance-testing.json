@@ -4,7 +4,13 @@
   "description": "Comprehensive performance testing workflow. Measures page load times, resource loading, rendering performance, and generates Lighthouse scores. Tests under different network conditions and provides optimization recommendations.",
   "category": "testing",
   "icon": "⚡",
-  "tags": ["testing", "performance", "load-testing", "lighthouse", "optimization"],
+  "tags": [
+    "testing",
+    "performance",
+    "load-testing",
+    "lighthouse",
+    "optimization"
+  ],
   "complexity": "advanced",
   "estimatedDuration": "20-40 minutes",
   "createdAt": "2025-11-24T00:00:00Z",
@@ -25,7 +31,12 @@
       "y": 200,
       "params": {
         "items": [
-          { "name": "Fast 3G", "download": 1600, "upload": 750, "latency": 150 },
+          {
+            "name": "Fast 3G",
+            "download": 1600,
+            "upload": 750,
+            "latency": 150
+          },
           { "name": "Slow 3G", "download": 400, "upload": 400, "latency": 400 },
           { "name": "4G", "download": 4000, "upload": 3000, "latency": 20 }
         ]
@@ -173,7 +184,12 @@
     { "id": "conn-7", "source": "node-7", "target": "node-8" },
     { "id": "conn-8", "source": "node-8", "target": "node-9" },
     { "id": "conn-9", "source": "node-9", "target": "node-2" },
-    { "id": "conn-10", "source": "node-9", "target": "node-10", "label": "complete" },
+    {
+      "id": "conn-10",
+      "source": "node-9",
+      "target": "node-10",
+      "label": "complete"
+    },
     { "id": "conn-11", "source": "node-10", "target": "node-11" },
     { "id": "conn-12", "source": "node-11", "target": "node-12" },
     { "id": "conn-13", "source": "node-12", "target": "node-13" }

@@ -3,12 +3,12 @@
  * Main dashboard with system metrics and status
  */
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { MetricsCard } from '../components/MetricsCard';
-import { ActivityFeed } from '../components/ActivityFeed';
-import { QuickActions } from '../components/QuickActions';
-import { SystemHealth } from '../components/SystemHealth';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { MetricsCard } from "../components/MetricsCard";
+import { ActivityFeed } from "../components/ActivityFeed";
+import { QuickActions } from "../components/QuickActions";
+import { SystemHealth } from "../components/SystemHealth";
 
 interface DashboardMetrics {
   activeAgents: number;
@@ -19,10 +19,10 @@ interface DashboardMetrics {
 
 export const OverviewPage: React.FC = () => {
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
-    queryKey: ['dashboard-metrics'],
+    queryKey: ["dashboard-metrics"],
     queryFn: async () => {
-      const response = await fetch('/api/metrics/dashboard');
-      if (!response.ok) throw new Error('Failed to fetch metrics');
+      const response = await fetch("/api/metrics/dashboard");
+      if (!response.ok) throw new Error("Failed to fetch metrics");
       return response.json();
     },
     refetchInterval: 5000, // Refresh every 5 seconds

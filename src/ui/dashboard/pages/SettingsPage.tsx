@@ -3,7 +3,7 @@
  * System configuration and preferences
  */
 
-import React from 'react';
+import React from "react";
 
 export const SettingsPage: React.FC = () => {
   return (
@@ -38,11 +38,7 @@ export const SettingsPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Default Timeout (seconds)
               </label>
-              <input
-                type="number"
-                className="input-field"
-                defaultValue="30"
-              />
+              <input type="number" className="input-field" defaultValue="30" />
             </div>
           </div>
         </div>
@@ -84,21 +80,13 @@ export const SettingsPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 API Rate Limit (req/min)
               </label>
-              <input
-                type="number"
-                className="input-field"
-                defaultValue="100"
-              />
+              <input type="number" className="input-field" defaultValue="100" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 JWT Expiration (hours)
               </label>
-              <input
-                type="number"
-                className="input-field"
-                defaultValue="24"
-              />
+              <input type="number" className="input-field" defaultValue="24" />
             </div>
           </div>
         </div>
@@ -113,11 +101,7 @@ export const SettingsPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Max Concurrent Workflows
               </label>
-              <input
-                type="number"
-                className="input-field"
-                defaultValue="10"
-              />
+              <input type="number" className="input-field" defaultValue="10" />
             </div>
             <label className="flex items-center gap-3">
               <input type="checkbox" className="rounded" defaultChecked />

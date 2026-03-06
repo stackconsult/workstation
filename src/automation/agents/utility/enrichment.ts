@@ -4,10 +4,10 @@
  * Phase 2: Agent Ecosystem - Utility Agents
  */
 
-import axios from 'axios';
-import { logger } from '../../../utils/logger';
-import { ErrorHandler, ErrorCategory } from '../../../utils/error-handler';
-import { Validator } from '../../../utils/validation';
+import axios from "axios";
+import { logger } from "../../../utils/logger";
+import { ErrorHandler, ErrorCategory } from "../../../utils/error-handler";
+import { Validator } from "../../../utils/validation";
 
 export interface EnrichmentOptions {
   timeout?: number;
@@ -68,7 +68,11 @@ export class EnrichmentAgent {
     try {
       // Validate input
       if (!params.address || params.address.trim().length === 0) {
-        throw ErrorHandler.validationError('Address is required', 'address', params.address);
+        throw ErrorHandler.validationError(
+          "Address is required",
+          "address",
+          params.address,
+        );
       }
 
       const address = Validator.sanitizeString(params.address);
@@ -76,42 +80,45 @@ export class EnrichmentAgent {
         timeout: 5000,
         retries: 3,
         cacheResults: true,
-        ...params.options
+        ...params.options,
       };
 
       // Check cache
       const cacheKey = `geocode:${address}`;
       if (options.cacheResults && this.cache.has(cacheKey)) {
-        logger.info('Returning geocode result from cache', { address });
+        logger.info("Returning geocode result from cache", { address });
         return {
           success: true,
-          data: this.cache.get(cacheKey) as GeocodeResult
+          data: this.cache.get(cacheKey) as GeocodeResult,
         };
       }
 
       // Execute with retry and timeout
       const result = await ErrorHandler.withRetry(
-        () => ErrorHandler.withTimeout(
-          async () => {
-            logger.info('Geocoding address', { address });
+        () =>
+          ErrorHandler.withTimeout(async () => {
+            logger.info("Geocoding address", { address });
 
-            const response = await axios.get('https://nominatim.openstreetmap.org/search', {
-              params: {
-                q: address,
-                format: 'json',
-                addressdetails: 1,
-                limit: 1
+            const response = await axios.get(
+              "https://nominatim.openstreetmap.org/search",
+              {
+                params: {
+                  q: address,
+                  format: "json",
+                  addressdetails: 1,
+                  limit: 1,
+                },
+                headers: {
+                  "User-Agent": "stackBrowserAgent/1.0",
+                },
+                timeout: options.timeout,
               },
-              headers: {
-                'User-Agent': 'stackBrowserAgent/1.0'
-              },
-              timeout: options.timeout
-            });
+            );
 
             if (!response.data || response.data.length === 0) {
               throw ErrorHandler.networkError(
-                'No geocoding results found for address',
-                'https://nominatim.openstreetmap.org/search'
+                "No geocoding results found for address",
+                "https://nominatim.openstreetmap.org/search",
               );
             }
 
@@ -120,22 +127,23 @@ export class EnrichmentAgent {
               address: location.display_name,
               latitude: parseFloat(location.lat),
               longitude: parseFloat(location.lon),
-              city: location.address?.city || location.address?.town || location.address?.village,
+              city:
+                location.address?.city ||
+                location.address?.town ||
+                location.address?.village,
               state: location.address?.state,
               country: location.address?.country,
-              postalCode: location.address?.postcode
+              postalCode: location.address?.postcode,
             };
 
             return geocodeResult;
-          },
-          options.timeout!
-        ),
+          }, options.timeout!),
         {
           maxRetries: options.retries!,
           delayMs: 1000,
           backoffMultiplier: 2,
-          retryableErrors: [ErrorCategory.NETWORK, ErrorCategory.TIMEOUT]
-        }
+          retryableErrors: [ErrorCategory.NETWORK, ErrorCategory.TIMEOUT],
+        },
       );
 
       // Cache result
@@ -143,19 +151,28 @@ export class EnrichmentAgent {
         this.cache.set(cacheKey, result);
       }
 
-      logger.info('Successfully geocoded address', { address, coordinates: `${result.latitude},${result.longitude}` });
+      logger.info("Successfully geocoded address", {
+        address,
+        coordinates: `${result.latitude},${result.longitude}`,
+      });
 
       return {
         success: true,
-        data: result
+        data: result,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error during geocoding';
-      logger.error('Failed to geocode address', { error: errorMessage, address: params.address });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Unknown error during geocoding";
+      logger.error("Failed to geocode address", {
+        error: errorMessage,
+        address: params.address,
+      });
 
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -175,35 +192,44 @@ export class EnrichmentAgent {
     try {
       // Validate input
       if (!params.domain || params.domain.trim().length === 0) {
-        throw ErrorHandler.validationError('Domain is required', 'domain', params.domain);
+        throw ErrorHandler.validationError(
+          "Domain is required",
+          "domain",
+          params.domain,
+        );
       }
 
       // Sanitize and extract clean domain
-      const sanitizedUrl = Validator.sanitizeUrl(params.domain, ['http', 'https']);
+      const sanitizedUrl = Validator.sanitizeUrl(params.domain, [
+        "http",
+        "https",
+      ]);
       const cleanDomain = this.extractCleanDomain(sanitizedUrl);
-      
+
       const options: EnrichmentOptions = {
         timeout: 5000,
         retries: 3,
         cacheResults: true,
-        ...params.options
+        ...params.options,
       };
 
       // Check cache
       const cacheKey = `company:${cleanDomain}`;
       if (options.cacheResults && this.cache.has(cacheKey)) {
-        logger.info('Returning company data from cache', { domain: cleanDomain });
+        logger.info("Returning company data from cache", {
+          domain: cleanDomain,
+        });
         return {
           success: true,
-          data: this.cache.get(cacheKey) as CompanyInfo
+          data: this.cache.get(cacheKey) as CompanyInfo,
         };
       }
 
       // Execute with retry and timeout
       const result = await ErrorHandler.withRetry(
-        () => ErrorHandler.withTimeout(
-          async () => {
-            logger.info('Enriching company data', { domain: cleanDomain });
+        () =>
+          ErrorHandler.withTimeout(async () => {
+            logger.info("Enriching company data", { domain: cleanDomain });
 
             // Simulate company data enrichment
             // In production, this would use APIs like Clearbit, FullContact, or Hunter.io
@@ -212,45 +238,49 @@ export class EnrichmentAgent {
               name: this.extractCompanyName(cleanDomain),
               domain: cleanDomain,
               description: `Company information for ${cleanDomain}`,
-              website: `https://${cleanDomain}`
+              website: `https://${cleanDomain}`,
             };
 
             // Try to fetch additional info from the website's meta tags
             try {
-              const websiteResponse = await axios.get(`https://${cleanDomain}`, {
-                timeout: options.timeout,
-                headers: {
-                  'User-Agent': 'stackBrowserAgent/1.0'
+              const websiteResponse = await axios.get(
+                `https://${cleanDomain}`,
+                {
+                  timeout: options.timeout,
+                  headers: {
+                    "User-Agent": "stackBrowserAgent/1.0",
+                  },
+                  maxRedirects: 5,
                 },
-                maxRedirects: 5
-              });
+              );
 
               // Parse meta information using cheerio for robust HTML parsing
-              const cheerio = await import('cheerio');
+              const cheerio = await import("cheerio");
               const $ = cheerio.load(websiteResponse.data);
-              
+
               // Extract description from meta tag
-              const description = $('meta[name="description"]').attr('content') || 
-                                $('meta[property="og:description"]').attr('content');
-              
+              const description =
+                $('meta[name="description"]').attr("content") ||
+                $('meta[property="og:description"]').attr("content");
+
               if (description) {
                 companyInfo.description = description;
               }
             } catch {
-              logger.warn('Could not fetch website metadata', { domain: cleanDomain });
+              logger.warn("Could not fetch website metadata", {
+                domain: cleanDomain,
+              });
               // Continue with basic info
             }
 
             return companyInfo;
-          },
-          options.timeout!
-        ),
+          }, options.timeout!),
         {
           maxRetries: options.retries!,
           delayMs: 1000,
           backoffMultiplier: 2,
-          retryableErrors: [ErrorCategory.NETWORK, ErrorCategory.TIMEOUT]
-        }
+          retryableErrors: [ErrorCategory.NETWORK, ErrorCategory.TIMEOUT],
+        },
       );
 
       // Cache result
@@ -258,19 +288,28 @@ export class EnrichmentAgent {
         this.cache.set(cacheKey, result);
       }
 
-      logger.info('Successfully enriched company data', { domain: cleanDomain, name: result.name });
+      logger.info("Successfully enriched company data", {
+        domain: cleanDomain,
+        name: result.name,
+      });
 
       return {
         success: true,
-        data: result
+        data: result,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error during company enrichment';
-      logger.error('Failed to enrich company data', { error: errorMessage, domain: params.domain });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Unknown error during company enrichment";
+      logger.error("Failed to enrich company data", {
+        error: errorMessage,
+        domain: params.domain,
+      });
 
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -290,59 +329,67 @@ export class EnrichmentAgent {
     try {
       // Validate input
       if (!params.email || params.email.trim().length === 0) {
-        throw ErrorHandler.validationError('Email is required', 'email', params.email);
+        throw ErrorHandler.validationError(
+          "Email is required",
+          "email",
+          params.email,
+        );
       }
 
       const email = Validator.sanitizeString(params.email);
-      
+
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        throw ErrorHandler.validationError('Invalid email format', 'email', email);
+        throw ErrorHandler.validationError(
+          "Invalid email format",
+          "email",
+          email,
+        );
       }
 
       const options: EnrichmentOptions = {
         timeout: 5000,
         retries: 3,
         cacheResults: true,
-        ...params.options
+        ...params.options,
       };
 
       // Check cache
       const cacheKey = `contact:${email}`;
       if (options.cacheResults && this.cache.has(cacheKey)) {
-        logger.info('Returning contact data from cache', { email });
+        logger.info("Returning contact data from cache", { email });
         return {
           success: true,
-          data: this.cache.get(cacheKey) as ContactEnrichment
+          data: this.cache.get(cacheKey) as ContactEnrichment,
         };
       }
 
-      logger.info('Enriching contact information', { email });
+      logger.info("Enriching contact information", { email });
 
       // Extract domain from email
-      const domain = email.split('@')[1];
+      const domain = email.split("@")[1];
 
       // Basic contact enrichment (simplified)
       // In production, this would use APIs like Hunter.io, Clearbit, or FullContact
       const contactInfo: ContactEnrichment = {
         email,
-        company: domain
+        company: domain,
       };
 
       // Try to enrich with company data
       try {
-        const companyResult = await this.enrichCompanyData({ 
-          domain, 
+        const companyResult = await this.enrichCompanyData({
+          domain,
           // Respect the original cacheResults option to maintain consistency
-          options: { ...options, cacheResults: options.cacheResults } 
+          options: { ...options, cacheResults: options.cacheResults },
         });
-        
+
         if (companyResult.success && companyResult.data) {
           contactInfo.company = companyResult.data.name;
         }
       } catch {
-        logger.warn('Could not enrich with company data', { email });
+        logger.warn("Could not enrich with company data", { email });
         // Continue with basic info
       }
 
@@ -351,19 +398,25 @@ export class EnrichmentAgent {
         this.cache.set(cacheKey, contactInfo);
       }
 
-      logger.info('Successfully enriched contact information', { email });
+      logger.info("Successfully enriched contact information", { email });
 
       return {
         success: true,
-        data: contactInfo
+        data: contactInfo,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error during contact enrichment';
-      logger.error('Failed to enrich contact', { error: errorMessage, email: params.email });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Unknown error during contact enrichment";
+      logger.error("Failed to enrich contact", {
+        error: errorMessage,
+        email: params.email,
+      });
 
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -373,7 +426,7 @@ export class EnrichmentAgent {
    */
   async batchEnrich(params: {
     records: Array<{
-      type: 'geocode' | 'company' | 'contact';
+      type: "geocode" | "company" | "contact";
       value: string;
     }>;
     options?: EnrichmentOptions;
@@ -383,44 +436,58 @@ export class EnrichmentAgent {
     error?: string;
   }> {
     try {
-      logger.info('Starting batch enrichment', { count: params.records.length });
+      logger.info("Starting batch enrichment", {
+        count: params.records.length,
+      });
 
       const results = await Promise.all(
         params.records.map(async (record) => {
           switch (record.type) {
-            case 'geocode':
-              return await this.geocode({ address: record.value, options: params.options });
-            case 'company':
-              return await this.enrichCompanyData({ domain: record.value, options: params.options });
-            case 'contact':
-              return await this.enrichContact({ email: record.value, options: params.options });
+            case "geocode":
+              return await this.geocode({
+                address: record.value,
+                options: params.options,
+              });
+            case "company":
+              return await this.enrichCompanyData({
+                domain: record.value,
+                options: params.options,
+              });
+            case "contact":
+              return await this.enrichContact({
+                email: record.value,
+                options: params.options,
+              });
             default:
               return {
                 success: false,
-                error: `Unknown enrichment type: ${record.type}`
+                error: `Unknown enrichment type: ${record.type}`,
               };
           }
-        })
+        }),
       );
 
-      const successCount = results.filter(r => r.success).length;
-      logger.info('Batch enrichment complete', { 
-        total: params.records.length, 
+      const successCount = results.filter((r) => r.success).length;
+      logger.info("Batch enrichment complete", {
+        total: params.records.length,
         successful: successCount,
-        failed: params.records.length - successCount
+        failed: params.records.length - successCount,
       });
 
       return {
         success: true,
-        data: results
+        data: results,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error during batch enrichment';
-      logger.error('Failed batch enrichment', { error: errorMessage });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Unknown error during batch enrichment";
+      logger.error("Failed batch enrichment", { error: errorMessage });
 
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -431,7 +498,7 @@ export class EnrichmentAgent {
   clearCache(): void {
     const cacheSize = this.cache.size;
     this.cache.clear();
-    logger.info('Cleared enrichment cache', { entriesRemoved: cacheSize });
+    logger.info("Cleared enrichment cache", { entriesRemoved: cacheSize });
   }
 
   /**
@@ -443,7 +510,7 @@ export class EnrichmentAgent {
   } {
     return {
       size: this.cache.size,
-      entries: Array.from(this.cache.keys())
+      entries: Array.from(this.cache.keys()),
     };
   }
 
@@ -452,7 +519,7 @@ export class EnrichmentAgent {
    * Removes protocol, www, and path components
    */
   private extractCleanDomain(url: string): string {
-    return url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+    return url.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0];
   }
 
   /**
@@ -460,13 +527,13 @@ export class EnrichmentAgent {
    */
   private extractCompanyName(domain: string): string {
     // Remove TLD and common words, capitalize
-    const parts = domain.split('.');
+    const parts = domain.split(".");
     const name = parts[0];
-    
+
     // Capitalize first letter and handle common patterns
     return name
       .split(/[-_]/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   }
 }

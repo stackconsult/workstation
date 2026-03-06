@@ -1,19 +1,19 @@
-import axios, { AxiosInstance } from 'axios';
-import { createLogger } from 'winston';
-import { z } from 'zod';
+import axios, { AxiosInstance } from "axios";
+import { createLogger } from "winston";
+import { z } from "zod";
 
 // Validation schemas
 const WorkflowTaskSchema = z.object({
   name: z.string(),
-  agent_type: z.string().default('browser'),
+  agent_type: z.string().default("browser"),
   action: z.string(),
-  parameters: z.record(z.string(), z.unknown())
+  parameters: z.record(z.string(), z.unknown()),
 });
 
 const GeneratedWorkflowSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
-  tasks: z.array(WorkflowTaskSchema)
+  tasks: z.array(WorkflowTaskSchema),
 });
 
 export type WorkflowTask = z.infer<typeof WorkflowTaskSchema>;
@@ -26,12 +26,12 @@ interface GeminiConfig {
 }
 
 interface ChatMessage {
-  role: 'user' | 'model';
+  role: "user" | "model";
   content: string;
 }
 
 const logger = createLogger({
-  level: process.env.LOG_LEVEL || 'info'
+  level: process.env.LOG_LEVEL || "info",
 });
 
 export class GeminiAdapter {
@@ -40,25 +40,30 @@ export class GeminiAdapter {
 
   constructor(config?: Partial<GeminiConfig>) {
     this.config = {
-      apiKey: config?.apiKey || process.env.GEMINI_API_KEY || '',
-      model: config?.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-      endpoint: config?.endpoint || process.env.GEMINI_ENDPOINT || 'https://generativelanguage.googleapis.com/v1beta'
+      apiKey: config?.apiKey || process.env.GEMINI_API_KEY || "",
+      model: config?.model || process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      endpoint:
+        config?.endpoint ||
+        process.env.GEMINI_ENDPOINT ||
+        "https://generativelanguage.googleapis.com/v1beta",
     };
 
     this.client = axios.create({
       baseURL: this.config.endpoint,
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 30000
+      headers: { "Content-Type": "application/json" },
+      timeout: 30000,
     });
   }
 
   isConfigured(): boolean {
-    return !!this.config.apiKey && this.config.apiKey !== 'changeme';
+    return !!this.config.apiKey && this.config.apiKey !== "changeme";
   }
 
-  async naturalLanguageToWorkflow(userPrompt: string): Promise<GeneratedWorkflow | null> {
+  async naturalLanguageToWorkflow(
+    userPrompt: string,
+  ): Promise<GeneratedWorkflow | null> {
     if (!this.isConfigured()) {
-      throw new Error('Gemini API key not configured');
+      throw new Error("Gemini API key not configured");
     }
 
     const systemPrompt = `You are a workflow builder for browser automation.
@@ -84,53 +89,64 @@ Output ONLY valid JSON:
       const response = await this.client.post(
         `/models/${this.config.model}:generateContent?key=${this.config.apiKey}`,
         {
-          contents: [{ parts: [{ text: `${systemPrompt}\n\nUser: ${userPrompt}` }] }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 2048 }
-        }
+          contents: [
+            { parts: [{ text: `${systemPrompt}\n\nUser: ${userPrompt}` }] },
+          ],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+        },
       );
 
-      const text = response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/\{[\s\S]*\}/);
+      const text =
+        response.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const jsonMatch =
+        text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/\{[\s\S]*\}/);
 
       if (!jsonMatch) return null;
 
       const parsed = JSON.parse((jsonMatch[1] || jsonMatch[0]).trim());
       return GeneratedWorkflowSchema.parse(parsed);
     } catch (error) {
-      logger.error('Gemini naturalLanguageToWorkflow error:', error);
+      logger.error("Gemini naturalLanguageToWorkflow error:", error);
       throw error;
     }
   }
 
-  async generateDisplayUI(workflowResult: Record<string, unknown>): Promise<string> {
-    if (!this.isConfigured()) throw new Error('Gemini API not configured');
+  async generateDisplayUI(
+    workflowResult: Record<string, unknown>,
+  ): Promise<string> {
+    if (!this.isConfigured()) throw new Error("Gemini API not configured");
 
     const prompt = `Generate HTML with Tailwind CSS to display this workflow result. Dark theme. Return ONLY HTML.
 Result: ${JSON.stringify(workflowResult, null, 2)}`;
 
     const response = await this.client.post(
       `/models/${this.config.model}:generateContent?key=${this.config.apiKey}`,
-      { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.7 } }
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7 },
+      },
     );
 
-    return (response.data.candidates?.[0]?.content?.parts?.[0]?.text || '')
-      .replace(/```(?:html)?\s*/g, '').replace(/```\s*$/g, '').trim();
+    return (response.data.candidates?.[0]?.content?.parts?.[0]?.text || "")
+      .replace(/```(?:html)?\s*/g, "")
+      .replace(/```\s*$/g, "")
+      .trim();
   }
 
   async chat(messages: ChatMessage[]): Promise<string> {
-    if (!this.isConfigured()) throw new Error('Gemini API not configured');
+    if (!this.isConfigured()) throw new Error("Gemini API not configured");
 
     const response = await this.client.post(
       `/models/${this.config.model}:generateContent?key=${this.config.apiKey}`,
       {
-        contents: messages.map(m => ({
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{ text: m.content }]
-        }))
-      }
+        contents: messages.map((m) => ({
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: m.content }],
+        })),
+      },
     );
 
-    return response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return response.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
   }
 }
 

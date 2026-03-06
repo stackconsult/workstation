@@ -3,9 +3,9 @@
  * Implements connection pooling, caching, and compression
  */
 
-import compression from 'compression';
-import responseTime from 'response-time';
-import { Request, Response, NextFunction } from 'express';
+import compression from "compression";
+import responseTime from "response-time";
+import { Request, Response, NextFunction } from "express";
 
 /**
  * Response compression middleware
@@ -18,7 +18,7 @@ export const compressionMiddleware = compression({
   level: 6,
   // Filter function to determine what to compress
   filter: (req: Request, res: Response) => {
-    if (req.headers['x-no-compression']) {
+    if (req.headers["x-no-compression"]) {
       return false;
     }
     // Use compression's default filter
@@ -30,12 +30,16 @@ export const compressionMiddleware = compression({
  * Response time tracker middleware
  * Adds X-Response-Time header to responses
  */
-export const responseTimeMiddleware = responseTime((req: Request, res: Response, time: number) => {
-  // Log slow requests (>1 second)
-  if (time > 1000) {
-    console.warn(`Slow request: ${req.method} ${req.url} took ${time.toFixed(2)}ms`);
-  }
-});
+export const responseTimeMiddleware = responseTime(
+  (req: Request, res: Response, time: number) => {
+    // Log slow requests (>1 second)
+    if (time > 1000) {
+      console.warn(
+        `Slow request: ${req.method} ${req.url} took ${time.toFixed(2)}ms`,
+      );
+    }
+  },
+);
 
 /**
  * Request deduplication cache
@@ -50,7 +54,7 @@ class RequestDeduplicator {
   async deduplicate<T>(
     key: string,
     fn: () => Promise<T>,
-    ttl: number = 5000
+    ttl: number = 5000,
   ): Promise<T> {
     // Check if request is already pending
     if (this.pendingRequests.has(key)) {
@@ -148,9 +152,12 @@ class MemoryCache {
 export const memoryCache = new MemoryCache();
 
 // Cleanup expired cache entries every 5 minutes
-setInterval(() => {
-  memoryCache.cleanup();
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    memoryCache.cleanup();
+  },
+  5 * 60 * 1000,
+);
 
 /**
  * Cache middleware for GET requests
@@ -158,7 +165,7 @@ setInterval(() => {
 export const cacheMiddleware = (ttl: number = 300000) => {
   return (req: Request, res: Response, next: NextFunction) => {
     // Only cache GET requests
-    if (req.method !== 'GET') {
+    if (req.method !== "GET") {
       return next();
     }
 
@@ -166,7 +173,7 @@ export const cacheMiddleware = (ttl: number = 300000) => {
     const cached = memoryCache.get(key);
 
     if (cached) {
-      res.set('X-Cache', 'HIT');
+      res.set("X-Cache", "HIT");
       return res.json(cached);
     }
 
@@ -174,7 +181,7 @@ export const cacheMiddleware = (ttl: number = 300000) => {
     const originalJson = res.json.bind(res);
     res.json = function (body: any) {
       memoryCache.set(key, body, ttl);
-      res.set('X-Cache', 'MISS');
+      res.set("X-Cache", "MISS");
       return originalJson(body);
     };
 

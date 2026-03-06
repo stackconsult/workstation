@@ -1,63 +1,75 @@
-import { Request, Response, NextFunction, Application } from 'express';
-import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
-import { getDatabase } from '../automation/db/database';
-import { redisHealthCheck } from './redis';
-import os from 'os';
+import { Request, Response, NextFunction, Application } from "express";
+import {
+  register,
+  collectDefaultMetrics,
+  Counter,
+  Histogram,
+  Gauge,
+} from "prom-client";
+import { getDatabase } from "../automation/db/database";
+import { redisHealthCheck } from "./redis";
+import os from "os";
 
 // Collect default metrics (CPU, memory, etc.)
-collectDefaultMetrics({ prefix: 'workstation_' });
+collectDefaultMetrics({ prefix: "workstation_" });
 
 // Custom metrics
 export const httpRequestDuration = new Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'HTTP request duration in seconds',
-  labelNames: ['method', 'route', 'status_code'],
-  buckets: [0.1, 0.5, 1, 2, 5, 10]
+  name: "http_request_duration_seconds",
+  help: "HTTP request duration in seconds",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [0.1, 0.5, 1, 2, 5, 10],
 });
 
 export const httpRequestTotal = new Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status_code']
+  name: "http_requests_total",
+  help: "Total number of HTTP requests",
+  labelNames: ["method", "route", "status_code"],
 });
 
 export const activeWebsocketConnections = new Gauge({
-  name: 'active_websocket_connections',
-  help: 'Number of active WebSocket connections'
+  name: "active_websocket_connections",
+  help: "Number of active WebSocket connections",
 });
 
 export const workflowExecutions = new Counter({
-  name: 'workflow_executions_total',
-  help: 'Total number of workflow executions',
-  labelNames: ['status'] // success, failure
+  name: "workflow_executions_total",
+  help: "Total number of workflow executions",
+  labelNames: ["status"], // success, failure
 });
 
 export const agentTaskDuration = new Histogram({
-  name: 'agent_task_duration_seconds',
-  help: 'Agent task execution duration',
-  labelNames: ['agent_id', 'task_type'],
-  buckets: [1, 5, 10, 30, 60, 120, 300]
+  name: "agent_task_duration_seconds",
+  help: "Agent task execution duration",
+  labelNames: ["agent_id", "task_type"],
+  buckets: [1, 5, 10, 30, 60, 120, 300],
 });
 
 export const databaseConnections = new Gauge({
-  name: 'database_connections_active',
-  help: 'Number of active database connections'
+  name: "database_connections_active",
+  help: "Number of active database connections",
 });
 
 /**
  * Middleware to track HTTP request metrics
  */
-export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function metricsMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const start = Date.now();
-  
-  res.on('finish', () => {
+
+  res.on("finish", () => {
     const duration = (Date.now() - start) / 1000;
     const route = req.route?.path || req.path;
-    
-    httpRequestDuration.labels(req.method, route, res.statusCode.toString()).observe(duration);
+
+    httpRequestDuration
+      .labels(req.method, route, res.statusCode.toString())
+      .observe(duration);
     httpRequestTotal.labels(req.method, route, res.statusCode.toString()).inc();
   });
-  
+
   next();
 }
 
@@ -65,7 +77,7 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
  * Health check status
  */
 export interface HealthStatus {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   uptime: number;
   checks: {
@@ -86,7 +98,7 @@ export interface HealthStatus {
  */
 export async function getHealthStatus(): Promise<HealthStatus> {
   const health: HealthStatus = {
-    status: 'healthy',
+    status: "healthy",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     checks: {},
@@ -94,29 +106,29 @@ export async function getHealthStatus(): Promise<HealthStatus> {
       memory: {
         heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
         heapTotal: `${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)}MB`,
-        rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`
+        rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
       },
       cpu: {
-        usage: parseFloat((os.loadavg()[0] * 100).toFixed(2))
-      }
-    }
+        usage: parseFloat((os.loadavg()[0] * 100).toFixed(2)),
+      },
+    },
   };
 
   // Database health check
   try {
     const dbStart = Date.now();
     const db = getDatabase();
-    await db.get('SELECT 1 as test');
+    await db.get("SELECT 1 as test");
     health.checks.database = {
-      status: 'up',
-      latency: Date.now() - dbStart
+      status: "up",
+      latency: Date.now() - dbStart,
     };
   } catch (error) {
     health.checks.database = {
-      status: 'down',
-      error: (error as Error).message
+      status: "down",
+      error: (error as Error).message,
     };
-    health.status = 'degraded';
+    health.status = "degraded";
   }
 
   // Redis health check
@@ -124,18 +136,25 @@ export async function getHealthStatus(): Promise<HealthStatus> {
     const redisStart = Date.now();
     const redisHealth = await redisHealthCheck();
     health.checks.redis = {
-      status: redisHealth.connected ? 'up' : (redisHealth.usingRedis ? 'down' : 'disabled'),
+      status: redisHealth.connected
+        ? "up"
+        : redisHealth.usingRedis
+          ? "down"
+          : "disabled",
       latency: redisHealth.connected ? Date.now() - redisStart : undefined,
-      error: redisHealth.usingRedis && !redisHealth.connected ? 'Connection failed' : undefined
+      error:
+        redisHealth.usingRedis && !redisHealth.connected
+          ? "Connection failed"
+          : undefined,
     };
     // Redis being down is not critical - we fall back to memory
     if (redisHealth.usingRedis && !redisHealth.connected) {
-      console.warn('Redis unavailable, using in-memory fallback');
+      console.warn("Redis unavailable, using in-memory fallback");
     }
   } catch (error) {
     health.checks.redis = {
-      status: 'error',
-      error: (error as Error).message
+      status: "error",
+      error: (error as Error).message,
     };
   }
 
@@ -143,16 +162,16 @@ export async function getHealthStatus(): Promise<HealthStatus> {
   try {
     const diskUsage = await checkDiskSpace();
     health.checks.diskSpace = {
-      status: diskUsage.availableGB > 1 ? 'up' : 'low',
-      available: `${diskUsage.availableGB.toFixed(2)}GB`
+      status: diskUsage.availableGB > 1 ? "up" : "low",
+      available: `${diskUsage.availableGB.toFixed(2)}GB`,
     };
     if (diskUsage.availableGB < 1) {
-      health.status = 'degraded';
+      health.status = "degraded";
     }
   } catch (error) {
     health.checks.diskSpace = {
-      status: 'unknown',
-      error: (error as Error).message
+      status: "unknown",
+      error: (error as Error).message,
     };
   }
 
@@ -178,9 +197,9 @@ export function initializeMonitoring(app: Application): void {
   app.use(metricsMiddleware);
 
   // Prometheus metrics endpoint
-  app.get('/metrics', async (req: Request, res: Response) => {
+  app.get("/metrics", async (req: Request, res: Response) => {
     try {
-      res.set('Content-Type', register.contentType);
+      res.set("Content-Type", register.contentType);
       const metrics = await register.metrics();
       res.send(metrics);
     } catch (error) {
@@ -189,18 +208,25 @@ export function initializeMonitoring(app: Application): void {
   });
 
   // Enhanced health check endpoint
-  app.get('/health', async (req: Request, res: Response) => {
+  app.get("/health", async (req: Request, res: Response) => {
     try {
       const health = await getHealthStatus();
-      const statusCode = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
+      const statusCode =
+        health.status === "healthy"
+          ? 200
+          : health.status === "degraded"
+            ? 200
+            : 503;
       res.status(statusCode).json(health);
     } catch (error) {
       res.status(503).json({
-        status: 'unhealthy',
-        error: (error as Error).message
+        status: "unhealthy",
+        error: (error as Error).message,
       });
     }
   });
 
-  console.log('✅ Monitoring initialized - Prometheus metrics available at /metrics');
+  console.log(
+    "✅ Monitoring initialized - Prometheus metrics available at /metrics",
+  );
 }

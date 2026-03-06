@@ -3,13 +3,13 @@
  * Display individual agent information
  */
 
-import React from 'react';
+import React from "react";
 
 interface Agent {
   id: string;
   name: string;
   type: string;
-  status: 'active' | 'inactive' | 'error';
+  status: "active" | "inactive" | "error";
   lastRun?: string;
   successRate: number;
   totalRuns: number;
@@ -23,23 +23,23 @@ interface AgentCardProps {
 export const AgentCard: React.FC<AgentCardProps> = ({ agent, onUpdate }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'status-success';
-      case 'inactive':
-        return 'status-info';
-      case 'error':
-        return 'status-error';
+      case "active":
+        return "status-success";
+      case "inactive":
+        return "status-info";
+      case "error":
+        return "status-error";
       default:
-        return 'status-info';
+        return "status-info";
     }
   };
 
   const handleToggle = async () => {
     try {
-      await fetch(`/api/agents/${agent.id}/toggle`, { method: 'POST' });
+      await fetch(`/api/agents/${agent.id}/toggle`, { method: "POST" });
       onUpdate();
     } catch (error) {
-      console.error('Failed to toggle agent:', error);
+      console.error("Failed to toggle agent:", error);
     }
   };
 
@@ -84,7 +84,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onUpdate }) => {
 
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 flex gap-2">
         <button onClick={handleToggle} className="flex-1 btn-secondary text-sm">
-          {agent.status === 'active' ? 'Pause' : 'Activate'}
+          {agent.status === "active" ? "Pause" : "Activate"}
         </button>
         <button className="flex-1 btn-primary text-sm">View Details</button>
       </div>

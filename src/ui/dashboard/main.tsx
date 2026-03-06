@@ -3,12 +3,12 @@
  * Enterprise React Dashboard for stackBrowserAgent
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { App } from './App';
-import './styles.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { App } from "./App";
+import "./styles.css";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -22,7 +22,7 @@ const queryClient = new QueryClient({
 });
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 
 root.render(
@@ -32,5 +32,5 @@ root.render(
         <App />
       </BrowserRouter>
     </QueryClientProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

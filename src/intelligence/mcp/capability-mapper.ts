@@ -5,8 +5,8 @@
 
 export interface Capability {
   id: string;
-  type: 'local' | 'cloud' | 'hybrid';
-  category: 'compute' | 'storage' | 'network' | 'ai' | 'database' | 'other';
+  type: "local" | "cloud" | "hybrid";
+  category: "compute" | "storage" | "network" | "ai" | "database" | "other";
   name: string;
   available: boolean;
   performance: {
@@ -15,7 +15,7 @@ export interface Capability {
     reliability?: number;
   };
   cost: {
-    type: 'free' | 'metered' | 'subscription';
+    type: "free" | "metered" | "subscription";
     amount?: number;
     unit?: string;
   };
@@ -27,7 +27,7 @@ export interface Capability {
 }
 
 export interface LocalCapability extends Capability {
-  type: 'local';
+  type: "local";
   resourceUsage: {
     cpuPercent: number;
     memoryMB: number;
@@ -36,12 +36,12 @@ export interface LocalCapability extends Capability {
 }
 
 export interface CloudCapability extends Capability {
-  type: 'cloud';
+  type: "cloud";
   provider: string;
   region?: string;
   endpoint: string;
   authentication: {
-    method: 'api-key' | 'oauth' | 'credentials';
+    method: "api-key" | "oauth" | "credentials";
     configured: boolean;
   };
 }
@@ -61,10 +61,12 @@ export class CapabilityMapper {
   async mapCapabilities(): Promise<void> {
     await Promise.all([
       this.discoverLocalCapabilities(),
-      this.discoverCloudCapabilities()
+      this.discoverCloudCapabilities(),
     ]);
 
-    console.log(`✅ Mapped ${this.localCapabilities.size} local + ${this.cloudCapabilities.size} cloud capabilities`);
+    console.log(
+      `✅ Mapped ${this.localCapabilities.size} local + ${this.cloudCapabilities.size} cloud capabilities`,
+    );
   }
 
   /**
@@ -95,51 +97,51 @@ export class CapabilityMapper {
 
     // Node.js runtime
     capabilities.push({
-      id: 'local-nodejs',
-      type: 'local',
-      category: 'compute',
-      name: 'Node.js Runtime',
+      id: "local-nodejs",
+      type: "local",
+      category: "compute",
+      name: "Node.js Runtime",
       available: true,
       performance: {
         throughput: 1000,
         latency: 1,
-        reliability: 0.99
+        reliability: 0.99,
       },
-      cost: { type: 'free' },
+      cost: { type: "free" },
       resourceUsage: {
         cpuPercent: 5,
-        memoryMB: 100
-      }
+        memoryMB: 100,
+      },
     });
 
     // Check for additional capabilities
-    if (await this.checkCommandAvailable('python3')) {
+    if (await this.checkCommandAvailable("python3")) {
       capabilities.push({
-        id: 'local-python',
-        type: 'local',
-        category: 'compute',
-        name: 'Python Runtime',
+        id: "local-python",
+        type: "local",
+        category: "compute",
+        name: "Python Runtime",
         available: true,
         performance: { throughput: 800, latency: 2, reliability: 0.98 },
-        cost: { type: 'free' },
-        resourceUsage: { cpuPercent: 3, memoryMB: 80 }
+        cost: { type: "free" },
+        resourceUsage: { cpuPercent: 3, memoryMB: 80 },
       });
     }
 
-    if (await this.checkCommandAvailable('docker')) {
+    if (await this.checkCommandAvailable("docker")) {
       capabilities.push({
-        id: 'local-docker',
-        type: 'local',
-        category: 'compute',
-        name: 'Docker Container Runtime',
+        id: "local-docker",
+        type: "local",
+        category: "compute",
+        name: "Docker Container Runtime",
         available: true,
         performance: { throughput: 900, latency: 50, reliability: 0.97 },
-        cost: { type: 'free' },
-        resourceUsage: { cpuPercent: 10, memoryMB: 200 }
+        cost: { type: "free" },
+        resourceUsage: { cpuPercent: 10, memoryMB: 200 },
       });
     }
 
-    capabilities.forEach(cap => this.localCapabilities.set(cap.id, cap));
+    capabilities.forEach((cap) => this.localCapabilities.set(cap.id, cap));
   }
 
   /**
@@ -147,23 +149,23 @@ export class CapabilityMapper {
    */
   private async detectStorageCapabilities(): Promise<void> {
     // Local filesystem
-    this.localCapabilities.set('local-filesystem', {
-      id: 'local-filesystem',
-      type: 'local',
-      category: 'storage',
-      name: 'Local Filesystem',
+    this.localCapabilities.set("local-filesystem", {
+      id: "local-filesystem",
+      type: "local",
+      category: "storage",
+      name: "Local Filesystem",
       available: true,
       performance: {
         throughput: 500,
         latency: 1,
-        reliability: 0.999
+        reliability: 0.999,
       },
-      cost: { type: 'free' },
+      cost: { type: "free" },
       resourceUsage: {
         cpuPercent: 1,
         memoryMB: 10,
-        diskMB: 0
-      }
+        diskMB: 0,
+      },
     });
   }
 
@@ -171,22 +173,22 @@ export class CapabilityMapper {
    * Detect local network capabilities
    */
   private async detectNetworkCapabilities(): Promise<void> {
-    this.localCapabilities.set('local-http-client', {
-      id: 'local-http-client',
-      type: 'local',
-      category: 'network',
-      name: 'HTTP/HTTPS Client',
+    this.localCapabilities.set("local-http-client", {
+      id: "local-http-client",
+      type: "local",
+      category: "network",
+      name: "HTTP/HTTPS Client",
       available: true,
       performance: {
         throughput: 1000,
         latency: 10,
-        reliability: 0.98
+        reliability: 0.98,
       },
-      cost: { type: 'free' },
+      cost: { type: "free" },
       resourceUsage: {
         cpuPercent: 2,
-        memoryMB: 20
-      }
+        memoryMB: 20,
+      },
     });
   }
 
@@ -195,44 +197,44 @@ export class CapabilityMapper {
    */
   private async detectAICapabilities(): Promise<void> {
     // Check for Ollama (local LLM)
-    if (await this.checkServiceAvailable('http://localhost:11434')) {
-      this.localCapabilities.set('local-ollama', {
-        id: 'local-ollama',
-        type: 'local',
-        category: 'ai',
-        name: 'Ollama (Local LLM)',
+    if (await this.checkServiceAvailable("http://localhost:11434")) {
+      this.localCapabilities.set("local-ollama", {
+        id: "local-ollama",
+        type: "local",
+        category: "ai",
+        name: "Ollama (Local LLM)",
         available: true,
         performance: {
           throughput: 50,
           latency: 100,
-          reliability: 0.95
+          reliability: 0.95,
         },
-        cost: { type: 'free' },
+        cost: { type: "free" },
         resourceUsage: {
           cpuPercent: 30,
-          memoryMB: 4096
-        }
+          memoryMB: 4096,
+        },
       });
     }
 
     // Check for LM Studio
-    if (await this.checkServiceAvailable('http://localhost:1234')) {
-      this.localCapabilities.set('local-lmstudio', {
-        id: 'local-lmstudio',
-        type: 'local',
-        category: 'ai',
-        name: 'LM Studio (Local LLM)',
+    if (await this.checkServiceAvailable("http://localhost:1234")) {
+      this.localCapabilities.set("local-lmstudio", {
+        id: "local-lmstudio",
+        type: "local",
+        category: "ai",
+        name: "LM Studio (Local LLM)",
         available: true,
         performance: {
           throughput: 60,
           latency: 80,
-          reliability: 0.96
+          reliability: 0.96,
         },
-        cost: { type: 'free' },
+        cost: { type: "free" },
         resourceUsage: {
           cpuPercent: 25,
-          memoryMB: 3072
-        }
+          memoryMB: 3072,
+        },
       });
     }
   }
@@ -242,24 +244,24 @@ export class CapabilityMapper {
    */
   private async detectDatabaseCapabilities(): Promise<void> {
     // Check for SQLite
-    if (await this.checkCommandAvailable('sqlite3')) {
-      this.localCapabilities.set('local-sqlite', {
-        id: 'local-sqlite',
-        type: 'local',
-        category: 'database',
-        name: 'SQLite Database',
+    if (await this.checkCommandAvailable("sqlite3")) {
+      this.localCapabilities.set("local-sqlite", {
+        id: "local-sqlite",
+        type: "local",
+        category: "database",
+        name: "SQLite Database",
         available: true,
         performance: {
           throughput: 10000,
           latency: 1,
-          reliability: 0.999
+          reliability: 0.999,
         },
-        cost: { type: 'free' },
+        cost: { type: "free" },
         resourceUsage: {
           cpuPercent: 5,
           memoryMB: 50,
-          diskMB: 100
-        }
+          diskMB: 100,
+        },
       });
     }
   }
@@ -282,28 +284,28 @@ export class CapabilityMapper {
   private async detectOpenAI(): Promise<void> {
     const apiKey = process.env.OPENAI_API_KEY;
     if (apiKey && apiKey.length > 0) {
-      this.cloudCapabilities.set('cloud-openai', {
-        id: 'cloud-openai',
-        type: 'cloud',
-        category: 'ai',
-        name: 'OpenAI GPT',
+      this.cloudCapabilities.set("cloud-openai", {
+        id: "cloud-openai",
+        type: "cloud",
+        category: "ai",
+        name: "OpenAI GPT",
         available: true,
-        provider: 'OpenAI',
-        endpoint: 'https://api.openai.com/v1',
+        provider: "OpenAI",
+        endpoint: "https://api.openai.com/v1",
         authentication: {
-          method: 'api-key',
-          configured: true
+          method: "api-key",
+          configured: true,
         },
         performance: {
           throughput: 1000,
           latency: 200,
-          reliability: 0.99
+          reliability: 0.99,
         },
         cost: {
-          type: 'metered',
+          type: "metered",
           amount: 0.002,
-          unit: 'per-1k-tokens'
-        }
+          unit: "per-1k-tokens",
+        },
       });
     }
   }
@@ -314,28 +316,28 @@ export class CapabilityMapper {
   private async detectAnthropic(): Promise<void> {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (apiKey && apiKey.length > 0) {
-      this.cloudCapabilities.set('cloud-anthropic', {
-        id: 'cloud-anthropic',
-        type: 'cloud',
-        category: 'ai',
-        name: 'Anthropic Claude',
+      this.cloudCapabilities.set("cloud-anthropic", {
+        id: "cloud-anthropic",
+        type: "cloud",
+        category: "ai",
+        name: "Anthropic Claude",
         available: true,
-        provider: 'Anthropic',
-        endpoint: 'https://api.anthropic.com/v1',
+        provider: "Anthropic",
+        endpoint: "https://api.anthropic.com/v1",
         authentication: {
-          method: 'api-key',
-          configured: true
+          method: "api-key",
+          configured: true,
         },
         performance: {
           throughput: 900,
           latency: 250,
-          reliability: 0.98
+          reliability: 0.98,
         },
         cost: {
-          type: 'metered',
+          type: "metered",
           amount: 0.008,
-          unit: 'per-1k-tokens'
-        }
+          unit: "per-1k-tokens",
+        },
       });
     }
   }
@@ -346,29 +348,29 @@ export class CapabilityMapper {
   private async detectAWS(): Promise<void> {
     const accessKey = process.env.AWS_ACCESS_KEY_ID;
     if (accessKey && accessKey.length > 0) {
-      this.cloudCapabilities.set('cloud-aws-s3', {
-        id: 'cloud-aws-s3',
-        type: 'cloud',
-        category: 'storage',
-        name: 'AWS S3',
+      this.cloudCapabilities.set("cloud-aws-s3", {
+        id: "cloud-aws-s3",
+        type: "cloud",
+        category: "storage",
+        name: "AWS S3",
         available: true,
-        provider: 'AWS',
-        region: process.env.AWS_REGION || 'us-east-1',
-        endpoint: 'https://s3.amazonaws.com',
+        provider: "AWS",
+        region: process.env.AWS_REGION || "us-east-1",
+        endpoint: "https://s3.amazonaws.com",
         authentication: {
-          method: 'credentials',
-          configured: true
+          method: "credentials",
+          configured: true,
         },
         performance: {
           throughput: 5000,
           latency: 50,
-          reliability: 0.9999
+          reliability: 0.9999,
         },
         cost: {
-          type: 'metered',
+          type: "metered",
           amount: 0.023,
-          unit: 'per-GB-month'
-        }
+          unit: "per-GB-month",
+        },
       });
     }
   }
@@ -379,28 +381,28 @@ export class CapabilityMapper {
   private async detectGCP(): Promise<void> {
     const credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
     if (credentials && credentials.length > 0) {
-      this.cloudCapabilities.set('cloud-gcp-storage', {
-        id: 'cloud-gcp-storage',
-        type: 'cloud',
-        category: 'storage',
-        name: 'Google Cloud Storage',
+      this.cloudCapabilities.set("cloud-gcp-storage", {
+        id: "cloud-gcp-storage",
+        type: "cloud",
+        category: "storage",
+        name: "Google Cloud Storage",
         available: true,
-        provider: 'GCP',
-        endpoint: 'https://storage.googleapis.com',
+        provider: "GCP",
+        endpoint: "https://storage.googleapis.com",
         authentication: {
-          method: 'credentials',
-          configured: true
+          method: "credentials",
+          configured: true,
         },
         performance: {
           throughput: 5000,
           latency: 55,
-          reliability: 0.9999
+          reliability: 0.9999,
         },
         cost: {
-          type: 'metered',
-          amount: 0.020,
-          unit: 'per-GB-month'
-        }
+          type: "metered",
+          amount: 0.02,
+          unit: "per-GB-month",
+        },
       });
     }
   }
@@ -411,28 +413,28 @@ export class CapabilityMapper {
   private async detectAzure(): Promise<void> {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
     if (connectionString && connectionString.length > 0) {
-      this.cloudCapabilities.set('cloud-azure-blob', {
-        id: 'cloud-azure-blob',
-        type: 'cloud',
-        category: 'storage',
-        name: 'Azure Blob Storage',
+      this.cloudCapabilities.set("cloud-azure-blob", {
+        id: "cloud-azure-blob",
+        type: "cloud",
+        category: "storage",
+        name: "Azure Blob Storage",
         available: true,
-        provider: 'Azure',
-        endpoint: 'https://blob.core.windows.net',
+        provider: "Azure",
+        endpoint: "https://blob.core.windows.net",
         authentication: {
-          method: 'credentials',
-          configured: true
+          method: "credentials",
+          configured: true,
         },
         performance: {
           throughput: 5000,
           latency: 60,
-          reliability: 0.9999
+          reliability: 0.9999,
         },
         cost: {
-          type: 'metered',
+          type: "metered",
           amount: 0.018,
-          unit: 'per-GB-month'
-        }
+          unit: "per-GB-month",
+        },
       });
     }
   }
@@ -443,29 +445,35 @@ export class CapabilityMapper {
   getAvailableCapabilities(): Capability[] {
     return [
       ...Array.from(this.localCapabilities.values()),
-      ...Array.from(this.cloudCapabilities.values())
-    ].filter(cap => cap.available);
+      ...Array.from(this.cloudCapabilities.values()),
+    ].filter((cap) => cap.available);
   }
 
   /**
    * Get local capabilities only
    */
   getLocalCapabilities(): LocalCapability[] {
-    return Array.from(this.localCapabilities.values()).filter(cap => cap.available);
+    return Array.from(this.localCapabilities.values()).filter(
+      (cap) => cap.available,
+    );
   }
 
   /**
    * Get cloud capabilities only
    */
   getCloudCapabilities(): CloudCapability[] {
-    return Array.from(this.cloudCapabilities.values()).filter(cap => cap.available);
+    return Array.from(this.cloudCapabilities.values()).filter(
+      (cap) => cap.available,
+    );
   }
 
   /**
    * Get capabilities by category
    */
   getCapabilitiesByCategory(category: string): Capability[] {
-    return this.getAvailableCapabilities().filter(cap => cap.category === category);
+    return this.getAvailableCapabilities().filter(
+      (cap) => cap.category === category,
+    );
   }
 
   /**
@@ -480,14 +488,21 @@ export class CapabilityMapper {
     const candidates = this.getCapabilitiesByCategory(params.category);
 
     // Filter by requirements
-    let filtered = candidates.filter(cap => {
-      if (params.minReliability && cap.performance.reliability && 
-          cap.performance.reliability < params.minReliability) {
+    let filtered = candidates.filter((cap) => {
+      if (
+        params.minReliability &&
+        cap.performance.reliability &&
+        cap.performance.reliability < params.minReliability
+      ) {
         return false;
       }
 
-      if (params.maxCost !== undefined && cap.cost.type === 'metered' &&
-          cap.cost.amount && cap.cost.amount > params.maxCost) {
+      if (
+        params.maxCost !== undefined &&
+        cap.cost.type === "metered" &&
+        cap.cost.amount &&
+        cap.cost.amount > params.maxCost
+      ) {
         return false;
       }
 
@@ -498,7 +513,7 @@ export class CapabilityMapper {
 
     // Apply preference for local
     if (params.preferLocal) {
-      const localCaps = filtered.filter(cap => cap.type === 'local');
+      const localCaps = filtered.filter((cap) => cap.type === "local");
       if (localCaps.length > 0) {
         filtered = localCaps;
       }
@@ -507,8 +522,8 @@ export class CapabilityMapper {
     // Sort by performance and cost
     filtered.sort((a, b) => {
       // Free is better than paid
-      if (a.cost.type === 'free' && b.cost.type !== 'free') return -1;
-      if (a.cost.type !== 'free' && b.cost.type === 'free') return 1;
+      if (a.cost.type === "free" && b.cost.type !== "free") return -1;
+      if (a.cost.type !== "free" && b.cost.type === "free") return 1;
 
       // Higher reliability is better
       const reliabilityA = a.performance.reliability || 0;
@@ -563,7 +578,7 @@ export class CapabilityMapper {
     const all = this.getAvailableCapabilities();
     const byCategory: Record<string, number> = {};
 
-    all.forEach(cap => {
+    all.forEach((cap) => {
       byCategory[cap.category] = (byCategory[cap.category] || 0) + 1;
     });
 
@@ -572,7 +587,7 @@ export class CapabilityMapper {
       localCapabilities: this.getLocalCapabilities().length,
       cloudCapabilities: this.getCloudCapabilities().length,
       byCategory,
-      freeCapabilities: all.filter(cap => cap.cost.type === 'free').length
+      freeCapabilities: all.filter((cap) => cap.cost.type === "free").length,
     };
   }
 }

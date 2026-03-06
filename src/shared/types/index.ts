@@ -1,8 +1,8 @@
 /**
  * Shared Type Definitions
- * 
+ *
  * Common types used across the Workstation agent ecosystem.
- * 
+ *
  * @module shared/types
  * @version 1.0.0
  */
@@ -10,11 +10,23 @@
 /**
  * Agent Types
  */
-export type AgentType = 'browser' | 'code' | 'analysis' | 'storage' | 'report' | 'mcp' | 'custom';
+export type AgentType =
+  | "browser"
+  | "code"
+  | "analysis"
+  | "storage"
+  | "report"
+  | "mcp"
+  | "custom";
 
-export type AgentStatus = 'stopped' | 'starting' | 'running' | 'stopping' | 'error';
+export type AgentStatus =
+  | "stopped"
+  | "starting"
+  | "running"
+  | "stopping"
+  | "error";
 
-export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+export type HealthStatus = "healthy" | "degraded" | "unhealthy" | "unknown";
 
 export interface AgentMetadata {
   id: string;
@@ -32,7 +44,12 @@ export interface AgentMetadata {
 /**
  * Task Types
  */
-export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+export type TaskStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 export type TaskPriority = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
@@ -97,7 +114,7 @@ export interface HealthCheckResult {
 
 export interface HealthCheck {
   name: string;
-  status: 'pass' | 'fail' | 'warn';
+  status: "pass" | "fail" | "warn";
   message?: string;
   duration?: number;
   metadata?: Record<string, any>;
@@ -132,16 +149,16 @@ export interface SystemOverview {
 /**
  * Event Types
  */
-export type EventType = 
-  | 'agent.started'
-  | 'agent.stopped'
-  | 'agent.health'
-  | 'task.created'
-  | 'task.started'
-  | 'task.completed'
-  | 'task.failed'
-  | 'handoff.initiated'
-  | 'handoff.completed';
+export type EventType =
+  | "agent.started"
+  | "agent.stopped"
+  | "agent.health"
+  | "task.created"
+  | "task.started"
+  | "task.completed"
+  | "task.failed"
+  | "handoff.initiated"
+  | "handoff.completed";
 
 export interface AgentEvent<T = any> {
   type: EventType;
@@ -222,7 +239,7 @@ export interface WorkflowStep {
 export interface WorkflowExecution {
   workflowId: string;
   executionId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
   currentStep?: string;
   steps: WorkflowStepExecution[];
   startedAt: string;
@@ -246,10 +263,10 @@ export class AgentError extends Error {
     message: string,
     public readonly code: string,
     public readonly agentId?: string,
-    public readonly metadata?: Record<string, any>
+    public readonly metadata?: Record<string, any>,
   ) {
     super(message);
-    this.name = 'AgentError';
+    this.name = "AgentError";
   }
 }
 
@@ -258,10 +275,10 @@ export class TaskError extends Error {
     message: string,
     public readonly code: string,
     public readonly taskId?: string,
-    public readonly metadata?: Record<string, any>
+    public readonly metadata?: Record<string, any>,
   ) {
     super(message);
-    this.name = 'TaskError';
+    this.name = "TaskError";
   }
 }
 
@@ -271,10 +288,10 @@ export class HandoffError extends Error {
     public readonly code: string,
     public readonly fromAgent?: string,
     public readonly toAgent?: string,
-    public readonly metadata?: Record<string, any>
+    public readonly metadata?: Record<string, any>,
   ) {
     super(message);
-    this.name = 'HandoffError';
+    this.name = "HandoffError";
   }
 }
 
@@ -285,10 +302,12 @@ export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> =
-  Pick<T, Exclude<keyof T, Keys>> 
-  & {
-      [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
-    }[Keys];
+export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
+  T,
+  Exclude<keyof T, Keys>
+> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
+  }[Keys];
 
 export type Awaitable<T> = T | Promise<T>;

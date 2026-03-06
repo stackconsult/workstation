@@ -10,30 +10,121 @@
   "createdAt": "2025-11-24T00:00:00Z",
   "updatedAt": "2025-11-24T00:00:00Z",
   "nodes": [
-    {"id": "node-1", "type": "start", "label": "Start", "x": 100, "y": 100},
-    {"id": "node-2", "type": "authenticate_apis", "label": "Authenticate All APIs", "x": 100, "y": 200, "params": {"apis": ["crm", "billing", "inventory"], "methods": ["oauth2", "api_key", "jwt"]}},
-    {"id": "node-3", "type": "api_call", "label": "Get Customer from CRM", "x": 100, "y": 300, "params": {"api": "crm", "endpoint": "/customers/{{customer_id}}", "retry": 3}},
-    {"id": "node-4", "type": "transform", "label": "Transform Customer Data", "x": 100, "y": 400, "params": {"mapping": "crm_to_billing_format"}},
-    {"id": "node-5", "type": "api_call", "label": "Create Billing Account", "x": 100, "y": 500, "params": {"api": "billing", "endpoint": "/accounts", "method": "POST"}},
-    {"id": "node-6", "type": "api_call", "label": "Get Product Inventory", "x": 100, "y": 600, "params": {"api": "inventory", "endpoint": "/products", "pagination": true}},
-    {"id": "node-7", "type": "parallel_api_calls", "label": "Update Multiple Systems", "x": 100, "y": 700, "params": {"calls": [{"api": "crm", "action": "update_status"}, {"api": "analytics", "action": "log_event"}]}},
-    {"id": "node-8", "type": "wait_webhook", "label": "Wait for Billing Confirmation", "x": 100, "y": 800, "params": {"timeout": 300, "webhook_id": "billing_webhook"}},
-    {"id": "node-9", "type": "error_handler", "label": "Handle Errors with Rollback", "x": 200, "y": 900, "params": {"strategy": "compensating_transactions"}},
-    {"id": "node-10", "type": "api_call", "label": "Send Confirmation Email", "x": 100, "y": 1000, "params": {"api": "email_service", "template": "account_created"}},
-    {"id": "node-11", "type": "log_transaction", "label": "Log Transaction", "x": 100, "y": 1100, "params": {"destination": "audit_log"}},
-    {"id": "node-12", "type": "end", "label": "End", "x": 100, "y": 1200}
+    { "id": "node-1", "type": "start", "label": "Start", "x": 100, "y": 100 },
+    {
+      "id": "node-2",
+      "type": "authenticate_apis",
+      "label": "Authenticate All APIs",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "apis": ["crm", "billing", "inventory"],
+        "methods": ["oauth2", "api_key", "jwt"]
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "api_call",
+      "label": "Get Customer from CRM",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "api": "crm",
+        "endpoint": "/customers/{{customer_id}}",
+        "retry": 3
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "transform",
+      "label": "Transform Customer Data",
+      "x": 100,
+      "y": 400,
+      "params": { "mapping": "crm_to_billing_format" }
+    },
+    {
+      "id": "node-5",
+      "type": "api_call",
+      "label": "Create Billing Account",
+      "x": 100,
+      "y": 500,
+      "params": { "api": "billing", "endpoint": "/accounts", "method": "POST" }
+    },
+    {
+      "id": "node-6",
+      "type": "api_call",
+      "label": "Get Product Inventory",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "api": "inventory",
+        "endpoint": "/products",
+        "pagination": true
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "parallel_api_calls",
+      "label": "Update Multiple Systems",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "calls": [
+          { "api": "crm", "action": "update_status" },
+          { "api": "analytics", "action": "log_event" }
+        ]
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "wait_webhook",
+      "label": "Wait for Billing Confirmation",
+      "x": 100,
+      "y": 800,
+      "params": { "timeout": 300, "webhook_id": "billing_webhook" }
+    },
+    {
+      "id": "node-9",
+      "type": "error_handler",
+      "label": "Handle Errors with Rollback",
+      "x": 200,
+      "y": 900,
+      "params": { "strategy": "compensating_transactions" }
+    },
+    {
+      "id": "node-10",
+      "type": "api_call",
+      "label": "Send Confirmation Email",
+      "x": 100,
+      "y": 1000,
+      "params": { "api": "email_service", "template": "account_created" }
+    },
+    {
+      "id": "node-11",
+      "type": "log_transaction",
+      "label": "Log Transaction",
+      "x": 100,
+      "y": 1100,
+      "params": { "destination": "audit_log" }
+    },
+    { "id": "node-12", "type": "end", "label": "End", "x": 100, "y": 1200 }
   ],
   "connections": [
-    {"id": "conn-1", "source": "node-1", "target": "node-2"},
-    {"id": "conn-2", "source": "node-2", "target": "node-3"},
-    {"id": "conn-3", "source": "node-3", "target": "node-4"},
-    {"id": "conn-4", "source": "node-4", "target": "node-5"},
-    {"id": "conn-5", "source": "node-5", "target": "node-6"},
-    {"id": "conn-6", "source": "node-6", "target": "node-7"},
-    {"id": "conn-7", "source": "node-7", "target": "node-8"},
-    {"id": "conn-8", "source": "node-8", "target": "node-10"},
-    {"id": "conn-9", "source": "node-10", "target": "node-11"},
-    {"id": "conn-10", "source": "node-11", "target": "node-12"},
-    {"id": "conn-error", "source": "*", "target": "node-9", "label": "on_error"}
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-10" },
+    { "id": "conn-9", "source": "node-10", "target": "node-11" },
+    { "id": "conn-10", "source": "node-11", "target": "node-12" },
+    {
+      "id": "conn-error",
+      "source": "*",
+      "target": "node-9",
+      "label": "on_error"
+    }
   ]
 }

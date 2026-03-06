@@ -3,23 +3,23 @@
  * Real-time activity feed
  */
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface Activity {
   id: string;
-  type: 'workflow' | 'agent' | 'system';
+  type: "workflow" | "agent" | "system";
   message: string;
   timestamp: string;
-  status: 'success' | 'error' | 'warning' | 'info';
+  status: "success" | "error" | "warning" | "info";
 }
 
 export const ActivityFeed: React.FC = () => {
   const { data: activities } = useQuery<Activity[]>({
-    queryKey: ['activity-feed'],
+    queryKey: ["activity-feed"],
     queryFn: async () => {
-      const response = await fetch('/api/activity/recent?limit=10');
-      if (!response.ok) throw new Error('Failed to fetch activities');
+      const response = await fetch("/api/activity/recent?limit=10");
+      if (!response.ok) throw new Error("Failed to fetch activities");
       return response.json();
     },
     refetchInterval: 5000,
@@ -27,27 +27,27 @@ export const ActivityFeed: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success':
-        return 'text-green-600 dark:text-green-400';
-      case 'error':
-        return 'text-red-600 dark:text-red-400';
-      case 'warning':
-        return 'text-yellow-600 dark:text-yellow-400';
+      case "success":
+        return "text-green-600 dark:text-green-400";
+      case "error":
+        return "text-red-600 dark:text-red-400";
+      case "warning":
+        return "text-yellow-600 dark:text-yellow-400";
       default:
-        return 'text-blue-600 dark:text-blue-400';
+        return "text-blue-600 dark:text-blue-400";
     }
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'workflow':
-        return '⚙️';
-      case 'agent':
-        return '🤖';
-      case 'system':
-        return '🔧';
+      case "workflow":
+        return "⚙️";
+      case "agent":
+        return "🤖";
+      case "system":
+        return "🔧";
       default:
-        return '📝';
+        return "📝";
     }
   };
 
@@ -71,7 +71,9 @@ export const ActivityFeed: React.FC = () => {
                 {new Date(activity.timestamp).toLocaleString()}
               </p>
             </div>
-            <div className={`text-xs font-medium ${getStatusColor(activity.status)}`}>
+            <div
+              className={`text-xs font-medium ${getStatusColor(activity.status)}`}
+            >
               {activity.status}
             </div>
           </div>
