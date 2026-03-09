@@ -4,7 +4,7 @@
  * Phase 10: Workspace Automation
  */
 
-import { logger } from '../../../utils/logger';
+import { logger } from "../../../utils/logger";
 
 export interface RssFeed {
   url: string;
@@ -44,37 +44,34 @@ export class RssAgent {
   /**
    * Fetch and parse RSS feed
    */
-  async fetchFeed(params: {
-    url: string;
-    maxItems?: number;
-  }): Promise<{
+  async fetchFeed(params: { url: string; maxItems?: number }): Promise<{
     title: string;
     description: string;
     items: RssItem[];
   }> {
-    logger.info('Fetching RSS feed', { url: params.url });
+    logger.info("Fetching RSS feed", { url: params.url });
 
     // Placeholder implementation
     // Production would use rss-parser library
     const mockFeed = {
-      title: 'Example Feed',
-      description: 'Example RSS feed',
+      title: "Example Feed",
+      description: "Example RSS feed",
       items: [
         {
-          title: 'Technology Update Q4 2024',
-          link: 'https://example.com/tech-update',
-          content: 'Latest technology trends and industry updates...',
-          contentSnippet: 'Latest technology trends...',
+          title: "Technology Update Q4 2024",
+          link: "https://example.com/tech-update",
+          content: "Latest technology trends and industry updates...",
+          contentSnippet: "Latest technology trends...",
           pubDate: new Date().toISOString(),
-          categories: ['Technology', 'Industry News']
-        }
-      ]
+          categories: ["Technology", "Industry News"],
+        },
+      ],
     };
 
     const maxItems = params.maxItems || 20;
     return {
       ...mockFeed,
-      items: mockFeed.items.slice(0, maxItems)
+      items: mockFeed.items.slice(0, maxItems),
     };
   }
 
@@ -86,14 +83,14 @@ export class RssAgent {
     clientName: string;
     maxItems?: number;
   }): Promise<ClientIntelligence[]> {
-    logger.info('Extracting client information', {
+    logger.info("Extracting client information", {
       url: params.url,
-      clientName: params.clientName
+      clientName: params.clientName,
     });
 
     const feed = await this.fetchFeed({
       url: params.url,
-      maxItems: params.maxItems
+      maxItems: params.maxItems,
     });
 
     const intelligenceItems: ClientIntelligence[] = [];
@@ -102,14 +99,14 @@ export class RssAgent {
       // Find client mentions in content
       const mentions = this.findClientMentions(
         item.content || item.contentSnippet,
-        params.clientName
+        params.clientName,
       );
 
       // Calculate relevance score
       const relevanceScore = this.calculateRelevance(
         item,
         mentions,
-        params.clientName
+        params.clientName,
       );
 
       // Only include if relevant
@@ -119,11 +116,11 @@ export class RssAgent {
           url: item.link,
           summary: this.summarizeContent(
             item.contentSnippet || item.content,
-            150
+            150,
           ),
           date: item.pubDate,
           relevanceScore,
-          clientMentions: mentions
+          clientMentions: mentions,
         });
       }
     }
@@ -137,9 +134,12 @@ export class RssAgent {
   /**
    * Find mentions of client name in content
    */
-  private findClientMentions(content: string, clientName: string): ClientMention[] {
+  private findClientMentions(
+    content: string,
+    clientName: string,
+  ): ClientMention[] {
     const mentions: ClientMention[] = [];
-    
+
     if (!content || !clientName) {
       return mentions;
     }
@@ -157,12 +157,12 @@ export class RssAgent {
       const contextStart = Math.max(0, index - 50);
       const contextEnd = Math.min(
         content.length,
-        index + clientName.length + 50
+        index + clientName.length + 50,
       );
 
       mentions.push({
         phrase: clientName,
-        context: `...${content.substring(contextStart, contextEnd)}...`
+        context: `...${content.substring(contextStart, contextEnd)}...`,
       });
 
       startIndex = index + clientName.length;
@@ -177,7 +177,7 @@ export class RssAgent {
   private calculateRelevance(
     item: RssItem,
     mentions: ClientMention[],
-    clientName: string
+    clientName: string,
   ): number {
     let score = 0;
 
@@ -193,9 +193,9 @@ export class RssAgent {
     const pubDate = new Date(item.pubDate);
     const now = new Date();
     const daysAgo = (now.getTime() - pubDate.getTime()) / (1000 * 60 * 60 * 24);
-    
+
     // Decay over 30 days
-    const recencyMultiplier = Math.max(0.5, 1 - (daysAgo / 30));
+    const recencyMultiplier = Math.max(0.5, 1 - daysAgo / 30);
     score *= recencyMultiplier;
 
     return Math.min(score, 1.0);
@@ -206,7 +206,7 @@ export class RssAgent {
    */
   private summarizeContent(content: string, maxLength: number): string {
     if (!content) {
-      return '';
+      return "";
     }
 
     if (content.length <= maxLength) {
@@ -215,13 +215,13 @@ export class RssAgent {
 
     // Find last complete word within limit
     const truncated = content.substring(0, maxLength);
-    const lastSpace = truncated.lastIndexOf(' ');
-    
+    const lastSpace = truncated.lastIndexOf(" ");
+
     if (lastSpace > 0) {
-      return truncated.substring(0, lastSpace) + '...';
+      return truncated.substring(0, lastSpace) + "...";
     }
 
-    return truncated + '...';
+    return truncated + "...";
   }
 
   /**
@@ -244,9 +244,9 @@ export class RssAgent {
     items: ClientIntelligence[];
     lastUpdated: string;
   }> {
-    logger.info('Building client repository', {
+    logger.info("Building client repository", {
       clientName: params.clientName,
-      feedCount: params.rssFeeds.length
+      feedCount: params.rssFeeds.length,
     });
 
     const allItems: ClientIntelligence[] = [];
@@ -261,13 +261,13 @@ export class RssAgent {
       try {
         const items = await this.extractClientInfo({
           url: feed.url,
-          clientName: params.clientName
+          clientName: params.clientName,
         });
 
         // Add source to items
-        const itemsWithSource = items.map(item => ({
+        const itemsWithSource = items.map((item) => ({
           ...item,
-          source: feed.sourceName
+          source: feed.sourceName,
         }));
 
         allItems.push(...itemsWithSource);
@@ -275,17 +275,17 @@ export class RssAgent {
         sources.push({
           name: feed.sourceName,
           itemCount: items.length,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
         });
 
-        logger.info('Processed feed successfully', {
+        logger.info("Processed feed successfully", {
           source: feed.sourceName,
-          itemCount: items.length
+          itemCount: items.length,
         });
       } catch (error) {
-        logger.error('Error processing feed', {
+        logger.error("Error processing feed", {
           source: feed.sourceName,
-          error
+          error,
         });
       }
     }
@@ -293,7 +293,7 @@ export class RssAgent {
     // Filter by time range if provided
     let filteredItems = allItems;
     if (params.timeRange) {
-      filteredItems = allItems.filter(item => {
+      filteredItems = allItems.filter((item) => {
         const itemDate = new Date(item.date);
         return (
           itemDate >= params.timeRange!.start &&
@@ -308,21 +308,21 @@ export class RssAgent {
       if (Math.abs(b.relevanceScore - a.relevanceScore) > 0.01) {
         return b.relevanceScore - a.relevanceScore;
       }
-      
+
       // Secondary sort by date (newer first)
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
-    logger.info('Client repository built successfully', {
+    logger.info("Client repository built successfully", {
       totalItems: filteredItems.length,
-      sources: sources.length
+      sources: sources.length,
     });
 
     return {
       clientName: params.clientName,
       sources,
       items: filteredItems,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     };
   }
 
@@ -335,9 +335,9 @@ export class RssAgent {
     clientName: string;
     lastCheck: Date;
   }): Promise<ClientIntelligence[]> {
-    logger.info('Monitoring feeds for new mentions', {
+    logger.info("Monitoring feeds for new mentions", {
       clientName: params.clientName,
-      lastCheck: params.lastCheck
+      lastCheck: params.lastCheck,
     });
 
     const repository = await this.buildClientRepository({
@@ -345,8 +345,8 @@ export class RssAgent {
       clientName: params.clientName,
       timeRange: {
         start: params.lastCheck,
-        end: new Date()
-      }
+        end: new Date(),
+      },
     });
 
     return repository.items;

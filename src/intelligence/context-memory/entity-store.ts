@@ -1,18 +1,22 @@
 /**
  * Entity Store - Context-Memory Intelligence Layer
- * 
+ *
  * Manages entity tracking, relationships, and persistence across workflow executions.
  * Provides deduplication, query interface, and integration hooks for agents.
  */
 
-import { getDatabase, generateId, getCurrentTimestamp } from '../../automation/db/database';
-import { logger } from '../../utils/logger';
+import {
+  getDatabase,
+  generateId,
+  getCurrentTimestamp,
+} from "../../automation/db/database";
+import { logger } from "../../utils/logger";
 import {
   Entity,
   EntityContext,
   EntityRelationship,
-  EntityQueryOptions
-} from './types';
+  EntityQueryOptions,
+} from "./types";
 
 /**
  * EntityStore manages entity memory with persistent storage
@@ -22,8 +26,8 @@ export class EntityStore {
   private initialized: boolean = false;
 
   constructor() {
-    this.initializeSchema().catch(error => {
-      logger.error('Failed to initialize EntityStore schema', { error });
+    this.initializeSchema().catch((error) => {
+      logger.error("Failed to initialize EntityStore schema", { error });
     });
   }
 
@@ -69,9 +73,9 @@ export class EntityStore {
       `);
 
       this.initialized = true;
-      logger.info('EntityStore schema initialized');
+      logger.info("EntityStore schema initialized");
     } catch (error) {
-      logger.error('EntityStore schema initialization failed', { error });
+      logger.error("EntityStore schema initialization failed", { error });
       throw error;
     }
   }
@@ -80,10 +84,10 @@ export class EntityStore {
    * Track an entity, creating or updating as needed
    */
   async trackEntity(
-    type: Entity['type'],
+    type: Entity["type"],
     name: string,
     metadata: Record<string, unknown> = {},
-    tags: string[] = []
+    tags: string[] = [],
   ): Promise<Entity> {
     try {
       const db = getDatabase();
@@ -112,11 +116,11 @@ export class EntityStore {
           JSON.stringify(existing.metadata),
           JSON.stringify(existing.tags),
           timestamp,
-          existing.id
+          existing.id,
         );
 
         this.entities.set(existing.id, existing);
-        logger.debug('Entity updated', { entityId: existing.id, name });
+        logger.debug("Entity updated", { entityId: existing.id, name });
         return existing;
       }
 
@@ -125,7 +129,7 @@ export class EntityStore {
       const context: EntityContext = {
         relationships: [],
         importance_score: 50, // Default mid-level importance
-        workflow_ids: []
+        workflow_ids: [],
       };
 
       const entity: Entity = {
@@ -137,7 +141,7 @@ export class EntityStore {
         last_seen: timestamp,
         access_count: 1,
         context,
-        tags
+        tags,
       };
 
       await db.run(
@@ -155,14 +159,14 @@ export class EntityStore {
         JSON.stringify(entity.context),
         JSON.stringify(entity.tags),
         timestamp,
-        timestamp
+        timestamp,
       );
 
       this.entities.set(entityId, entity);
-      logger.info('Entity tracked', { entityId, type, name });
+      logger.info("Entity tracked", { entityId, type, name });
       return entity;
     } catch (error) {
-      logger.error('Failed to track entity', { error, type, name });
+      logger.error("Failed to track entity", { error, type, name });
       throw error;
     }
   }
@@ -171,15 +175,15 @@ export class EntityStore {
    * Find entity by type and name
    */
   private async findEntityByTypeAndName(
-    type: Entity['type'],
-    name: string
+    type: Entity["type"],
+    name: string,
   ): Promise<Entity | null> {
     try {
       const db = getDatabase();
       const row = await db.get(
-        'SELECT * FROM entities WHERE type = ? AND name = ?',
+        "SELECT * FROM entities WHERE type = ? AND name = ?",
         type,
-        name
+        name,
       );
 
       if (!row) {
@@ -188,7 +192,7 @@ export class EntityStore {
 
       return this.deserializeEntity(row);
     } catch (error) {
-      logger.error('Failed to find entity', { error, type, name });
+      logger.error("Failed to find entity", { error, type, name });
       return null;
     }
   }
@@ -204,7 +208,7 @@ export class EntityStore {
       }
 
       const db = getDatabase();
-      const row = await db.get('SELECT * FROM entities WHERE id = ?', entityId);
+      const row = await db.get("SELECT * FROM entities WHERE id = ?", entityId);
 
       if (!row) {
         return null;
@@ -214,7 +218,7 @@ export class EntityStore {
       this.entities.set(entityId, entity);
       return entity;
     } catch (error) {
-      logger.error('Failed to get entity', { error, entityId });
+      logger.error("Failed to get entity", { error, entityId });
       return null;
     }
   }
@@ -229,7 +233,7 @@ export class EntityStore {
       const params: unknown[] = [];
 
       if (options.type) {
-        conditions.push('type = ?');
+        conditions.push("type = ?");
         params.push(options.type);
       }
 
@@ -242,9 +246,9 @@ export class EntityStore {
         params.push(options.workflow_id);
       }
 
-      let query = 'SELECT * FROM entities';
+      let query = "SELECT * FROM entities";
       if (conditions.length > 0) {
-        query += ' WHERE ' + conditions.join(' AND ');
+        query += " WHERE " + conditions.join(" AND ");
       }
 
       // Add sorting
@@ -252,15 +256,19 @@ export class EntityStore {
       const sortByMap: Record<string, string> = {
         importance: "json_extract(context, '$.importance_score')",
         access_count: "access_count",
-        last_seen: "last_seen"
+        last_seen: "last_seen",
       };
-      const defaultSortBy = 'last_seen';
+      const defaultSortBy = "last_seen";
       const sortByInput = options.sort_by;
-      const sortByKey = sortByInput && Object.prototype.hasOwnProperty.call(sortByMap, sortByInput) ? sortByInput : defaultSortBy;
+      const sortByKey =
+        sortByInput &&
+        Object.prototype.hasOwnProperty.call(sortByMap, sortByInput)
+          ? sortByInput
+          : defaultSortBy;
       const sortByExpr = sortByMap[sortByKey];
-      const allowedSortOrder = ['asc', 'desc'];
-      const defaultSortOrder = 'desc';
-      const sortOrderInput = (options.sort_order || '').toLowerCase();
+      const allowedSortOrder = ["asc", "desc"];
+      const defaultSortOrder = "desc";
+      const sortOrderInput = (options.sort_order || "").toLowerCase();
       const sortOrder = allowedSortOrder.includes(sortOrderInput)
         ? sortOrderInput
         : defaultSortOrder;
@@ -268,36 +276,36 @@ export class EntityStore {
 
       // Add pagination
       if (options.limit) {
-        query += ' LIMIT ?';
+        query += " LIMIT ?";
         params.push(options.limit);
       }
 
       if (options.offset) {
-        query += ' OFFSET ?';
+        query += " OFFSET ?";
         params.push(options.offset);
       }
 
       const rows = await db.all(query, ...params);
-      const entities = rows.map(row => this.deserializeEntity(row));
+      const entities = rows.map((row) => this.deserializeEntity(row));
 
       // Apply additional filters (tags, importance)
       let filtered = entities;
 
       if (options.tags && options.tags.length > 0) {
-        filtered = filtered.filter(e =>
-          options.tags!.some(tag => e.tags.includes(tag))
+        filtered = filtered.filter((e) =>
+          options.tags!.some((tag) => e.tags.includes(tag)),
         );
       }
 
       if (options.min_importance !== undefined) {
-        filtered = filtered.filter(e =>
-          e.context.importance_score >= options.min_importance!
+        filtered = filtered.filter(
+          (e) => e.context.importance_score >= options.min_importance!,
         );
       }
 
       return filtered;
     } catch (error) {
-      logger.error('Failed to query entities', { error, options });
+      logger.error("Failed to query entities", { error, options });
       return [];
     }
   }
@@ -308,8 +316,8 @@ export class EntityStore {
   async createRelationship(
     sourceEntityId: string,
     targetEntityId: string,
-    relationshipType: EntityRelationship['relationship_type'],
-    strength: number = 0.5
+    relationshipType: EntityRelationship["relationship_type"],
+    strength: number = 0.5,
   ): Promise<void> {
     try {
       const db = getDatabase();
@@ -328,7 +336,7 @@ export class EntityStore {
         targetEntityId,
         relationshipType,
         validStrength,
-        timestamp
+        timestamp,
       );
 
       // Update source entity context
@@ -338,31 +346,31 @@ export class EntityStore {
           entity_id: targetEntityId,
           relationship_type: relationshipType,
           strength: validStrength,
-          created_at: timestamp
+          created_at: timestamp,
         };
 
         sourceEntity.context.relationships.push(relationship);
 
         await db.run(
-          'UPDATE entities SET context = ?, updated_at = ? WHERE id = ?',
+          "UPDATE entities SET context = ?, updated_at = ? WHERE id = ?",
           JSON.stringify(sourceEntity.context),
           timestamp,
-          sourceEntityId
+          sourceEntityId,
         );
 
         this.entities.set(sourceEntityId, sourceEntity);
       }
 
-      logger.info('Entity relationship created', {
+      logger.info("Entity relationship created", {
         sourceEntityId,
         targetEntityId,
-        relationshipType
+        relationshipType,
       });
     } catch (error) {
-      logger.error('Failed to create relationship', {
+      logger.error("Failed to create relationship", {
         error,
         sourceEntityId,
-        targetEntityId
+        targetEntityId,
       });
       throw error;
     }
@@ -383,16 +391,16 @@ export class EntityStore {
 
       const db = getDatabase();
       await db.run(
-        'UPDATE entities SET context = ?, updated_at = ? WHERE id = ?',
+        "UPDATE entities SET context = ?, updated_at = ? WHERE id = ?",
         JSON.stringify(entity.context),
         getCurrentTimestamp(),
-        entityId
+        entityId,
       );
 
       this.entities.set(entityId, entity);
-      logger.debug('Entity importance updated', { entityId, score });
+      logger.debug("Entity importance updated", { entityId, score });
     } catch (error) {
-      logger.error('Failed to update entity importance', { error, entityId });
+      logger.error("Failed to update entity importance", { error, entityId });
       throw error;
     }
   }
@@ -400,7 +408,10 @@ export class EntityStore {
   /**
    * Associate entity with workflow
    */
-  async associateWithWorkflow(entityId: string, workflowId: string): Promise<void> {
+  async associateWithWorkflow(
+    entityId: string,
+    workflowId: string,
+  ): Promise<void> {
     try {
       const entity = await this.getEntity(entityId);
       if (!entity) {
@@ -412,20 +423,23 @@ export class EntityStore {
 
         const db = getDatabase();
         await db.run(
-          'UPDATE entities SET context = ?, updated_at = ? WHERE id = ?',
+          "UPDATE entities SET context = ?, updated_at = ? WHERE id = ?",
           JSON.stringify(entity.context),
           getCurrentTimestamp(),
-          entityId
+          entityId,
         );
 
         this.entities.set(entityId, entity);
-        logger.debug('Entity associated with workflow', { entityId, workflowId });
+        logger.debug("Entity associated with workflow", {
+          entityId,
+          workflowId,
+        });
       }
     } catch (error) {
-      logger.error('Failed to associate entity with workflow', {
+      logger.error("Failed to associate entity with workflow", {
         error,
         entityId,
-        workflowId
+        workflowId,
       });
       throw error;
     }
@@ -449,15 +463,15 @@ export class EntityStore {
       const cutoff = cutoffDate.toISOString();
 
       const result = await db.run(
-        'DELETE FROM entities WHERE last_seen < ?',
-        cutoff
+        "DELETE FROM entities WHERE last_seen < ?",
+        cutoff,
       );
 
       const deletedCount = result.changes || 0;
-      logger.info('Old entities cleaned up', { deletedCount, maxAgeDays });
+      logger.info("Old entities cleaned up", { deletedCount, maxAgeDays });
       return deletedCount;
     } catch (error) {
-      logger.error('Failed to cleanup old entities', { error, maxAgeDays });
+      logger.error("Failed to cleanup old entities", { error, maxAgeDays });
       return 0;
     }
   }
@@ -469,14 +483,14 @@ export class EntityStore {
     const r = row as Record<string, unknown>;
     return {
       id: r.id as string,
-      type: r.type as Entity['type'],
+      type: r.type as Entity["type"],
       name: r.name as string,
       metadata: JSON.parse(r.metadata as string),
       first_seen: r.first_seen as string,
       last_seen: r.last_seen as string,
       access_count: r.access_count as number,
       context: JSON.parse(r.context as string),
-      tags: JSON.parse(r.tags as string)
+      tags: JSON.parse(r.tags as string),
     };
   }
 
@@ -486,27 +500,27 @@ export class EntityStore {
   async getStatistics(): Promise<Record<string, unknown>> {
     try {
       const db = getDatabase();
-      
+
       const totalEntities = await db.get<{ count: number }>(
-        'SELECT COUNT(*) as count FROM entities'
+        "SELECT COUNT(*) as count FROM entities",
       );
 
       const byType = await db.all<Array<{ type: string; count: number }>>(
-        'SELECT type, COUNT(*) as count FROM entities GROUP BY type'
+        "SELECT type, COUNT(*) as count FROM entities GROUP BY type",
       );
 
       const totalRelationships = await db.get<{ count: number }>(
-        'SELECT COUNT(*) as count FROM entity_relationships'
+        "SELECT COUNT(*) as count FROM entity_relationships",
       );
 
       return {
         total_entities: totalEntities?.count || 0,
         by_type: byType || [],
         total_relationships: totalRelationships?.count || 0,
-        cache_size: this.entities.size
+        cache_size: this.entities.size,
       };
     } catch (error) {
-      logger.error('Failed to get entity statistics', { error });
+      logger.error("Failed to get entity statistics", { error });
       return {};
     }
   }

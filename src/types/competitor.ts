@@ -5,7 +5,7 @@
 
 export interface CompetitorProfile {
   id: string;
-  
+
   // Basic Information
   company: {
     name: string;
@@ -24,7 +24,7 @@ export interface CompetitorProfile {
       revenueGrowthRate: number | null; // YoY %
     };
     legal: {
-      type: 'Private' | 'Public' | 'Subsidiary';
+      type: "Private" | "Public" | "Subsidiary";
       stockSymbol?: string;
       parentCompany?: string;
     };
@@ -52,12 +52,12 @@ export interface CompetitorProfile {
       description: string;
       launchDate: Date | null;
       pricing: {
-        model: 'Subscription' | 'One-time' | 'Usage-based' | 'Freemium';
+        model: "Subscription" | "One-time" | "Usage-based" | "Freemium";
         tiers: Array<{
           name: string;
           price: number;
           currency: string;
-          billingCycle: 'Monthly' | 'Annual' | 'Per-use';
+          billingCycle: "Monthly" | "Annual" | "Per-use";
           features: string[];
         }>;
       };
@@ -68,13 +68,13 @@ export interface CompetitorProfile {
       name: string;
       description: string;
       pricing: string;
-      deliveryModel: 'On-premise' | 'Cloud' | 'Hybrid';
+      deliveryModel: "On-premise" | "Cloud" | "Hybrid";
     }>;
   };
 
   // Pricing Intelligence
   pricing: {
-    strategy: 'Premium' | 'Value' | 'Penetration' | 'Skimming';
+    strategy: "Premium" | "Value" | "Penetration" | "Skimming";
     pricePoints: Array<{
       product: string;
       price: number;
@@ -87,8 +87,8 @@ export interface CompetitorProfile {
       }>;
     }>;
     discounts: {
-      seasonal: Array<{period: string; discount: number}>;
-      volumeBased: Array<{threshold: number; discount: number}>;
+      seasonal: Array<{ period: string; discount: number }>;
+      volumeBased: Array<{ threshold: number; discount: number }>;
     };
   };
 
@@ -108,7 +108,11 @@ export interface CompetitorProfile {
         seo: {
           domainAuthority: number | null;
           organicTraffic: number | null;
-          topKeywords: Array<{keyword: string; position: number; volume: number}>;
+          topKeywords: Array<{
+            keyword: string;
+            position: number;
+            volume: number;
+          }>;
         };
       };
       paid: {
@@ -148,12 +152,12 @@ export interface CompetitorProfile {
   // Reviews & Reputation
   reputation: {
     reviews: {
-      g2: {rating: number | null; reviewCount: number; url: string};
-      capterra: {rating: number | null; reviewCount: number; url: string};
-      trustpilot: {rating: number | null; reviewCount: number; url: string};
+      g2: { rating: number | null; reviewCount: number; url: string };
+      capterra: { rating: number | null; reviewCount: number; url: string };
+      trustpilot: { rating: number | null; reviewCount: number; url: string };
     };
     sentiment: {
-      overall: 'Positive' | 'Neutral' | 'Negative';
+      overall: "Positive" | "Neutral" | "Negative";
       strengths: string[];
       weaknesses: string[];
     };
@@ -185,9 +189,14 @@ export interface CompetitorProfile {
   // Recent Developments
   recentActivity: Array<{
     date: Date;
-    type: 'Product Launch' | 'Acquisition' | 'Partnership' | 'Funding' | 'Expansion';
+    type:
+      | "Product Launch"
+      | "Acquisition"
+      | "Partnership"
+      | "Funding"
+      | "Expansion";
     description: string;
-    impact: 'High' | 'Medium' | 'Low';
+    impact: "High" | "Medium" | "Low";
     source: string;
   }>;
 

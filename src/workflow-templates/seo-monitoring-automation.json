@@ -10,32 +10,149 @@
   "createdAt": "2025-11-24T00:00:00Z",
   "updatedAt": "2025-11-24T00:00:00Z",
   "nodes": [
-    {"id": "node-1", "type": "start", "label": "Start SEO Audit", "x": 100, "y": 100},
-    {"id": "node-2", "type": "crawl_website", "label": "Crawl Website", "x": 100, "y": 200, "params": {"url": "{{siteUrl}}", "maxPages": 1000, "followExternal": false}},
-    {"id": "node-3", "type": "check_rankings", "label": "Check Keyword Rankings", "x": 100, "y": 300, "params": {"keywords": "{{keywordList}}", "searchEngines": ["google", "bing"]}},
-    {"id": "node-4", "type": "analyze_competitors", "label": "Analyze Competitor Rankings", "x": 100, "y": 400, "params": {"competitors": "{{competitorUrls}}", "metrics": ["keywords", "backlinks", "rankings"]}},
-    {"id": "node-5", "type": "check_technical_seo", "label": "Technical SEO Audit", "x": 100, "y": 500, "params": {"checks": ["meta_tags", "headers", "sitemap", "robots_txt", "schema_markup", "mobile_friendly", "page_speed"]}},
-    {"id": "node-6", "type": "analyze_backlinks", "label": "Backlink Analysis", "x": 100, "y": 600, "params": {"source": "ahrefs_api", "metrics": ["total_backlinks", "referring_domains", "domain_rating"]}},
-    {"id": "node-7", "type": "check_content_quality", "label": "Content Quality Analysis", "x": 100, "y": 700, "params": {"checks": ["word_count", "readability", "keyword_density", "duplicate_content"]}},
-    {"id": "node-8", "type": "identify_issues", "label": "Identify SEO Issues", "x": 100, "y": 800, "params": {"severity_levels": ["critical", "high", "medium", "low"]}},
-    {"id": "node-9", "type": "generate_recommendations", "label": "Generate Recommendations", "x": 100, "y": 900, "params": {"prioritize": true, "includeSteps": true}},
-    {"id": "node-10", "type": "compare_historical", "label": "Compare with Historical Data", "x": 100, "y": 1000, "params": {"periods": ["1_week", "1_month", "3_months"]}},
-    {"id": "node-11", "type": "generate_report", "label": "Generate SEO Report", "x": 100, "y": 1100, "params": {"format": "pdf", "includeCharts": true, "emailTo": "marketing@company.com"}},
-    {"id": "node-12", "type": "create_tasks", "label": "Create Optimization Tasks", "x": 100, "y": 1200, "params": {"platform": "jira", "assignTo": "seo_team"}},
-    {"id": "node-13", "type": "end", "label": "End", "x": 100, "y": 1300}
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start SEO Audit",
+      "x": 100,
+      "y": 100
+    },
+    {
+      "id": "node-2",
+      "type": "crawl_website",
+      "label": "Crawl Website",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "url": "{{siteUrl}}",
+        "maxPages": 1000,
+        "followExternal": false
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "check_rankings",
+      "label": "Check Keyword Rankings",
+      "x": 100,
+      "y": 300,
+      "params": {
+        "keywords": "{{keywordList}}",
+        "searchEngines": ["google", "bing"]
+      }
+    },
+    {
+      "id": "node-4",
+      "type": "analyze_competitors",
+      "label": "Analyze Competitor Rankings",
+      "x": 100,
+      "y": 400,
+      "params": {
+        "competitors": "{{competitorUrls}}",
+        "metrics": ["keywords", "backlinks", "rankings"]
+      }
+    },
+    {
+      "id": "node-5",
+      "type": "check_technical_seo",
+      "label": "Technical SEO Audit",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "checks": [
+          "meta_tags",
+          "headers",
+          "sitemap",
+          "robots_txt",
+          "schema_markup",
+          "mobile_friendly",
+          "page_speed"
+        ]
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "analyze_backlinks",
+      "label": "Backlink Analysis",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "source": "ahrefs_api",
+        "metrics": ["total_backlinks", "referring_domains", "domain_rating"]
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "check_content_quality",
+      "label": "Content Quality Analysis",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "checks": [
+          "word_count",
+          "readability",
+          "keyword_density",
+          "duplicate_content"
+        ]
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "identify_issues",
+      "label": "Identify SEO Issues",
+      "x": 100,
+      "y": 800,
+      "params": { "severity_levels": ["critical", "high", "medium", "low"] }
+    },
+    {
+      "id": "node-9",
+      "type": "generate_recommendations",
+      "label": "Generate Recommendations",
+      "x": 100,
+      "y": 900,
+      "params": { "prioritize": true, "includeSteps": true }
+    },
+    {
+      "id": "node-10",
+      "type": "compare_historical",
+      "label": "Compare with Historical Data",
+      "x": 100,
+      "y": 1000,
+      "params": { "periods": ["1_week", "1_month", "3_months"] }
+    },
+    {
+      "id": "node-11",
+      "type": "generate_report",
+      "label": "Generate SEO Report",
+      "x": 100,
+      "y": 1100,
+      "params": {
+        "format": "pdf",
+        "includeCharts": true,
+        "emailTo": "marketing@company.com"
+      }
+    },
+    {
+      "id": "node-12",
+      "type": "create_tasks",
+      "label": "Create Optimization Tasks",
+      "x": 100,
+      "y": 1200,
+      "params": { "platform": "jira", "assignTo": "seo_team" }
+    },
+    { "id": "node-13", "type": "end", "label": "End", "x": 100, "y": 1300 }
   ],
   "connections": [
-    {"id": "conn-1", "source": "node-1", "target": "node-2"},
-    {"id": "conn-2", "source": "node-2", "target": "node-3"},
-    {"id": "conn-3", "source": "node-3", "target": "node-4"},
-    {"id": "conn-4", "source": "node-4", "target": "node-5"},
-    {"id": "conn-5", "source": "node-5", "target": "node-6"},
-    {"id": "conn-6", "source": "node-6", "target": "node-7"},
-    {"id": "conn-7", "source": "node-7", "target": "node-8"},
-    {"id": "conn-8", "source": "node-8", "target": "node-9"},
-    {"id": "conn-9", "source": "node-9", "target": "node-10"},
-    {"id": "conn-10", "source": "node-10", "target": "node-11"},
-    {"id": "conn-11", "source": "node-11", "target": "node-12"},
-    {"id": "conn-12", "source": "node-12", "target": "node-13"}
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-9" },
+    { "id": "conn-9", "source": "node-9", "target": "node-10" },
+    { "id": "conn-10", "source": "node-10", "target": "node-11" },
+    { "id": "conn-11", "source": "node-11", "target": "node-12" },
+    { "id": "conn-12", "source": "node-12", "target": "node-13" }
   ]
 }

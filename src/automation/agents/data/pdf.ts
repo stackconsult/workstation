@@ -4,9 +4,9 @@
  * Phase 1: Data Agents
  */
 
-import * as PDFParser from 'pdf-parse';
-import * as PDFDocument from 'pdfkit';
-import { logger } from '../../../utils/logger';
+import * as PDFParser from "pdf-parse";
+import * as PDFDocument from "pdfkit";
+import { logger } from "../../../utils/logger";
 
 export interface PdfExtractOptions {
   pageRange?: { start: number; end: number };
@@ -24,8 +24,8 @@ export interface PdfGenerateOptions {
     left?: number;
     right?: number;
   };
-  size?: 'A4' | 'Letter' | 'Legal' | [number, number];
-  layout?: 'portrait' | 'landscape';
+  size?: "A4" | "Letter" | "Legal" | [number, number];
+  layout?: "portrait" | "landscape";
 }
 
 export interface PdfTableRow {
@@ -69,27 +69,29 @@ export class PdfAgent {
       if (params.options?.pageRange) {
         // Note: pdf-parse doesn't provide easy page-by-page text
         // This is a simplified implementation
-        logger.warn('Page range filtering is approximate with pdf-parse');
+        logger.warn("Page range filtering is approximate with pdf-parse");
       }
 
       // Normalize whitespace if requested
       if (params.options?.normalizeWhitespace) {
-        text = text.replace(/\s+/g, ' ').trim();
+        text = text.replace(/\s+/g, " ").trim();
       }
 
-      logger.info(`PDF text extracted: ${data.numpages} pages, ${text.length} characters`);
+      logger.info(
+        `PDF text extracted: ${data.numpages} pages, ${text.length} characters`,
+      );
 
       return {
         success: true,
         text,
-        pages: data.numpages
+        pages: data.numpages,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('PDF text extraction error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("PDF text extraction error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -114,14 +116,16 @@ export class PdfAgent {
       const text = data.text;
 
       // Simple table detection: look for rows with consistent delimiters
-      const lines = text.split('\n').filter((line: string) => line.trim());
+      const lines = text.split("\n").filter((line: string) => line.trim());
       const tables: PdfTableRow[][] = [];
       let currentTable: string[][] = [];
 
       for (const line of lines) {
         // Detect potential table rows (multiple spaces or tabs as separators)
-        const cells = line.split(/\s{2,}|\t/).filter((cell: string) => cell.trim());
-        
+        const cells = line
+          .split(/\s{2,}|\t/)
+          .filter((cell: string) => cell.trim());
+
         if (cells.length > 1) {
           currentTable.push(cells);
         } else if (currentTable.length > 0) {
@@ -129,10 +133,10 @@ export class PdfAgent {
           if (currentTable.length > 1) {
             // Convert to structured table (first row as headers)
             const headers = currentTable[0];
-            const tableData = currentTable.slice(1).map(row => {
+            const tableData = currentTable.slice(1).map((row) => {
               const rowObj: PdfTableRow = {};
               headers.forEach((header, index) => {
-                rowObj[header] = row[index] || '';
+                rowObj[header] = row[index] || "";
               });
               return rowObj;
             });
@@ -145,10 +149,10 @@ export class PdfAgent {
       // Handle last table
       if (currentTable.length > 1) {
         const headers = currentTable[0];
-        const tableData = currentTable.slice(1).map(row => {
+        const tableData = currentTable.slice(1).map((row) => {
           const rowObj: PdfTableRow = {};
           headers.forEach((header, index) => {
-            rowObj[header] = row[index] || '';
+            rowObj[header] = row[index] || "";
           });
           return rowObj;
         });
@@ -159,14 +163,14 @@ export class PdfAgent {
 
       return {
         success: true,
-        tables
+        tables,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('PDF table extraction error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("PDF table extraction error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -184,16 +188,16 @@ export class PdfAgent {
   }> {
     try {
       const options: PdfGenerateOptions = {
-        title: 'Generated PDF',
-        size: 'A4',
-        layout: 'portrait',
+        title: "Generated PDF",
+        size: "A4",
+        layout: "portrait",
         margins: {
           top: 50,
           bottom: 50,
           left: 50,
-          right: 50
+          right: 50,
         },
-        ...params.options
+        ...params.options,
       };
 
       const doc = new (PDFDocument as any)({
@@ -204,26 +208,26 @@ export class PdfAgent {
           Title: options.title,
           Author: options.author,
           Subject: options.subject,
-          Keywords: options.keywords?.join(', ')
-        }
+          Keywords: options.keywords?.join(", "),
+        },
       });
 
       const chunks: Buffer[] = [];
 
       // Collect PDF data
-      doc.on('data', (chunk: any) => chunks.push(Buffer.from(chunk)));
+      doc.on("data", (chunk: any) => chunks.push(Buffer.from(chunk)));
 
       // Wait for PDF generation to complete
       const bufferPromise = new Promise<Buffer>((resolve, reject) => {
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
-        doc.on('error', reject);
+        doc.on("end", () => resolve(Buffer.concat(chunks)));
+        doc.on("error", reject);
       });
 
       // Add content
-      if (typeof params.content === 'string') {
+      if (typeof params.content === "string") {
         // Simple text content
         doc.fontSize(12).text(params.content, {
-          align: 'left'
+          align: "left",
         });
       } else {
         // Structured content
@@ -240,14 +244,16 @@ export class PdfAgent {
           if (data.length > 0) {
             // Headers
             const headers = Object.keys(data[0] as Record<string, unknown>);
-            doc.font('Helvetica-Bold');
-            doc.text(headers.join(' | '), { underline: true });
-            doc.font('Helvetica');
+            doc.font("Helvetica-Bold");
+            doc.text(headers.join(" | "), { underline: true });
+            doc.font("Helvetica");
 
             // Rows
             for (const row of data) {
-              const values = headers.map(h => String((row as Record<string, unknown>)[h] || ''));
-              doc.text(values.join(' | '));
+              const values = headers.map((h) =>
+                String((row as Record<string, unknown>)[h] || ""),
+              );
+              doc.text(values.join(" | "));
             }
           }
         }
@@ -257,18 +263,18 @@ export class PdfAgent {
 
       const buffer = await bufferPromise;
 
-      logger.info('PDF generated successfully');
+      logger.info("PDF generated successfully");
 
       return {
         success: true,
-        buffer
+        buffer,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('PDF generation error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("PDF generation error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -278,9 +284,7 @@ export class PdfAgent {
    * Note: This is a simplified implementation. For production,
    * consider using pdf-lib or similar for proper PDF manipulation
    */
-  async mergePdfs(params: {
-    pdfs: Buffer[];
-  }): Promise<{
+  async mergePdfs(params: { pdfs: Buffer[] }): Promise<{
     success: boolean;
     buffer?: Buffer;
     error?: string;
@@ -288,21 +292,21 @@ export class PdfAgent {
   }> {
     try {
       if (!Array.isArray(params.pdfs) || params.pdfs.length === 0) {
-        throw new Error('PDFs array must contain at least one PDF buffer');
+        throw new Error("PDFs array must contain at least one PDF buffer");
       }
 
       // Note: pdf-parse and pdfkit don't provide native merge functionality
       // This creates a new PDF with text from all input PDFs
       // For true PDF merging, use pdf-lib or similar
-      
+
       const doc = new (PDFDocument as any)();
       const chunks: Buffer[] = [];
 
-      doc.on('data', (chunk: any) => chunks.push(Buffer.from(chunk)));
+      doc.on("data", (chunk: any) => chunks.push(Buffer.from(chunk)));
 
       const bufferPromise = new Promise<Buffer>((resolve, reject) => {
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
-        doc.on('error', reject);
+        doc.on("end", () => resolve(Buffer.concat(chunks)));
+        doc.on("error", reject);
       });
 
       // Extract text from each PDF and add to new document
@@ -316,7 +320,9 @@ export class PdfAgent {
           doc.fontSize(12).text(data.text);
         } catch (parseError) {
           logger.warn(`Failed to parse PDF ${i + 1}:`, parseError);
-          doc.fontSize(10).text(`[PDF ${i + 1} could not be parsed]`, { italics: true });
+          doc
+            .fontSize(10)
+            .text(`[PDF ${i + 1} could not be parsed]`, { italics: true });
         }
       }
 
@@ -329,14 +335,15 @@ export class PdfAgent {
       return {
         success: true,
         buffer,
-        message: 'Note: This is a text-based merge. For preserving original formatting and images, use pdf-lib or similar libraries.'
+        message:
+          "Note: This is a text-based merge. For preserving original formatting and images, use pdf-lib or similar libraries.",
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('PDF merge error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("PDF merge error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -344,9 +351,7 @@ export class PdfAgent {
   /**
    * Get PDF metadata and information
    */
-  async getPdfInfo(params: {
-    input: Buffer;
-  }): Promise<{
+  async getPdfInfo(params: { input: Buffer }): Promise<{
     success: boolean;
     info?: PdfInfo;
     error?: string;
@@ -361,22 +366,26 @@ export class PdfAgent {
         subject: data.info?.Subject,
         creator: data.info?.Creator,
         producer: data.info?.Producer,
-        creationDate: data.info?.CreationDate ? new Date(data.info.CreationDate) : undefined,
-        modificationDate: data.info?.ModDate ? new Date(data.info.ModDate) : undefined
+        creationDate: data.info?.CreationDate
+          ? new Date(data.info.CreationDate)
+          : undefined,
+        modificationDate: data.info?.ModDate
+          ? new Date(data.info.ModDate)
+          : undefined,
       };
 
       logger.info(`PDF info retrieved: ${info.pages} pages`);
 
       return {
         success: true,
-        info
+        info,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Get PDF info error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("Get PDF info error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -385,9 +394,7 @@ export class PdfAgent {
    * Split PDF into individual pages
    * Note: Simplified implementation - creates new PDFs with text from each page
    */
-  async splitPdf(params: {
-    input: Buffer;
-  }): Promise<{
+  async splitPdf(params: { input: Buffer }): Promise<{
     success: boolean;
     pages?: Buffer[];
     error?: string;
@@ -395,22 +402,25 @@ export class PdfAgent {
   }> {
     try {
       await (PDFParser as any)(params.input);
-      
+
       // Note: pdf-parse doesn't provide easy page-by-page access
       // This is a placeholder implementation
-      logger.warn('PDF splitting is limited with pdf-parse. Consider using pdf-lib for better results.');
+      logger.warn(
+        "PDF splitting is limited with pdf-parse. Consider using pdf-lib for better results.",
+      );
 
       return {
         success: true,
         pages: [],
-        message: 'PDF splitting requires pdf-lib or similar libraries for accurate page-by-page extraction.'
+        message:
+          "PDF splitting requires pdf-lib or similar libraries for accurate page-by-page extraction.",
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('PDF split error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("PDF split error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }

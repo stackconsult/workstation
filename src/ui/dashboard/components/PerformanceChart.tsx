@@ -2,7 +2,7 @@
  * Performance Chart Component
  */
 
-import React from 'react';
+import React from "react";
 
 interface PerformanceChartProps {
   title: string;
@@ -10,9 +10,13 @@ interface PerformanceChartProps {
   color: string;
 }
 
-export const PerformanceChart: React.FC<PerformanceChartProps> = ({ title, data, color }) => {
-  const maxValue = Math.max(...(data.map(d => d.value) || [1]));
-  
+export const PerformanceChart: React.FC<PerformanceChartProps> = ({
+  title,
+  data,
+  color,
+}) => {
+  const maxValue = Math.max(...(data.map((d) => d.value) || [1]));
+
   return (
     <div className="card">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -26,7 +30,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ title, data,
             style={{
               height: `${(point.value / maxValue) * 100}%`,
               background: `linear-gradient(to top, ${color}, ${color}80)`,
-              minHeight: '2px',
+              minHeight: "2px",
             }}
             title={`${point.value} at ${new Date(point.timestamp).toLocaleTimeString()}`}
           />

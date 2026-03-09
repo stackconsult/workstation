@@ -3,10 +3,10 @@
  * Enables workflow chaining, data passing, and conditional triggers
  */
 
-import { getDatabase, generateId, getCurrentTimestamp } from '../db/database';
-import { Workflow, Execution } from '../db/models';
-import { orchestrationEngine } from './engine';
-import { logger } from '../../utils/logger';
+import { getDatabase, generateId, getCurrentTimestamp } from "../db/database";
+import { Workflow, Execution } from "../db/models";
+import { orchestrationEngine } from "./engine";
+import { logger } from "../../utils/logger";
 
 /**
  * Workflow chain configuration
@@ -34,9 +34,9 @@ export interface ChainedWorkflow {
  * Condition for workflow execution
  */
 export interface ChainCondition {
-  type: 'status' | 'output' | 'expression';
+  type: "status" | "output" | "expression";
   field?: string; // For output conditions
-  operator?: 'equals' | 'contains' | 'greaterThan' | 'lessThan';
+  operator?: "equals" | "contains" | "greaterThan" | "lessThan";
   value?: unknown;
   expression?: string; // JavaScript expression for complex conditions
 }
@@ -57,7 +57,7 @@ export interface DataMapping {
 export interface WorkflowContext {
   workflow_id: string;
   execution_id?: string;
-  status?: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  status?: "pending" | "running" | "completed" | "failed" | "skipped";
   output?: Record<string, unknown>;
   error?: string;
   started_at?: string;
@@ -84,14 +84,17 @@ export class WorkflowDependenciesManager {
   /**
    * Create a workflow chain
    */
-  async createChain(name: string, workflows: ChainedWorkflow[]): Promise<WorkflowChain> {
+  async createChain(
+    name: string,
+    workflows: ChainedWorkflow[],
+  ): Promise<WorkflowChain> {
     const db = getDatabase();
 
     // Validate workflows exist
     for (const cw of workflows) {
       const workflow = await db.get<Workflow>(
-        'SELECT * FROM workflows WHERE id = ?',
-        cw.workflow_id
+        "SELECT * FROM workflows WHERE id = ?",
+        cw.workflow_id,
       );
 
       if (!workflow) {
@@ -107,7 +110,7 @@ export class WorkflowDependenciesManager {
       name,
       workflows,
       created_at: getCurrentTimestamp(),
-      updated_at: getCurrentTimestamp()
+      updated_at: getCurrentTimestamp(),
     };
 
     // Store chain in database (using workflows table with special type)
@@ -116,14 +119,17 @@ export class WorkflowDependenciesManager {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       chain.id,
       chain.name,
-      'Workflow Chain',
-      JSON.stringify({ type: 'chain', workflows: chain.workflows }),
-      'active',
+      "Workflow Chain",
+      JSON.stringify({ type: "chain", workflows: chain.workflows }),
+      "active",
       chain.created_at,
-      chain.updated_at
+      chain.updated_at,
     );
 
-    logger.info('Workflow chain created', { chainId: chain.id, workflowCount: workflows.length });
+    logger.info("Workflow chain created", {
+      chainId: chain.id,
+      workflowCount: workflows.length,
+    });
 
     return chain;
   }
@@ -134,7 +140,7 @@ export class WorkflowDependenciesManager {
   private validateChain(workflows: ChainedWorkflow[]): void {
     const graph = new Map<string, string[]>();
 
-    workflows.forEach(wf => {
+    workflows.forEach((wf) => {
       graph.set(wf.workflow_id, wf.depends_on || []);
     });
 
@@ -162,7 +168,7 @@ export class WorkflowDependenciesManager {
 
     for (const wf of workflows) {
       if (hasCycle(wf.workflow_id)) {
-        throw new Error('Circular dependency detected in workflow chain');
+        throw new Error("Circular dependency detected in workflow chain");
       }
     }
   }
@@ -172,27 +178,28 @@ export class WorkflowDependenciesManager {
    */
   async executeChain(
     chainId: string,
-    initialVariables?: Record<string, unknown>
+    initialVariables?: Record<string, unknown>,
   ): Promise<ChainExecutionResult> {
     const db = getDatabase();
     const startTime = Date.now();
 
     // Get chain definition
     const chainWorkflow = await db.get<Workflow>(
-      'SELECT * FROM workflows WHERE id = ?',
-      chainId
+      "SELECT * FROM workflows WHERE id = ?",
+      chainId,
     );
 
     if (!chainWorkflow) {
       throw new Error(`Workflow chain not found: ${chainId}`);
     }
 
-    const definition = typeof chainWorkflow.definition === 'string'
-      ? JSON.parse(chainWorkflow.definition)
-      : chainWorkflow.definition;
+    const definition =
+      typeof chainWorkflow.definition === "string"
+        ? JSON.parse(chainWorkflow.definition)
+        : chainWorkflow.definition;
 
-    if (definition.type !== 'chain') {
-      throw new Error('Workflow is not a chain');
+    if (definition.type !== "chain") {
+      throw new Error("Workflow is not a chain");
     }
 
     const workflows: ChainedWorkflow[] = definition.workflows;
@@ -200,10 +207,10 @@ export class WorkflowDependenciesManager {
     const outputs = new Map<string, Record<string, unknown>>();
 
     // Initialize contexts
-    workflows.forEach(wf => {
+    workflows.forEach((wf) => {
       contexts.set(wf.workflow_id, {
         workflow_id: wf.workflow_id,
-        status: 'pending'
+        status: "pending",
       });
     });
 
@@ -212,10 +219,10 @@ export class WorkflowDependenciesManager {
     let failed = 0;
 
     // Execute workflows in dependency order
-    const maxOrder = Math.max(...workflows.map(wf => wf.order));
+    const maxOrder = Math.max(...workflows.map((wf) => wf.order));
 
     for (let order = 0; order <= maxOrder; order++) {
-      const orderWorkflows = workflows.filter(wf => wf.order === order);
+      const orderWorkflows = workflows.filter((wf) => wf.order === order);
 
       // Execute workflows at this order level in parallel
       const promises = orderWorkflows.map(async (wf) => {
@@ -224,20 +231,24 @@ export class WorkflowDependenciesManager {
         // Check dependencies
         const depsCompleted = await this.checkDependencies(wf, contexts);
         if (!depsCompleted) {
-          context.status = 'skipped';
-          context.error = 'Dependencies not completed';
+          context.status = "skipped";
+          context.error = "Dependencies not completed";
           skipped++;
-          logger.warn('Workflow skipped due to dependencies', { workflowId: wf.workflow_id });
+          logger.warn("Workflow skipped due to dependencies", {
+            workflowId: wf.workflow_id,
+          });
           return;
         }
 
         // Check condition
         const conditionMet = await this.evaluateCondition(wf, outputs);
         if (!conditionMet) {
-          context.status = 'skipped';
-          context.error = 'Condition not met';
+          context.status = "skipped";
+          context.error = "Condition not met";
           skipped++;
-          logger.info('Workflow skipped due to condition', { workflowId: wf.workflow_id });
+          logger.info("Workflow skipped due to condition", {
+            workflowId: wf.workflow_id,
+          });
           return;
         }
 
@@ -246,13 +257,13 @@ export class WorkflowDependenciesManager {
 
         // Execute workflow
         try {
-          context.status = 'running';
+          context.status = "running";
           context.started_at = getCurrentTimestamp();
 
           const execution = await orchestrationEngine.executeWorkflow({
             workflow_id: wf.workflow_id,
-            trigger_type: 'chain',
-            variables
+            trigger_type: "chain",
+            variables,
           });
 
           context.execution_id = execution.id;
@@ -263,34 +274,37 @@ export class WorkflowDependenciesManager {
           // Get execution result
           const result = await orchestrationEngine.getExecution(execution.id);
 
-          if (result?.status === 'completed') {
-            context.status = 'completed';
+          if (result?.status === "completed") {
+            context.status = "completed";
             context.output = result.output as Record<string, unknown>;
             context.completed_at = getCurrentTimestamp();
             outputs.set(wf.workflow_id, context.output || {});
             executed++;
 
-            logger.info('Workflow in chain completed', { workflowId: wf.workflow_id });
+            logger.info("Workflow in chain completed", {
+              workflowId: wf.workflow_id,
+            });
           } else {
-            context.status = 'failed';
-            context.error = result?.error_message || 'Execution failed';
+            context.status = "failed";
+            context.error = result?.error_message || "Execution failed";
             context.completed_at = getCurrentTimestamp();
             failed++;
 
-            logger.error('Workflow in chain failed', { 
-              workflowId: wf.workflow_id, 
-              error: context.error 
+            logger.error("Workflow in chain failed", {
+              workflowId: wf.workflow_id,
+              error: context.error,
             });
           }
         } catch (error) {
-          context.status = 'failed';
-          context.error = error instanceof Error ? error.message : String(error);
+          context.status = "failed";
+          context.error =
+            error instanceof Error ? error.message : String(error);
           context.completed_at = getCurrentTimestamp();
           failed++;
 
-          logger.error('Workflow execution error in chain', { 
-            workflowId: wf.workflow_id, 
-            error 
+          logger.error("Workflow execution error in chain", {
+            workflowId: wf.workflow_id,
+            error,
           });
         }
       });
@@ -307,15 +321,15 @@ export class WorkflowDependenciesManager {
       skipped,
       failed,
       workflows: Array.from(contexts.values()),
-      total_duration: totalDuration
+      total_duration: totalDuration,
     };
 
-    logger.info('Workflow chain execution completed', {
+    logger.info("Workflow chain execution completed", {
       chainId,
       executed,
       skipped,
       failed,
-      duration: totalDuration
+      duration: totalDuration,
     });
 
     return result;
@@ -326,15 +340,15 @@ export class WorkflowDependenciesManager {
    */
   private async checkDependencies(
     workflow: ChainedWorkflow,
-    contexts: Map<string, WorkflowContext>
+    contexts: Map<string, WorkflowContext>,
   ): Promise<boolean> {
     if (!workflow.depends_on || workflow.depends_on.length === 0) {
       return true;
     }
 
-    return workflow.depends_on.every(depId => {
+    return workflow.depends_on.every((depId) => {
       const depContext = contexts.get(depId);
-      return depContext && depContext.status === 'completed';
+      return depContext && depContext.status === "completed";
     });
   }
 
@@ -343,7 +357,7 @@ export class WorkflowDependenciesManager {
    */
   private async evaluateCondition(
     workflow: ChainedWorkflow,
-    outputs: Map<string, Record<string, unknown>>
+    outputs: Map<string, Record<string, unknown>>,
   ): Promise<boolean> {
     if (!workflow.condition) {
       return true; // No condition, always execute
@@ -353,16 +367,16 @@ export class WorkflowDependenciesManager {
 
     try {
       switch (condition.type) {
-        case 'status': {
+        case "status": {
           // Check if dependent workflow has specific status
           const depId = workflow.depends_on?.[0];
           if (!depId) return true;
-          
+
           const depOutput = outputs.get(depId);
           return depOutput !== undefined; // Completed successfully
         }
 
-        case 'output': {
+        case "output": {
           // Check output field value
           const depId = workflow.depends_on?.[0];
           if (!depId || !condition.field) return true;
@@ -371,11 +385,15 @@ export class WorkflowDependenciesManager {
           if (!depOutput) return false;
 
           const fieldValue = this.getNestedValue(depOutput, condition.field);
-          
-          return this.compareValues(fieldValue, condition.operator!, condition.value);
+
+          return this.compareValues(
+            fieldValue,
+            condition.operator!,
+            condition.value,
+          );
         }
 
-        case 'expression': {
+        case "expression": {
           // Evaluate JavaScript expression
           if (!condition.expression) return true;
 
@@ -394,7 +412,7 @@ export class WorkflowDependenciesManager {
           return true;
       }
     } catch (error) {
-      logger.error('Condition evaluation error', { error });
+      logger.error("Condition evaluation error", { error });
       return false;
     }
   }
@@ -403,7 +421,7 @@ export class WorkflowDependenciesManager {
    * Get nested value from object using dot notation
    */
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-    return path.split('.').reduce((current: any, key: string) => {
+    return path.split(".").reduce((current: any, key: string) => {
       return current?.[key];
     }, obj);
   }
@@ -414,16 +432,16 @@ export class WorkflowDependenciesManager {
   private compareValues(
     actual: unknown,
     operator: string,
-    expected: unknown
+    expected: unknown,
   ): boolean {
     switch (operator) {
-      case 'equals':
+      case "equals":
         return actual === expected;
-      case 'contains':
+      case "contains":
         return String(actual).includes(String(expected));
-      case 'greaterThan':
+      case "greaterThan":
         return Number(actual) > Number(expected);
-      case 'lessThan':
+      case "lessThan":
         return Number(actual) < Number(expected);
       default:
         return false;
@@ -435,14 +453,17 @@ export class WorkflowDependenciesManager {
    */
   private evaluateExpression(
     expression: string,
-    context: Record<string, unknown>
+    context: Record<string, unknown>,
   ): unknown {
     try {
       // Create function with context variables
-      const func = new Function(...Object.keys(context), `return ${expression}`);
+      const func = new Function(
+        ...Object.keys(context),
+        `return ${expression}`,
+      );
       return func(...Object.values(context));
     } catch (error) {
-      logger.error('Expression evaluation failed', { expression, error });
+      logger.error("Expression evaluation failed", { expression, error });
       return false;
     }
   }
@@ -453,7 +474,7 @@ export class WorkflowDependenciesManager {
   private prepareVariables(
     workflow: ChainedWorkflow,
     outputs: Map<string, Record<string, unknown>>,
-    initialVariables?: Record<string, unknown>
+    initialVariables?: Record<string, unknown>,
   ): Record<string, unknown> {
     const variables: Record<string, unknown> = { ...initialVariables };
 
@@ -462,12 +483,12 @@ export class WorkflowDependenciesManager {
     }
 
     // Apply data mappings
-    workflow.data_mapping.mappings.forEach(mapping => {
-      const [workflowId, ...pathParts] = mapping.from.split('.');
+    workflow.data_mapping.mappings.forEach((mapping) => {
+      const [workflowId, ...pathParts] = mapping.from.split(".");
       const output = outputs.get(workflowId);
 
       if (output) {
-        const value = this.getNestedValue(output, pathParts.join('.'));
+        const value = this.getNestedValue(output, pathParts.join("."));
         variables[mapping.to] = value;
       }
     });
@@ -486,11 +507,14 @@ export class WorkflowDependenciesManager {
     while (Date.now() - startTime < maxWait) {
       const execution = await orchestrationEngine.getExecution(executionId);
 
-      if (execution && (execution.status === 'completed' || execution.status === 'failed')) {
+      if (
+        execution &&
+        (execution.status === "completed" || execution.status === "failed")
+      ) {
         return;
       }
 
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
 
     throw new Error(`Execution timeout: ${executionId}`);
@@ -502,46 +526,54 @@ export class WorkflowDependenciesManager {
   async triggerWorkflow(
     sourceExecutionId: string,
     targetWorkflowId: string,
-    condition?: ChainCondition
+    condition?: ChainCondition,
   ): Promise<Execution> {
     // Get source execution result
-    const sourceExecution = await orchestrationEngine.getExecution(sourceExecutionId);
+    const sourceExecution =
+      await orchestrationEngine.getExecution(sourceExecutionId);
 
     if (!sourceExecution) {
       throw new Error(`Source execution not found: ${sourceExecutionId}`);
     }
 
-    if (sourceExecution.status !== 'completed') {
-      throw new Error(`Source execution not completed: ${sourceExecution.status}`);
+    if (sourceExecution.status !== "completed") {
+      throw new Error(
+        `Source execution not completed: ${sourceExecution.status}`,
+      );
     }
 
     // Check condition if provided
     if (condition) {
       const outputs = new Map<string, Record<string, unknown>>();
-      outputs.set('source', sourceExecution.output as Record<string, unknown>);
+      outputs.set("source", sourceExecution.output as Record<string, unknown>);
 
       const conditionMet = await this.evaluateCondition(
-        { workflow_id: targetWorkflowId, order: 0, depends_on: ['source'], condition },
-        outputs
+        {
+          workflow_id: targetWorkflowId,
+          order: 0,
+          depends_on: ["source"],
+          condition,
+        },
+        outputs,
       );
 
       if (!conditionMet) {
-        throw new Error('Trigger condition not met');
+        throw new Error("Trigger condition not met");
       }
     }
 
     // Trigger target workflow with source output as variables
     const execution = await orchestrationEngine.executeWorkflow({
       workflow_id: targetWorkflowId,
-      trigger_type: 'trigger',
+      trigger_type: "trigger",
       triggered_by: sourceExecutionId,
-      variables: sourceExecution.output as Record<string, unknown>
+      variables: sourceExecution.output as Record<string, unknown>,
     });
 
-    logger.info('Workflow triggered', {
+    logger.info("Workflow triggered", {
       sourceExecutionId,
       targetWorkflowId,
-      executionId: execution.id
+      executionId: execution.id,
     });
 
     return execution;
@@ -553,27 +585,29 @@ export class WorkflowDependenciesManager {
   async passData(
     sourceExecutionId: string,
     targetWorkflowId: string,
-    dataMapping: DataMapping
+    dataMapping: DataMapping,
   ): Promise<Record<string, unknown>> {
-    const sourceExecution = await orchestrationEngine.getExecution(sourceExecutionId);
+    const sourceExecution =
+      await orchestrationEngine.getExecution(sourceExecutionId);
 
     if (!sourceExecution) {
       throw new Error(`Source execution not found: ${sourceExecutionId}`);
     }
 
-    const sourceOutput = (sourceExecution.output as Record<string, unknown>) || {};
+    const sourceOutput =
+      (sourceExecution.output as Record<string, unknown>) || {};
     const variables: Record<string, unknown> = {};
 
     // Apply mappings
-    dataMapping.mappings.forEach(mapping => {
+    dataMapping.mappings.forEach((mapping) => {
       const value = this.getNestedValue(sourceOutput, mapping.from);
       variables[mapping.to] = value;
     });
 
-    logger.info('Data passed between workflows', {
+    logger.info("Data passed between workflows", {
       sourceExecutionId,
       targetWorkflowId,
-      mappings: dataMapping.mappings.length
+      mappings: dataMapping.mappings.length,
     });
 
     return variables;
@@ -585,13 +619,23 @@ export class WorkflowDependenciesManager {
   async conditionalTrigger(
     sourceExecutionId: string,
     targetWorkflowId: string,
-    condition: ChainCondition
+    condition: ChainCondition,
   ): Promise<Execution | null> {
     try {
-      return await this.triggerWorkflow(sourceExecutionId, targetWorkflowId, condition);
+      return await this.triggerWorkflow(
+        sourceExecutionId,
+        targetWorkflowId,
+        condition,
+      );
     } catch (error) {
-      if (error instanceof Error && error.message.includes('condition not met')) {
-        logger.info('Conditional trigger skipped', { sourceExecutionId, targetWorkflowId });
+      if (
+        error instanceof Error &&
+        error.message.includes("condition not met")
+      ) {
+        logger.info("Conditional trigger skipped", {
+          sourceExecutionId,
+          targetWorkflowId,
+        });
         return null;
       }
       throw error;
@@ -605,20 +649,21 @@ export class WorkflowDependenciesManager {
     const db = getDatabase();
 
     const chainWorkflow = await db.get<Workflow>(
-      'SELECT * FROM workflows WHERE id = ?',
-      chainId
+      "SELECT * FROM workflows WHERE id = ?",
+      chainId,
     );
 
     if (!chainWorkflow) {
       throw new Error(`Workflow chain not found: ${chainId}`);
     }
 
-    const definition = typeof chainWorkflow.definition === 'string'
-      ? JSON.parse(chainWorkflow.definition)
-      : chainWorkflow.definition;
+    const definition =
+      typeof chainWorkflow.definition === "string"
+        ? JSON.parse(chainWorkflow.definition)
+        : chainWorkflow.definition;
 
-    if (definition.type !== 'chain') {
-      throw new Error('Workflow is not a chain');
+    if (definition.type !== "chain") {
+      throw new Error("Workflow is not a chain");
     }
 
     const workflows: ChainedWorkflow[] = definition.workflows;
@@ -630,7 +675,7 @@ export class WorkflowDependenciesManager {
         `SELECT * FROM executions 
          WHERE workflow_id = ? AND trigger_type = 'chain'
          ORDER BY created_at DESC LIMIT 1`,
-        wf.workflow_id
+        wf.workflow_id,
       );
 
       const lastExecution = executions[0];
@@ -642,7 +687,7 @@ export class WorkflowDependenciesManager {
         output: lastExecution?.output as Record<string, unknown>,
         error: lastExecution?.error_message,
         started_at: lastExecution?.started_at,
-        completed_at: lastExecution?.completed_at
+        completed_at: lastExecution?.completed_at,
       });
     }
 

@@ -3,16 +3,16 @@
  * Manage and execute workflows
  */
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { WorkflowCard } from '../components/WorkflowCard';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { WorkflowCard } from "../components/WorkflowCard";
 
 interface Workflow {
   id: string;
   name: string;
   description: string;
-  status: 'active' | 'paused' | 'draft';
+  status: "active" | "paused" | "draft";
   lastRun?: string;
   successRate: number;
   totalRuns: number;
@@ -20,14 +20,21 @@ interface Workflow {
 }
 
 export const WorkflowsPage: React.FC = () => {
-  const [filter, setFilter] = useState<'all' | 'active' | 'paused' | 'draft'>('all');
+  const [filter, setFilter] = useState<"all" | "active" | "paused" | "draft">(
+    "all",
+  );
 
-  const { data: workflows, isLoading, refetch } = useQuery<Workflow[]>({
-    queryKey: ['workflows', filter],
+  const {
+    data: workflows,
+    isLoading,
+    refetch,
+  } = useQuery<Workflow[]>({
+    queryKey: ["workflows", filter],
     queryFn: async () => {
-      const url = filter === 'all' ? '/api/workflows' : `/api/workflows?status=${filter}`;
+      const url =
+        filter === "all" ? "/api/workflows" : `/api/workflows?status=${filter}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch workflows');
+      if (!response.ok) throw new Error("Failed to fetch workflows");
       const result = await response.json();
       // Handle both wrapped and unwrapped response formats
       return result.data?.workflows || result.workflows || result;
@@ -48,7 +55,10 @@ export const WorkflowsPage: React.FC = () => {
             Create and manage automation workflows
           </p>
         </div>
-        <Link to="/workflows/builder" className="btn-primary flex items-center gap-2">
+        <Link
+          to="/workflows/builder"
+          className="btn-primary flex items-center gap-2"
+        >
           <span>➕</span>
           Create Workflow
         </Link>
@@ -56,14 +66,14 @@ export const WorkflowsPage: React.FC = () => {
 
       {/* Filters */}
       <div className="flex gap-2">
-        {(['all', 'active', 'paused', 'draft'] as const).map((status) => (
+        {(["all", "active", "paused", "draft"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === status
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                ? "bg-primary-600 text-white"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -79,7 +89,11 @@ export const WorkflowsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredWorkflows.map((workflow) => (
-            <WorkflowCard key={workflow.id} workflow={workflow} onUpdate={refetch} />
+            <WorkflowCard
+              key={workflow.id}
+              workflow={workflow}
+              onUpdate={refetch}
+            />
           ))}
         </div>
       )}
@@ -89,7 +103,10 @@ export const WorkflowsPage: React.FC = () => {
           <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
             No workflows found
           </p>
-          <Link to="/workflows/builder" className="btn-primary inline-flex items-center gap-2">
+          <Link
+            to="/workflows/builder"
+            className="btn-primary inline-flex items-center gap-2"
+          >
             <span>➕</span>
             Create Your First Workflow
           </Link>

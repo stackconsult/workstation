@@ -10,28 +10,119 @@
   "createdAt": "2025-11-24T00:00:00Z",
   "updatedAt": "2025-11-24T00:00:00Z",
   "nodes": [
-    {"id": "node-1", "type": "start", "label": "Start Onboarding", "x": 100, "y": 100, "params": {"trigger": "new_hire_form_submitted"}},
-    {"id": "node-2", "type": "create_email", "label": "Create Email Account", "x": 100, "y": 200, "params": {"domain": "company.com", "template": "{{first}}.{{last}}@company.com"}},
-    {"id": "node-3", "type": "create_accounts", "label": "Create System Accounts", "x": 100, "y": 300, "params": {"systems": ["slack", "github", "jira", "confluence"]}},
-    {"id": "node-4", "type": "assign_groups", "label": "Assign to Groups", "x": 100, "y": 400, "params": {"groups": ["all-staff", "{{department}}", "{{location}}"]}},
-    {"id": "node-5", "type": "provision_hardware", "label": "Provision Hardware", "x": 100, "y": 500, "params": {"items": ["laptop", "monitor", "keyboard", "mouse"], "createTicket": true}},
-    {"id": "node-6", "type": "send_welcome_email", "label": "Send Welcome Email", "x": 100, "y": 600, "params": {"template": "new_hire_welcome", "attachments": ["handbook.pdf", "benefits_guide.pdf"]}},
-    {"id": "node-7", "type": "schedule_trainings", "label": "Schedule Required Trainings", "x": 100, "y": 700, "params": {"trainings": ["security_awareness", "company_culture", "role_specific"]}},
-    {"id": "node-8", "type": "create_checklist", "label": "Create Onboarding Checklist", "x": 100, "y": 800, "params": {"tasks": ["complete_profile", "setup_2fa", "review_policies", "meet_team"]}},
-    {"id": "node-9", "type": "notify_team", "label": "Notify Team", "x": 100, "y": 900, "params": {"channel": "#general", "message": "Welcome {{name}} to the team!"}},
-    {"id": "node-10", "type": "schedule_check_ins", "label": "Schedule Check-ins", "x": 100, "y": 1000, "params": {"intervals": ["day_1", "week_1", "month_1", "month_3"]}},
-    {"id": "node-11", "type": "end", "label": "End", "x": 100, "y": 1100}
+    {
+      "id": "node-1",
+      "type": "start",
+      "label": "Start Onboarding",
+      "x": 100,
+      "y": 100,
+      "params": { "trigger": "new_hire_form_submitted" }
+    },
+    {
+      "id": "node-2",
+      "type": "create_email",
+      "label": "Create Email Account",
+      "x": 100,
+      "y": 200,
+      "params": {
+        "domain": "company.com",
+        "template": "{{first}}.{{last}}@company.com"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "create_accounts",
+      "label": "Create System Accounts",
+      "x": 100,
+      "y": 300,
+      "params": { "systems": ["slack", "github", "jira", "confluence"] }
+    },
+    {
+      "id": "node-4",
+      "type": "assign_groups",
+      "label": "Assign to Groups",
+      "x": 100,
+      "y": 400,
+      "params": { "groups": ["all-staff", "{{department}}", "{{location}}"] }
+    },
+    {
+      "id": "node-5",
+      "type": "provision_hardware",
+      "label": "Provision Hardware",
+      "x": 100,
+      "y": 500,
+      "params": {
+        "items": ["laptop", "monitor", "keyboard", "mouse"],
+        "createTicket": true
+      }
+    },
+    {
+      "id": "node-6",
+      "type": "send_welcome_email",
+      "label": "Send Welcome Email",
+      "x": 100,
+      "y": 600,
+      "params": {
+        "template": "new_hire_welcome",
+        "attachments": ["handbook.pdf", "benefits_guide.pdf"]
+      }
+    },
+    {
+      "id": "node-7",
+      "type": "schedule_trainings",
+      "label": "Schedule Required Trainings",
+      "x": 100,
+      "y": 700,
+      "params": {
+        "trainings": ["security_awareness", "company_culture", "role_specific"]
+      }
+    },
+    {
+      "id": "node-8",
+      "type": "create_checklist",
+      "label": "Create Onboarding Checklist",
+      "x": 100,
+      "y": 800,
+      "params": {
+        "tasks": [
+          "complete_profile",
+          "setup_2fa",
+          "review_policies",
+          "meet_team"
+        ]
+      }
+    },
+    {
+      "id": "node-9",
+      "type": "notify_team",
+      "label": "Notify Team",
+      "x": 100,
+      "y": 900,
+      "params": {
+        "channel": "#general",
+        "message": "Welcome {{name}} to the team!"
+      }
+    },
+    {
+      "id": "node-10",
+      "type": "schedule_check_ins",
+      "label": "Schedule Check-ins",
+      "x": 100,
+      "y": 1000,
+      "params": { "intervals": ["day_1", "week_1", "month_1", "month_3"] }
+    },
+    { "id": "node-11", "type": "end", "label": "End", "x": 100, "y": 1100 }
   ],
   "connections": [
-    {"id": "conn-1", "source": "node-1", "target": "node-2"},
-    {"id": "conn-2", "source": "node-2", "target": "node-3"},
-    {"id": "conn-3", "source": "node-3", "target": "node-4"},
-    {"id": "conn-4", "source": "node-4", "target": "node-5"},
-    {"id": "conn-5", "source": "node-5", "target": "node-6"},
-    {"id": "conn-6", "source": "node-6", "target": "node-7"},
-    {"id": "conn-7", "source": "node-7", "target": "node-8"},
-    {"id": "conn-8", "source": "node-8", "target": "node-9"},
-    {"id": "conn-9", "source": "node-9", "target": "node-10"},
-    {"id": "conn-10", "source": "node-10", "target": "node-11"}
+    { "id": "conn-1", "source": "node-1", "target": "node-2" },
+    { "id": "conn-2", "source": "node-2", "target": "node-3" },
+    { "id": "conn-3", "source": "node-3", "target": "node-4" },
+    { "id": "conn-4", "source": "node-4", "target": "node-5" },
+    { "id": "conn-5", "source": "node-5", "target": "node-6" },
+    { "id": "conn-6", "source": "node-6", "target": "node-7" },
+    { "id": "conn-7", "source": "node-7", "target": "node-8" },
+    { "id": "conn-8", "source": "node-8", "target": "node-9" },
+    { "id": "conn-9", "source": "node-9", "target": "node-10" },
+    { "id": "conn-10", "source": "node-10", "target": "node-11" }
   ]
 }

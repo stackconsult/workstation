@@ -3,16 +3,19 @@
  * Handles real-time bidirectional communication between Chrome extension and MCP containers
  */
 
-import WebSocket from 'ws';
-import { Server as HTTPServer } from 'http';
-import { getMCPProtocol, MCPRequest, MCPResponse } from './mcp-protocol';
-import { getMessageBroker } from './message-broker';
-import { authenticateWebSocket, wsRateLimiter } from '../middleware/websocket-auth';
-import { activeWebsocketConnections } from './monitoring';
-import { logger } from '../utils/logger';
+import WebSocket from "ws";
+import { Server as HTTPServer } from "http";
+import { getMCPProtocol, MCPRequest, MCPResponse } from "./mcp-protocol";
+import { getMessageBroker } from "./message-broker";
+import {
+  authenticateWebSocket,
+  wsRateLimiter,
+} from "../middleware/websocket-auth";
+import { activeWebsocketConnections } from "./monitoring";
+import { logger } from "../utils/logger";
 
 export interface MCPWebSocketMessage {
-  type: 'request' | 'response' | 'notification' | 'subscribe' | 'unsubscribe';
+  type: "request" | "response" | "notification" | "subscribe" | "unsubscribe";
   id?: string;
   method?: string;
   params?: any;
@@ -28,9 +31,9 @@ export class MCPWebSocketServer {
   private subscriptions: Map<string, Set<string>> = new Map(); // clientId -> Set<channel>
 
   constructor(server: HTTPServer) {
-    this.wss = new WebSocket.Server({ 
+    this.wss = new WebSocket.Server({
       server,
-      path: '/mcp',
+      path: "/mcp",
     });
 
     this.setupServer();
@@ -38,22 +41,26 @@ export class MCPWebSocketServer {
   }
 
   private setupServer(): void {
-    this.wss.on('connection', async (ws: WebSocket, req: any) => {
+    this.wss.on("connection", async (ws: WebSocket, req: any) => {
       // Authenticate WebSocket connection
       const authResult = await authenticateWebSocket(req);
-      
+
       if (!authResult.authenticated) {
-        logger.warn('[MCPWebSocket] Authentication failed', { error: authResult.error });
+        logger.warn("[MCPWebSocket] Authentication failed", {
+          error: authResult.error,
+        });
         ws.close(1008, authResult.error); // Policy Violation
         return;
       }
 
-      const userId = authResult.user?.userId || 'anonymous';
-      
+      const userId = authResult.user?.userId || "anonymous";
+
       // Check rate limiting
       if (!wsRateLimiter.canConnect(userId)) {
-        logger.warn('[MCPWebSocket] Connection rate limit exceeded', { userId });
-        ws.close(1008, 'Too many connections');
+        logger.warn("[MCPWebSocket] Connection rate limit exceeded", {
+          userId,
+        });
+        ws.close(1008, "Too many connections");
         return;
       }
 
@@ -67,12 +74,12 @@ export class MCPWebSocketServer {
       // Update metrics
       activeWebsocketConnections.inc();
 
-      logger.info('[MCPWebSocket] Client connected', { clientId, userId });
+      logger.info("[MCPWebSocket] Client connected", { clientId, userId });
 
       // Send welcome message
       this.send(ws, {
-        type: 'notification',
-        method: 'connected',
+        type: "notification",
+        method: "connected",
         params: {
           clientId,
           userId,
@@ -81,16 +88,16 @@ export class MCPWebSocketServer {
         },
       });
 
-      ws.on('message', async (data: WebSocket.Data) => {
+      ws.on("message", async (data: WebSocket.Data) => {
         try {
           // Rate limit messages
           if (!wsRateLimiter.canSendMessage(userId)) {
             this.send(ws, {
-              type: 'response',
-              id: 'rate-limit',
+              type: "response",
+              id: "rate-limit",
               error: {
                 code: 429,
-                message: 'Message rate limit exceeded',
+                message: "Message rate limit exceeded",
               },
             });
             return;
@@ -99,75 +106,84 @@ export class MCPWebSocketServer {
           const message: MCPWebSocketMessage = JSON.parse(data.toString());
           await this.handleMessage(clientId, ws, message);
         } catch (error) {
-          logger.error('[MCPWebSocket] Error handling message', { error });
+          logger.error("[MCPWebSocket] Error handling message", { error });
           this.send(ws, {
-            type: 'response',
-            id: 'error',
+            type: "response",
+            id: "error",
             error: {
               code: -32700,
-              message: 'Parse error',
+              message: "Parse error",
             },
           });
         }
       });
 
-      ws.on('close', () => {
-        logger.info('[MCPWebSocket] Client disconnected', { clientId });
+      ws.on("close", () => {
+        logger.info("[MCPWebSocket] Client disconnected", { clientId });
         this.unsubscribeAll(clientId);
         this.clients.delete(clientId);
         this.subscriptions.delete(clientId);
-        
+
         // Update tracking
         wsRateLimiter.untrackConnection(userId);
         activeWebsocketConnections.dec();
       });
 
-      ws.on('error', (error) => {
-        logger.error('[MCPWebSocket] Client error', { clientId, error });
+      ws.on("error", (error) => {
+        logger.error("[MCPWebSocket] Client error", { clientId, error });
       });
     });
 
-    logger.info('[MCPWebSocket] WebSocket server initialized on path /mcp with authentication');
+    logger.info(
+      "[MCPWebSocket] WebSocket server initialized on path /mcp with authentication",
+    );
   }
 
-  private async handleMessage(clientId: string, ws: WebSocket, message: MCPWebSocketMessage): Promise<void> {
+  private async handleMessage(
+    clientId: string,
+    ws: WebSocket,
+    message: MCPWebSocketMessage,
+  ): Promise<void> {
     switch (message.type) {
-      case 'request':
+      case "request":
         await this.handleRequest(ws, message);
         break;
-      
-      case 'subscribe':
+
+      case "subscribe":
         await this.handleSubscribe(clientId, ws, message);
         break;
-      
-      case 'unsubscribe':
+
+      case "unsubscribe":
         await this.handleUnsubscribe(clientId, ws, message);
         break;
-      
-      case 'notification':
+
+      case "notification":
         await this.handleNotification(message);
         break;
-      
+
       default:
         this.send(ws, {
-          type: 'response',
+          type: "response",
           id: message.id,
           error: {
             code: -32600,
-            message: 'Invalid request type',
+            message: "Invalid request type",
           },
         });
     }
   }
 
-  private async handleRequest(ws: WebSocket, message: MCPWebSocketMessage): Promise<void> {
+  private async handleRequest(
+    ws: WebSocket,
+    message: MCPWebSocketMessage,
+  ): Promise<void> {
     if (!message.method || !message.id) {
       this.send(ws, {
-        type: 'response',
-        id: message.id || 'unknown',
+        type: "response",
+        id: message.id || "unknown",
         error: {
           code: -32600,
-          message: 'Invalid request: missing method or id',
+          message: "Invalid request: missing method or id",
         },
       });
       return;
@@ -182,23 +198,27 @@ export class MCPWebSocketServer {
     const response: MCPResponse = await this.mcpProtocol.handleRequest(request);
 
     this.send(ws, {
-      type: 'response',
+      type: "response",
       id: response.id,
       result: response.result,
       error: response.error,
     });
   }
 
-  private async handleSubscribe(clientId: string, ws: WebSocket, message: MCPWebSocketMessage): Promise<void> {
+  private async handleSubscribe(
+    clientId: string,
+    ws: WebSocket,
+    message: MCPWebSocketMessage,
+  ): Promise<void> {
     const { channel } = message.params || {};
-    
+
     if (!channel) {
       this.send(ws, {
-        type: 'response',
+        type: "response",
         id: message.id,
         error: {
           code: -32602,
-          message: 'Invalid params: channel required',
+          message: "Invalid params: channel required",
         },
       });
       return;
@@ -213,8 +233,8 @@ export class MCPWebSocketServer {
     await this.messageBroker.subscribe(channel, (mcpMessage) => {
       if (this.clients.has(clientId)) {
         this.send(ws, {
-          type: 'notification',
-          method: 'message',
+          type: "notification",
+          method: "message",
           params: {
             channel,
             message: mcpMessage,
@@ -224,7 +244,7 @@ export class MCPWebSocketServer {
     });
 
     this.send(ws, {
-      type: 'response',
+      type: "response",
       id: message.id,
       result: {
         subscribed: true,
@@ -232,19 +252,26 @@ export class MCPWebSocketServer {
       },
     });
 
-    logger.info('[MCPWebSocket] Client subscribed to channel', { clientId, channel });
+    logger.info("[MCPWebSocket] Client subscribed to channel", {
+      clientId,
+      channel,
+    });
   }
 
-  private async handleUnsubscribe(clientId: string, ws: WebSocket, message: MCPWebSocketMessage): Promise<void> {
+  private async handleUnsubscribe(
+    clientId: string,
+    ws: WebSocket,
+    message: MCPWebSocketMessage,
+  ): Promise<void> {
     const { channel } = message.params || {};
-    
+
     if (!channel) {
       this.send(ws, {
-        type: 'response',
+        type: "response",
         id: message.id,
         error: {
           code: -32602,
-          message: 'Invalid params: channel required',
+          message: "Invalid params: channel required",
         },
       });
       return;
@@ -258,7 +285,7 @@ export class MCPWebSocketServer {
     await this.messageBroker.unsubscribe(channel);
 
     this.send(ws, {
-      type: 'response',
+      type: "response",
       id: message.id,
       result: {
         unsubscribed: true,
@@ -266,20 +293,27 @@ export class MCPWebSocketServer {
       },
     });
 
-    logger.info('[MCPWebSocket] Client unsubscribed from channel', { clientId, channel });
+    logger.info("[MCPWebSocket] Client unsubscribed from channel", {
+      clientId,
+      channel,
+    });
   }
 
-  private async handleNotification(message: MCPWebSocketMessage): Promise<void> {
+  private async handleNotification(
+    message: MCPWebSocketMessage,
+  ): Promise<void> {
     // Handle notifications from Chrome extension (e.g., user actions, events)
     if (message.method) {
-      logger.info('[MCPWebSocket] Notification received', { method: message.method });
-      
+      logger.info("[MCPWebSocket] Notification received", {
+        method: message.method,
+      });
+
       // Forward to appropriate handler or broadcast to agents
       if (message.params?.agentId) {
         await this.mcpProtocol.sendNotification(
           message.params.agentId,
           message.method,
-          message.params
+          message.params,
         );
       }
     }
@@ -299,31 +333,37 @@ export class MCPWebSocketServer {
    */
   private setupProtocolBridge(): void {
     // Listen for status updates and forward to all connected clients
-    this.mcpProtocol.registerNotificationHandler('task_status_update', (params) => {
-      this.broadcast({
-        type: 'notification',
-        method: 'task_status_update',
-        params,
-      });
-    });
+    this.mcpProtocol.registerNotificationHandler(
+      "task_status_update",
+      (params) => {
+        this.broadcast({
+          type: "notification",
+          method: "task_status_update",
+          params,
+        });
+      },
+    );
 
     // Listen for task completions
-    this.mcpProtocol.registerNotificationHandler('task_completed', (params) => {
+    this.mcpProtocol.registerNotificationHandler("task_completed", (params) => {
       this.broadcast({
-        type: 'notification',
-        method: 'task_completed',
+        type: "notification",
+        method: "task_completed",
         params,
       });
     });
 
     // Listen for agent heartbeats
-    this.mcpProtocol.registerNotificationHandler('agent_heartbeat', (params) => {
-      this.broadcast({
-        type: 'notification',
-        method: 'agent_heartbeat',
-        params,
-      });
-    });
+    this.mcpProtocol.registerNotificationHandler(
+      "agent_heartbeat",
+      (params) => {
+        this.broadcast({
+          type: "notification",
+          method: "agent_heartbeat",
+          params,
+        });
+      },
+    );
   }
 
   /**
@@ -364,7 +404,7 @@ export class MCPWebSocketServer {
    */
   close(): void {
     this.wss.close(() => {
-      logger.info('[MCPWebSocket] Server closed');
+      logger.info("[MCPWebSocket] Server closed");
     });
   }
 }

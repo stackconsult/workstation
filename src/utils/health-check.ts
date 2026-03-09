@@ -1,18 +1,18 @@
 /**
  * Health Check System
- * 
+ *
  * Provides liveness and readiness probes for agents and services
- * 
+ *
  * @module utils/health-check
  * @version 1.0.0
  */
 
-import { logger } from './logger';
+import { logger } from "./logger";
 
 export enum HealthStatus {
-  HEALTHY = 'healthy',
-  DEGRADED = 'degraded',
-  UNHEALTHY = 'unhealthy'
+  HEALTHY = "healthy",
+  DEGRADED = "degraded",
+  UNHEALTHY = "unhealthy",
 }
 
 export interface HealthCheckResult {
@@ -76,15 +76,18 @@ export class HealthCheckManager {
       try {
         const timeout = check.timeout || 5000;
         let timeoutId: NodeJS.Timeout | undefined;
-        
+
         const result = await Promise.race([
           check.check().then((res) => {
             clearTimeout(timeoutId);
             return res;
           }),
           new Promise<{ healthy: boolean; message: string }>((_, reject) => {
-            timeoutId = setTimeout(() => reject(new Error('Health check timeout')), timeout);
-          })
+            timeoutId = setTimeout(
+              () => reject(new Error("Health check timeout")),
+              timeout,
+            );
+          }),
         ]);
 
         // Clear timeout to prevent memory leak
@@ -93,13 +96,15 @@ export class HealthCheckManager {
         }
 
         const responseTime = Date.now() - startTime;
-        const status = result.healthy ? HealthStatus.HEALTHY : HealthStatus.UNHEALTHY;
+        const status = result.healthy
+          ? HealthStatus.HEALTHY
+          : HealthStatus.UNHEALTHY;
 
         checkResults[name] = {
           status,
           message: result.message,
           responseTime,
-          lastCheck: new Date().toISOString()
+          lastCheck: new Date().toISOString(),
         };
 
         this.results.set(name, checkResults[name]);
@@ -107,16 +112,19 @@ export class HealthCheckManager {
         // Update overall status
         if (status === HealthStatus.UNHEALTHY && check.critical !== false) {
           overallStatus = HealthStatus.UNHEALTHY;
-        } else if (status === HealthStatus.UNHEALTHY && overallStatus === HealthStatus.HEALTHY) {
+        } else if (
+          status === HealthStatus.UNHEALTHY &&
+          overallStatus === HealthStatus.HEALTHY
+        ) {
           overallStatus = HealthStatus.DEGRADED;
         }
       } catch (error) {
         const responseTime = Date.now() - startTime;
         checkResults[name] = {
           status: HealthStatus.UNHEALTHY,
-          message: error instanceof Error ? error.message : 'Unknown error',
+          message: error instanceof Error ? error.message : "Unknown error",
           responseTime,
-          lastCheck: new Date().toISOString()
+          lastCheck: new Date().toISOString(),
         };
 
         this.results.set(name, checkResults[name]);
@@ -131,7 +139,7 @@ export class HealthCheckManager {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       uptime: Date.now() - this.startTime,
-      checks: checkResults
+      checks: checkResults,
     };
   }
 
@@ -153,15 +161,15 @@ export class HealthCheckManager {
         status: result.healthy ? HealthStatus.HEALTHY : HealthStatus.UNHEALTHY,
         message: result.message,
         responseTime,
-        lastCheck: new Date().toISOString()
+        lastCheck: new Date().toISOString(),
       };
     } catch (error) {
       const responseTime = Date.now() - startTime;
       return {
         status: HealthStatus.UNHEALTHY,
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: error instanceof Error ? error.message : "Unknown error",
         responseTime,
-        lastCheck: new Date().toISOString()
+        lastCheck: new Date().toISOString(),
       };
     }
   }
@@ -175,11 +183,17 @@ export class HealthCheckManager {
 
     for (const [name, result] of this.results.entries()) {
       checkResults[name] = result;
-      
+
       const check = this.checks.get(name);
-      if (result.status === HealthStatus.UNHEALTHY && check?.critical !== false) {
+      if (
+        result.status === HealthStatus.UNHEALTHY &&
+        check?.critical !== false
+      ) {
         overallStatus = HealthStatus.UNHEALTHY;
-      } else if (result.status === HealthStatus.UNHEALTHY && overallStatus === HealthStatus.HEALTHY) {
+      } else if (
+        result.status === HealthStatus.UNHEALTHY &&
+        overallStatus === HealthStatus.HEALTHY
+      ) {
         overallStatus = HealthStatus.DEGRADED;
       }
     }
@@ -188,7 +202,7 @@ export class HealthCheckManager {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       uptime: Date.now() - this.startTime,
-      checks: checkResults
+      checks: checkResults,
     };
   }
 
@@ -208,7 +222,7 @@ export class HealthCheckManager {
       const result = await this.runAll();
       return result.status !== HealthStatus.UNHEALTHY;
     } catch (error) {
-      logger.error('Readiness check failed', { error });
+      logger.error("Readiness check failed", { error });
       return false;
     }
   }
@@ -224,20 +238,21 @@ export const healthCheckManager = new HealthCheckManager();
  */
 export function memoryHealthCheck(thresholdPercent = 90): HealthCheck {
   return {
-    name: 'memory',
+    name: "memory",
     check: async () => {
       const usage = process.memoryUsage();
       const heapUsedPercent = (usage.heapUsed / usage.heapTotal) * 100;
-      
+
       return {
         healthy: heapUsedPercent < thresholdPercent,
-        message: heapUsedPercent >= thresholdPercent
-          ? `Memory usage high: ${heapUsedPercent.toFixed(2)}%`
-          : `Memory usage: ${heapUsedPercent.toFixed(2)}%`
+        message:
+          heapUsedPercent >= thresholdPercent
+            ? `Memory usage high: ${heapUsedPercent.toFixed(2)}%`
+            : `Memory usage: ${heapUsedPercent.toFixed(2)}%`,
       };
     },
     critical: false,
-    timeout: 1000
+    timeout: 1000,
   };
 }
 
@@ -246,21 +261,22 @@ export function memoryHealthCheck(thresholdPercent = 90): HealthCheck {
  */
 export function eventLoopHealthCheck(thresholdMs = 100): HealthCheck {
   return {
-    name: 'event_loop',
+    name: "event_loop",
     check: async () => {
       const start = Date.now();
-      await new Promise(resolve => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
       const lag = Date.now() - start;
-      
+
       return {
         healthy: lag < thresholdMs,
-        message: lag >= thresholdMs
-          ? `Event loop lag: ${lag}ms`
-          : `Event loop lag: ${lag}ms`
+        message:
+          lag >= thresholdMs
+            ? `Event loop lag: ${lag}ms`
+            : `Event loop lag: ${lag}ms`,
       };
     },
     critical: false,
-    timeout: 2000
+    timeout: 2000,
   };
 }
 
@@ -269,16 +285,16 @@ export function eventLoopHealthCheck(thresholdMs = 100): HealthCheck {
  */
 export function uptimeHealthCheck(minUptimeSeconds = 10): HealthCheck {
   return {
-    name: 'uptime',
+    name: "uptime",
     check: async () => {
       const uptime = process.uptime();
-      
+
       return {
         healthy: uptime >= minUptimeSeconds,
-        message: `Uptime: ${uptime.toFixed(0)}s`
+        message: `Uptime: ${uptime.toFixed(0)}s`,
       };
     },
     critical: true,
-    timeout: 1000
+    timeout: 1000,
   };
 }

@@ -3,18 +3,18 @@
  * Display system health status and metrics
  */
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface HealthCheck {
   name: string;
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   message?: string;
   responseTime?: number;
 }
 
 interface SystemHealthData {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   checks: HealthCheck[];
   uptime: number;
   version: string;
@@ -22,10 +22,10 @@ interface SystemHealthData {
 
 export const SystemHealth: React.FC = () => {
   const { data: health } = useQuery<SystemHealthData>({
-    queryKey: ['system-health'],
+    queryKey: ["system-health"],
     queryFn: async () => {
-      const response = await fetch('/health/live');
-      if (!response.ok) throw new Error('Health check failed');
+      const response = await fetch("/health/live");
+      if (!response.ok) throw new Error("Health check failed");
       return response.json();
     },
     refetchInterval: 10000, // Every 10 seconds
@@ -33,27 +33,27 @@ export const SystemHealth: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'degraded':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'unhealthy':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case "healthy":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "degraded":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "unhealthy":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy':
-        return '✅';
-      case 'degraded':
-        return '⚠️';
-      case 'unhealthy':
-        return '❌';
+      case "healthy":
+        return "✅";
+      case "degraded":
+        return "⚠️";
+      case "unhealthy":
+        return "❌";
       default:
-        return '❓';
+        return "❓";
     }
   };
 
@@ -63,8 +63,11 @@ export const SystemHealth: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           System Health
         </h3>
-        <span className={`status-badge ${getStatusColor(health?.status || 'healthy')}`}>
-          {getStatusIcon(health?.status || 'healthy')} {health?.status || 'Loading...'}
+        <span
+          className={`status-badge ${getStatusColor(health?.status || "healthy")}`}
+        >
+          {getStatusIcon(health?.status || "healthy")}{" "}
+          {health?.status || "Loading..."}
         </span>
       </div>
 
@@ -100,13 +103,15 @@ export const SystemHealth: React.FC = () => {
         <div>
           <p className="text-gray-600 dark:text-gray-400">Uptime</p>
           <p className="font-semibold text-gray-900 dark:text-gray-100">
-            {health?.uptime ? `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m` : 'N/A'}
+            {health?.uptime
+              ? `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m`
+              : "N/A"}
           </p>
         </div>
         <div>
           <p className="text-gray-600 dark:text-gray-400">Version</p>
           <p className="font-semibold text-gray-900 dark:text-gray-100">
-            {health?.version || 'N/A'}
+            {health?.version || "N/A"}
           </p>
         </div>
       </div>

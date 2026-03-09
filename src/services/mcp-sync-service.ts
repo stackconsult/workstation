@@ -1,21 +1,21 @@
 /**
  * MCP Sync Service for Chrome Extension
- * 
+ *
  * Provides browser-local MCP synchronization for Chrome extension.
  * Syncs agent status and capabilities every 5 seconds.
- * 
+ *
  * @module services/mcp-sync-service
  * @version 2.0.0
  */
 
-import { EventEmitter } from 'events';
-import { logger } from '../utils/logger';
-import { agentOrchestrator } from './agent-orchestrator';
+import { EventEmitter } from "events";
+import { logger } from "../utils/logger";
+import { agentOrchestrator } from "./agent-orchestrator";
 
 export interface AgentStatus {
   id: string;
   name: string;
-  status: 'active' | 'inactive' | 'error';
+  status: "active" | "inactive" | "error";
   healthStatus: string;
   lastSync: string;
   capabilities: string[];
@@ -49,28 +49,28 @@ export class McpSyncService extends EventEmitter {
    */
   public start(): void {
     if (this.isRunning) {
-      logger.warn('MCP sync service already running');
+      logger.warn("MCP sync service already running");
       return;
     }
 
     this.isRunning = true;
-    logger.info('Starting MCP sync service', { 
-      interval: this.syncIntervalMs 
+    logger.info("Starting MCP sync service", {
+      interval: this.syncIntervalMs,
     });
 
     // Perform initial sync
     this.performSync().catch((error) => {
-      logger.error('Initial MCP sync failed', { error: error.message });
+      logger.error("Initial MCP sync failed", { error: error.message });
     });
 
     // Schedule periodic syncs
     this.syncInterval = setInterval(() => {
       this.performSync().catch((error) => {
-        logger.error('MCP sync failed', { error: error.message });
+        logger.error("MCP sync failed", { error: error.message });
       });
     }, this.syncIntervalMs);
 
-    this.emit('started', { interval: this.syncIntervalMs });
+    this.emit("started", { interval: this.syncIntervalMs });
   }
 
   /**
@@ -87,8 +87,8 @@ export class McpSyncService extends EventEmitter {
     }
 
     this.isRunning = false;
-    logger.info('MCP sync service stopped');
-    this.emit('stopped');
+    logger.info("MCP sync service stopped");
+    this.emit("stopped");
   }
 
   /**
@@ -96,11 +96,11 @@ export class McpSyncService extends EventEmitter {
    */
   private async performSync(): Promise<void> {
     const syncStartTime = Date.now();
-    
+
     try {
       // Fetch latest agent status from orchestrator
       const agents = await agentOrchestrator.getAllAgents();
-      
+
       let healthy = 0;
       let unhealthy = 0;
 
@@ -117,7 +117,7 @@ export class McpSyncService extends EventEmitter {
 
         this.agentCache.set(agent.id, agentStatus);
 
-        if (agent.healthStatus === 'healthy') {
+        if (agent.healthStatus === "healthy") {
           healthy++;
         } else {
           unhealthy++;
@@ -127,7 +127,7 @@ export class McpSyncService extends EventEmitter {
       this.lastSyncTime = new Date();
       const syncDuration = Date.now() - syncStartTime;
 
-      logger.debug('MCP sync completed', {
+      logger.debug("MCP sync completed", {
         agentCount: agents.length,
         healthy,
         unhealthy,
@@ -135,7 +135,7 @@ export class McpSyncService extends EventEmitter {
       });
 
       // Emit sync event with data
-      this.emit('sync', {
+      this.emit("sync", {
         agents: Array.from(this.agentCache.values()),
         stats: {
           total: agents.length,
@@ -145,26 +145,26 @@ export class McpSyncService extends EventEmitter {
         timestamp: this.lastSyncTime.toISOString(),
       });
     } catch (error) {
-      logger.error('MCP sync error', { error: (error as Error).message });
-      this.emit('error', error);
+      logger.error("MCP sync error", { error: (error as Error).message });
+      this.emit("error", error);
     }
   }
 
   /**
    * Map agent status to standard format
    */
-  private mapStatus(status: string): 'active' | 'inactive' | 'error' {
+  private mapStatus(status: string): "active" | "inactive" | "error" {
     switch (status.toLowerCase()) {
-      case 'active':
-      case 'running':
-      case 'healthy':
-        return 'active';
-      case 'error':
-      case 'failed':
-      case 'unhealthy':
-        return 'error';
+      case "active":
+      case "running":
+      case "healthy":
+        return "active";
+      case "error":
+      case "failed":
+      case "unhealthy":
+        return "error";
       default:
-        return 'inactive';
+        return "inactive";
     }
   }
 
@@ -188,8 +188,8 @@ export class McpSyncService extends EventEmitter {
   public getAgentsByCapability(capability: string): AgentStatus[] {
     return Array.from(this.agentCache.values()).filter((agent) =>
       agent.capabilities.some((cap) =>
-        cap.toLowerCase().includes(capability.toLowerCase())
-      )
+        cap.toLowerCase().includes(capability.toLowerCase()),
+      ),
     );
   }
 
@@ -198,7 +198,7 @@ export class McpSyncService extends EventEmitter {
    */
   public getSyncState(): SyncState {
     const healthy = Array.from(this.agentCache.values()).filter(
-      (a) => a.healthStatus === 'healthy'
+      (a) => a.healthStatus === "healthy",
     ).length;
 
     const nextSyncTime = this.lastSyncTime
@@ -206,7 +206,7 @@ export class McpSyncService extends EventEmitter {
       : new Date();
 
     return {
-      lastSync: this.lastSyncTime?.toISOString() || 'never',
+      lastSync: this.lastSyncTime?.toISOString() || "never",
       agentCount: this.agentCache.size,
       healthy,
       unhealthy: this.agentCache.size - healthy,
@@ -219,7 +219,7 @@ export class McpSyncService extends EventEmitter {
    * Force immediate sync
    */
   public async forceSyncNow(): Promise<void> {
-    logger.info('Force sync requested');
+    logger.info("Force sync requested");
     await this.performSync();
   }
 
@@ -228,11 +228,11 @@ export class McpSyncService extends EventEmitter {
    */
   public setSyncInterval(intervalMs: number): void {
     if (intervalMs < 1000) {
-      throw new Error('Sync interval must be at least 1000ms');
+      throw new Error("Sync interval must be at least 1000ms");
     }
 
     this.syncIntervalMs = intervalMs;
-    logger.info('Sync interval updated', { interval: intervalMs });
+    logger.info("Sync interval updated", { interval: intervalMs });
 
     // Restart if running
     if (this.isRunning) {
@@ -259,7 +259,7 @@ export class McpSyncService extends EventEmitter {
     unhealthy: number;
   } {
     const healthy = Array.from(this.agentCache.values()).filter(
-      (a) => a.healthStatus === 'healthy'
+      (a) => a.healthStatus === "healthy",
     ).length;
 
     return {
@@ -279,7 +279,7 @@ export function initializeMcpSyncService(intervalMs?: number): McpSyncService {
   if (!mcpSyncService) {
     mcpSyncService = new McpSyncService(intervalMs);
     mcpSyncService.start();
-    logger.info('MCP sync service initialized');
+    logger.info("MCP sync service initialized");
   }
   return mcpSyncService;
 }
