@@ -1,18 +1,18 @@
-import { Router, Request, Response } from 'express';
-import gitOps from '../services/gitOps';
+import { Router, Request, Response } from "express";
+import gitOps from "../services/gitOps";
 
 const router = Router();
 
 function requireToken(req: Request) {
   const token = process.env.GITOPS_TOKEN;
   if (!token) return false;
-  const header = req.header('x-gitops-token') || req.header('X-GitOps-Token');
+  const header = req.header("x-gitops-token") || req.header("X-GitOps-Token");
   return header === token;
 }
 
-router.post('/add-commit-push', async (req: Request, res: Response) => {
-  if (process.env.NODE_ENV !== 'test' && !requireToken(req)) {
-    return res.status(403).json({ error: 'Forbidden' });
+router.post("/add-commit-push", async (req: Request, res: Response) => {
+  if (process.env.NODE_ENV !== "test" && !requireToken(req)) {
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   const { branch, message, createBranch, createPR } = req.body || {};
@@ -27,15 +27,19 @@ router.post('/add-commit-push', async (req: Request, res: Response) => {
     const add = await gitOps.safeRun(() => gitOps.gitAddAll());
     if (!add.ok) return res.status(500).json(add);
 
-    const commit = await gitOps.safeRun(() => gitOps.gitCommit(message || 'Automated commit'));
+    const commit = await gitOps.safeRun(() =>
+      gitOps.gitCommit(message || "Automated commit"),
+    );
     if (!commit.ok) return res.status(500).json(commit);
 
-    const push = await gitOps.safeRun(() => gitOps.gitPush(branch || 'main'));
+    const push = await gitOps.safeRun(() => gitOps.gitPush(branch || "main"));
     if (!push.ok) return res.status(500).json(push);
 
     let prResult = null;
     if (createPR) {
-      prResult = await gitOps.safeRun(() => gitOps.ghCreatePR(createPR === true ? (branch || 'main') : createPR));
+      prResult = await gitOps.safeRun(() =>
+        gitOps.ghCreatePR(createPR === true ? branch || "main" : createPR),
+      );
       if (!prResult.ok) return res.status(500).json(prResult);
     }
 

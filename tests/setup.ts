@@ -6,7 +6,7 @@
 /// <reference types="jest" />
 
 // Mock @octokit/rest to avoid ESM import issues
-jest.mock('@octokit/rest', () => ({
+jest.mock("@octokit/rest", () => ({
   Octokit: jest.fn().mockImplementation(() => ({
     repos: {
       get: jest.fn(),
@@ -26,11 +26,11 @@ jest.mock('@octokit/rest', () => ({
 }));
 
 // Mock ioredis to avoid Redis connection issues in tests
-jest.mock('ioredis', () => {
+jest.mock("ioredis", () => {
   const mockRedis = jest.fn().mockImplementation(() => ({
     on: jest.fn(),
     get: jest.fn().mockResolvedValue(null),
-    set: jest.fn().mockResolvedValue('OK'),
+    set: jest.fn().mockResolvedValue("OK"),
     del: jest.fn().mockResolvedValue(1),
     incr: jest.fn().mockResolvedValue(1),
     expire: jest.fn().mockResolvedValue(1),
@@ -38,7 +38,7 @@ jest.mock('ioredis', () => {
     keys: jest.fn().mockResolvedValue([]),
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
-    quit: jest.fn().mockResolvedValue('OK'),
+    quit: jest.fn().mockResolvedValue("OK"),
   }));
   mockRedis.prototype.on = jest.fn();
   return mockRedis;

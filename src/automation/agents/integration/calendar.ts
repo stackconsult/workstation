@@ -5,26 +5,26 @@
  * Phase 10: Workspace Automation - Integration Agents
  */
 
-import { google, calendar_v3 } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
-import { logger } from '../../../utils/logger';
+import { google, calendar_v3 } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
+import { logger } from "../../../utils/logger";
 
 /**
  * Authentication configuration for Google Calendar
- * 
+ *
  * Environment variables required:
  * - GOOGLE_CLIENT_ID: OAuth2 client ID
  * - GOOGLE_CLIENT_SECRET: OAuth2 client secret
  * - GOOGLE_REDIRECT_URI: OAuth2 redirect URI (e.g., http://localhost:3000/oauth2callback)
  * - GOOGLE_SERVICE_ACCOUNT_KEY: Service account JSON key (alternative to OAuth2)
- * 
+ *
  * OAuth2 Flow:
  * 1. Call authenticate() to get auth URL
  * 2. User visits URL and grants permissions
  * 3. Exchange code for tokens using setCredentials()
  */
 export interface CalendarAuthConfig {
-  authType: 'oauth2' | 'serviceAccount';
+  authType: "oauth2" | "serviceAccount";
   clientId?: string;
   clientSecret?: string;
   redirectUri?: string;
@@ -52,18 +52,18 @@ export interface CalendarEvent {
     email: string;
     displayName?: string;
     optional?: boolean;
-    responseStatus?: 'needsAction' | 'declined' | 'tentative' | 'accepted';
+    responseStatus?: "needsAction" | "declined" | "tentative" | "accepted";
   }>;
   recurrence?: string[]; // RRULE format
   reminders?: {
     useDefault: boolean;
     overrides?: Array<{
-      method: 'email' | 'popup';
+      method: "email" | "popup";
       minutes: number;
     }>;
   };
   colorId?: string;
-  status?: 'confirmed' | 'tentative' | 'cancelled';
+  status?: "confirmed" | "tentative" | "cancelled";
 }
 
 export interface EventListParams {
@@ -71,7 +71,7 @@ export interface EventListParams {
   timeMin?: string; // RFC3339 timestamp
   timeMax?: string; // RFC3339 timestamp
   maxResults?: number;
-  orderBy?: 'startTime' | 'updated';
+  orderBy?: "startTime" | "updated";
   showDeleted?: boolean;
   singleEvents?: boolean; // Expand recurring events
 }
@@ -115,15 +115,15 @@ export class CalendarAgent {
    */
   async authenticate(): Promise<{ authUrl?: string; success: boolean }> {
     try {
-      if (this.config.authType === 'oauth2') {
+      if (this.config.authType === "oauth2") {
         return await this.authenticateOAuth2();
-      } else if (this.config.authType === 'serviceAccount') {
+      } else if (this.config.authType === "serviceAccount") {
         return await this.authenticateServiceAccount();
       } else {
         throw new Error(`Unsupported auth type: ${this.config.authType}`);
       }
     } catch (error) {
-      logger.error('Google Calendar authentication failed', { error });
+      logger.error("Google Calendar authentication failed", { error });
       throw error;
     }
   }
@@ -132,11 +132,17 @@ export class CalendarAgent {
    * Authenticate using OAuth2
    * Returns auth URL for user consent
    */
-  private async authenticateOAuth2(): Promise<{ authUrl?: string; success: boolean }> {
-    const { clientId, clientSecret, redirectUri, accessToken, refreshToken } = this.config;
+  private async authenticateOAuth2(): Promise<{
+    authUrl?: string;
+    success: boolean;
+  }> {
+    const { clientId, clientSecret, redirectUri, accessToken, refreshToken } =
+      this.config;
 
     if (!clientId || !clientSecret || !redirectUri) {
-      throw new Error('OAuth2 requires clientId, clientSecret, and redirectUri');
+      throw new Error(
+        "OAuth2 requires clientId, clientSecret, and redirectUri",
+      );
     }
 
     this.auth = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
@@ -145,24 +151,24 @@ export class CalendarAgent {
     if (accessToken) {
       this.auth.setCredentials({
         access_token: accessToken,
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
       });
-      this.calendar = google.calendar({ version: 'v3', auth: this.auth });
+      this.calendar = google.calendar({ version: "v3", auth: this.auth });
       this.authenticated = true;
-      logger.info('Google Calendar OAuth2 authenticated with existing tokens');
+      logger.info("Google Calendar OAuth2 authenticated with existing tokens");
       return { success: true };
     }
 
     // Generate auth URL for user consent
     const authUrl = this.auth.generateAuthUrl({
-      access_type: 'offline',
+      access_type: "offline",
       scope: [
-        'https://www.googleapis.com/auth/calendar',
-        'https://www.googleapis.com/auth/calendar.events'
-      ]
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/calendar.events",
+      ],
     });
 
-    logger.info('Google Calendar OAuth2 auth URL generated', { authUrl });
+    logger.info("Google Calendar OAuth2 auth URL generated", { authUrl });
     return { authUrl, success: false };
   }
 
@@ -173,25 +179,26 @@ export class CalendarAgent {
     const { serviceAccountKey } = this.config;
 
     if (!serviceAccountKey) {
-      throw new Error('Service account requires serviceAccountKey');
+      throw new Error("Service account requires serviceAccountKey");
     }
 
     // Parse key if it's a string
-    const keyData = typeof serviceAccountKey === 'string'
-      ? JSON.parse(serviceAccountKey)
-      : serviceAccountKey;
+    const keyData =
+      typeof serviceAccountKey === "string"
+        ? JSON.parse(serviceAccountKey)
+        : serviceAccountKey;
 
     const auth = new google.auth.GoogleAuth({
       credentials: keyData,
       scopes: [
-        'https://www.googleapis.com/auth/calendar',
-        'https://www.googleapis.com/auth/calendar.events'
-      ]
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/calendar.events",
+      ],
     });
 
-    this.calendar = google.calendar({ version: 'v3', auth });
+    this.calendar = google.calendar({ version: "v3", auth });
     this.authenticated = true;
-    logger.info('Google Calendar authenticated with service account');
+    logger.info("Google Calendar authenticated with service account");
     return { success: true };
   }
 
@@ -199,36 +206,42 @@ export class CalendarAgent {
    * Set OAuth2 credentials after user authorization
    * Call this with the authorization code from redirect
    */
-  async setCredentials(code: string): Promise<{ accessToken: string; refreshToken?: string }> {
+  async setCredentials(
+    code: string,
+  ): Promise<{ accessToken: string; refreshToken?: string }> {
     if (!this.auth) {
-      throw new Error('OAuth2 client not initialized. Call authenticate() first.');
+      throw new Error(
+        "OAuth2 client not initialized. Call authenticate() first.",
+      );
     }
 
     const { tokens } = await this.auth.getToken(code);
     this.auth.setCredentials(tokens);
-    this.calendar = google.calendar({ version: 'v3', auth: this.auth });
+    this.calendar = google.calendar({ version: "v3", auth: this.auth });
     this.authenticated = true;
 
-    logger.info('Google Calendar OAuth2 credentials set successfully');
+    logger.info("Google Calendar OAuth2 credentials set successfully");
 
     return {
       accessToken: tokens.access_token!,
-      refreshToken: tokens.refresh_token || undefined
+      refreshToken: tokens.refresh_token || undefined,
     };
   }
 
   /**
    * Create a calendar event
    */
-  async createEvent(params: CalendarEvent & { calendarId?: string }): Promise<{ eventId: string; htmlLink: string }> {
+  async createEvent(
+    params: CalendarEvent & { calendarId?: string },
+  ): Promise<{ eventId: string; htmlLink: string }> {
     this.ensureAuthenticated();
 
-    const calendarId = params.calendarId || 'primary';
+    const calendarId = params.calendarId || "primary";
 
-    logger.info('Creating calendar event', {
+    logger.info("Creating calendar event", {
       calendarId,
       summary: params.summary,
-      start: params.start
+      start: params.start,
     });
 
     const response = await this.calendar!.events.insert({
@@ -243,14 +256,14 @@ export class CalendarAgent {
         recurrence: params.recurrence,
         reminders: params.reminders,
         colorId: params.colorId,
-        status: params.status
-      }
+        status: params.status,
+      },
     });
 
     const eventId = response.data.id!;
     const htmlLink = response.data.htmlLink!;
 
-    logger.info('Calendar event created successfully', { eventId, htmlLink });
+    logger.info("Calendar event created successfully", { eventId, htmlLink });
 
     return { eventId, htmlLink };
   }
@@ -261,12 +274,12 @@ export class CalendarAgent {
   async listEvents(params: EventListParams): Promise<CalendarEvent[]> {
     this.ensureAuthenticated();
 
-    const calendarId = params.calendarId || 'primary';
+    const calendarId = params.calendarId || "primary";
 
-    logger.info('Listing calendar events', {
+    logger.info("Listing calendar events", {
       calendarId,
       timeMin: params.timeMin,
-      timeMax: params.timeMax
+      timeMax: params.timeMax,
     });
 
     const response = await this.calendar!.events.list({
@@ -275,38 +288,45 @@ export class CalendarAgent {
       timeMax: params.timeMax,
       maxResults: params.maxResults || 100,
       singleEvents: params.singleEvents !== false, // Default: true
-      orderBy: params.orderBy || 'startTime',
-      showDeleted: params.showDeleted || false
+      orderBy: params.orderBy || "startTime",
+      showDeleted: params.showDeleted || false,
     });
 
-    const events: CalendarEvent[] = (response.data.items || []).map(item => ({
+    const events: CalendarEvent[] = (response.data.items || []).map((item) => ({
       id: item.id || undefined,
-      summary: item.summary || 'No title',
+      summary: item.summary || "No title",
       description: item.description || undefined,
       location: item.location || undefined,
       start: {
         dateTime: item.start?.dateTime || undefined,
         date: item.start?.date || undefined,
-        timeZone: item.start?.timeZone || undefined
+        timeZone: item.start?.timeZone || undefined,
       },
       end: {
         dateTime: item.end?.dateTime || undefined,
         date: item.end?.date || undefined,
-        timeZone: item.end?.timeZone || undefined
+        timeZone: item.end?.timeZone || undefined,
       },
-      attendees: item.attendees?.map(attendee => ({
+      attendees: item.attendees?.map((attendee) => ({
         email: attendee.email!,
         displayName: attendee.displayName || undefined,
         optional: attendee.optional || undefined,
-        responseStatus: attendee.responseStatus as 'needsAction' | 'declined' | 'tentative' | 'accepted' | undefined
+        responseStatus: attendee.responseStatus as
+          | "needsAction"
+          | "declined"
+          | "tentative"
+          | "accepted"
+          | undefined,
       })),
       recurrence: item.recurrence || undefined,
-      reminders: item.reminders as CalendarEvent['reminders'],
+      reminders: item.reminders as CalendarEvent["reminders"],
       colorId: item.colorId || undefined,
-      status: item.status as CalendarEvent['status']
+      status: item.status as CalendarEvent["status"],
     }));
 
-    logger.info('Calendar events listed successfully', { count: events.length });
+    logger.info("Calendar events listed successfully", {
+      count: events.length,
+    });
 
     return events;
   }
@@ -314,51 +334,59 @@ export class CalendarAgent {
   /**
    * Get a specific event by ID
    */
-  async getEvent(params: { calendarId?: string; eventId: string }): Promise<CalendarEvent> {
+  async getEvent(params: {
+    calendarId?: string;
+    eventId: string;
+  }): Promise<CalendarEvent> {
     this.ensureAuthenticated();
 
-    const calendarId = params.calendarId || 'primary';
+    const calendarId = params.calendarId || "primary";
 
-    logger.info('Getting calendar event', {
+    logger.info("Getting calendar event", {
       calendarId,
-      eventId: params.eventId
+      eventId: params.eventId,
     });
 
     const response = await this.calendar!.events.get({
       calendarId,
-      eventId: params.eventId
+      eventId: params.eventId,
     });
 
     const item = response.data;
 
     const event: CalendarEvent = {
       id: item.id || undefined,
-      summary: item.summary || 'No title',
+      summary: item.summary || "No title",
       description: item.description || undefined,
       location: item.location || undefined,
       start: {
         dateTime: item.start?.dateTime || undefined,
         date: item.start?.date || undefined,
-        timeZone: item.start?.timeZone || undefined
+        timeZone: item.start?.timeZone || undefined,
       },
       end: {
         dateTime: item.end?.dateTime || undefined,
         date: item.end?.date || undefined,
-        timeZone: item.end?.timeZone || undefined
+        timeZone: item.end?.timeZone || undefined,
       },
-      attendees: item.attendees?.map(attendee => ({
+      attendees: item.attendees?.map((attendee) => ({
         email: attendee.email!,
         displayName: attendee.displayName || undefined,
         optional: attendee.optional || undefined,
-        responseStatus: attendee.responseStatus as 'needsAction' | 'declined' | 'tentative' | 'accepted' | undefined
+        responseStatus: attendee.responseStatus as
+          | "needsAction"
+          | "declined"
+          | "tentative"
+          | "accepted"
+          | undefined,
       })),
       recurrence: item.recurrence || undefined,
-      reminders: item.reminders as CalendarEvent['reminders'],
+      reminders: item.reminders as CalendarEvent["reminders"],
       colorId: item.colorId || undefined,
-      status: item.status as CalendarEvent['status']
+      status: item.status as CalendarEvent["status"],
     };
 
-    logger.info('Calendar event retrieved successfully', { eventId: event.id });
+    logger.info("Calendar event retrieved successfully", { eventId: event.id });
 
     return event;
   }
@@ -366,15 +394,17 @@ export class CalendarAgent {
   /**
    * Update an existing event
    */
-  async updateEvent(params: CalendarEvent & { calendarId?: string; eventId: string }): Promise<{ eventId: string; htmlLink: string }> {
+  async updateEvent(
+    params: CalendarEvent & { calendarId?: string; eventId: string },
+  ): Promise<{ eventId: string; htmlLink: string }> {
     this.ensureAuthenticated();
 
-    const calendarId = params.calendarId || 'primary';
+    const calendarId = params.calendarId || "primary";
 
-    logger.info('Updating calendar event', {
+    logger.info("Updating calendar event", {
       calendarId,
       eventId: params.eventId,
-      summary: params.summary
+      summary: params.summary,
     });
 
     const response = await this.calendar!.events.update({
@@ -390,14 +420,14 @@ export class CalendarAgent {
         recurrence: params.recurrence,
         reminders: params.reminders,
         colorId: params.colorId,
-        status: params.status
-      }
+        status: params.status,
+      },
     });
 
     const eventId = response.data.id!;
     const htmlLink = response.data.htmlLink!;
 
-    logger.info('Calendar event updated successfully', { eventId, htmlLink });
+    logger.info("Calendar event updated successfully", { eventId, htmlLink });
 
     return { eventId, htmlLink };
   }
@@ -405,22 +435,27 @@ export class CalendarAgent {
   /**
    * Delete an event
    */
-  async deleteEvent(params: { calendarId?: string; eventId: string }): Promise<{ success: boolean }> {
+  async deleteEvent(params: {
+    calendarId?: string;
+    eventId: string;
+  }): Promise<{ success: boolean }> {
     this.ensureAuthenticated();
 
-    const calendarId = params.calendarId || 'primary';
+    const calendarId = params.calendarId || "primary";
 
-    logger.info('Deleting calendar event', {
+    logger.info("Deleting calendar event", {
       calendarId,
-      eventId: params.eventId
+      eventId: params.eventId,
     });
 
     await this.calendar!.events.delete({
       calendarId,
-      eventId: params.eventId
+      eventId: params.eventId,
     });
 
-    logger.info('Calendar event deleted successfully', { eventId: params.eventId });
+    logger.info("Calendar event deleted successfully", {
+      eventId: params.eventId,
+    });
 
     return { success: true };
   }
@@ -431,40 +466,43 @@ export class CalendarAgent {
   async checkAvailability(params: FreeBusyQuery): Promise<FreeBusyResult> {
     this.ensureAuthenticated();
 
-    logger.info('Checking calendar availability', {
+    logger.info("Checking calendar availability", {
       timeMin: params.timeMin,
       timeMax: params.timeMax,
-      calendarCount: params.calendarIds.length
+      calendarCount: params.calendarIds.length,
     });
 
     const response = await this.calendar!.freebusy.query({
       requestBody: {
         timeMin: params.timeMin,
         timeMax: params.timeMax,
-        timeZone: params.timeZone || 'UTC',
-        items: params.calendarIds.map(id => ({ id }))
-      }
+        timeZone: params.timeZone || "UTC",
+        items: params.calendarIds.map((id) => ({ id })),
+      },
     });
 
     const result: FreeBusyResult = {
-      calendars: {}
+      calendars: {},
     };
 
     // Parse response
     if (response.data.calendars) {
-      for (const [calendarId, calendarData] of Object.entries(response.data.calendars)) {
+      for (const [calendarId, calendarData] of Object.entries(
+        response.data.calendars,
+      )) {
         result.calendars[calendarId] = {
-          busy: (calendarData.busy || []).map(period => ({
+          busy: (calendarData.busy || []).map((period) => ({
             start: period.start!,
-            end: period.end!
+            end: period.end!,
           })),
-          errors: calendarData.errors as FreeBusyResult['calendars'][string]['errors']
+          errors:
+            calendarData.errors as FreeBusyResult["calendars"][string]["errors"],
         };
       }
     }
 
-    logger.info('Calendar availability checked successfully', {
-      calendarCount: Object.keys(result.calendars).length
+    logger.info("Calendar availability checked successfully", {
+      calendarCount: Object.keys(result.calendars).length,
     });
 
     return result;
@@ -475,7 +513,7 @@ export class CalendarAgent {
    */
   private ensureAuthenticated(): void {
     if (!this.authenticated || !this.calendar) {
-      throw new Error('Not authenticated. Call authenticate() first.');
+      throw new Error("Not authenticated. Call authenticate() first.");
     }
   }
 
@@ -486,7 +524,7 @@ export class CalendarAgent {
     this.auth = null;
     this.calendar = null;
     this.authenticated = false;
-    logger.info('Google Calendar agent disconnected');
+    logger.info("Google Calendar agent disconnected");
   }
 }
 
@@ -497,7 +535,9 @@ export function getCalendarAgent(config?: CalendarAuthConfig): CalendarAgent {
   if (!defaultCalendarAgent && config) {
     defaultCalendarAgent = new CalendarAgent(config);
   } else if (!defaultCalendarAgent) {
-    throw new Error('CalendarAgent not initialized. Provide config on first call.');
+    throw new Error(
+      "CalendarAgent not initialized. Provide config on first call.",
+    );
   }
   return defaultCalendarAgent;
 }

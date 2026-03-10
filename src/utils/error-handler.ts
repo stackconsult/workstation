@@ -1,40 +1,40 @@
 /**
  * Centralized Error Handling Utilities
- * 
+ *
  * Provides enterprise-grade error handling, logging, and recovery mechanisms
  * for all agents and services in the workstation ecosystem.
- * 
+ *
  * @module utils/error-handler
  * @version 1.0.0
  */
 
-import { logger } from './logger';
+import { logger } from "./logger";
 
 /**
  * Error severity levels for classification and alerting
  */
 export enum ErrorSeverity {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  CRITICAL = 'critical'
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  CRITICAL = "critical",
 }
 
 /**
  * Error categories for classification and routing
  */
 export enum ErrorCategory {
-  VALIDATION = 'validation',
-  AUTHENTICATION = 'authentication',
-  AUTHORIZATION = 'authorization',
-  NETWORK = 'network',
-  DATABASE = 'database',
-  EXTERNAL_API = 'external_api',
-  INTERNAL = 'internal',
-  CONFIGURATION = 'configuration',
-  RESOURCE = 'resource',
-  TIMEOUT = 'timeout',
-  UNKNOWN = 'unknown'
+  VALIDATION = "validation",
+  AUTHENTICATION = "authentication",
+  AUTHORIZATION = "authorization",
+  NETWORK = "network",
+  DATABASE = "database",
+  EXTERNAL_API = "external_api",
+  INTERNAL = "internal",
+  CONFIGURATION = "configuration",
+  RESOURCE = "resource",
+  TIMEOUT = "timeout",
+  UNKNOWN = "unknown",
 }
 
 /**
@@ -82,10 +82,10 @@ export class AppError extends Error {
   constructor(
     message: string,
     code: string,
-    metadata?: Partial<ErrorMetadata>
+    metadata?: Partial<ErrorMetadata>,
   ) {
     super(message);
-    this.name = 'AppError';
+    this.name = "AppError";
     this.code = code;
     this.category = metadata?.category || ErrorCategory.UNKNOWN;
     this.severity = metadata?.severity || ErrorSeverity.MEDIUM;
@@ -112,8 +112,8 @@ export class AppError extends Error {
         severity: this.severity,
         timestamp: this.timestamp,
         details: this.context,
-        ...(includeStack && { stack: this.stack })
-      }
+        ...(includeStack && { stack: this.stack }),
+      },
     };
   }
 }
@@ -131,20 +131,23 @@ export class ErrorHandler {
    */
   static handle(error: unknown, context?: Record<string, unknown>): AppError {
     const appError = this.normalize(error, context);
-    
+
     // Log the error
     this.logError(appError);
-    
+
     // Track error frequency
     this.trackError(appError.code);
-    
+
     return appError;
   }
 
   /**
    * Normalize any error to AppError
    */
-  static normalize(error: unknown, context?: Record<string, unknown>): AppError {
+  static normalize(
+    error: unknown,
+    context?: Record<string, unknown>,
+  ): AppError {
     if (error instanceof AppError) {
       // Add additional context if provided
       if (context && error.context) {
@@ -155,31 +158,23 @@ export class ErrorHandler {
 
     if (error instanceof Error) {
       // Convert standard Error to AppError
-      return new AppError(
-        error.message,
-        'UNKNOWN_ERROR',
-        {
-          category: ErrorCategory.UNKNOWN,
-          severity: ErrorSeverity.MEDIUM,
-          context: {
-            ...context,
-            originalName: error.name,
-            stack: error.stack
-          }
-        }
-      );
+      return new AppError(error.message, "UNKNOWN_ERROR", {
+        category: ErrorCategory.UNKNOWN,
+        severity: ErrorSeverity.MEDIUM,
+        context: {
+          ...context,
+          originalName: error.name,
+          stack: error.stack,
+        },
+      });
     }
 
     // Handle non-Error objects
-    return new AppError(
-      String(error),
-      'UNKNOWN_ERROR',
-      {
-        category: ErrorCategory.UNKNOWN,
-        severity: ErrorSeverity.LOW,
-        context
-      }
-    );
+    return new AppError(String(error), "UNKNOWN_ERROR", {
+      category: ErrorCategory.UNKNOWN,
+      severity: ErrorSeverity.LOW,
+      context,
+    });
   }
 
   /**
@@ -192,21 +187,21 @@ export class ErrorHandler {
       severity: error.severity,
       message: error.message,
       context: error.context,
-      timestamp: error.timestamp
+      timestamp: error.timestamp,
     };
 
     switch (error.severity) {
       case ErrorSeverity.CRITICAL:
-        logger.error('CRITICAL ERROR', logData);
+        logger.error("CRITICAL ERROR", logData);
         break;
       case ErrorSeverity.HIGH:
-        logger.error('High severity error', logData);
+        logger.error("High severity error", logData);
         break;
       case ErrorSeverity.MEDIUM:
-        logger.warn('Medium severity error', logData);
+        logger.warn("Medium severity error", logData);
         break;
       case ErrorSeverity.LOW:
-        logger.info('Low severity error', logData);
+        logger.info("Low severity error", logData);
         break;
     }
   }
@@ -217,7 +212,7 @@ export class ErrorHandler {
   private static trackError(code: string): void {
     const now = Date.now();
     const lastTime = this.lastErrorTime.get(code) || 0;
-    
+
     // Reset counter if enough time has passed
     if (now - lastTime > this.ERROR_RESET_INTERVAL) {
       this.errorCounts.set(code, 1);
@@ -225,7 +220,7 @@ export class ErrorHandler {
       const count = (this.errorCounts.get(code) || 0) + 1;
       this.errorCounts.set(code, count);
     }
-    
+
     this.lastErrorTime.set(code, now);
   }
 
@@ -247,14 +242,18 @@ export class ErrorHandler {
       backoffMultiplier?: number;
       retryableErrors?: ErrorCategory[];
       onRetry?: (attempt: number, error: AppError) => void;
-    } = {}
+    } = {},
   ): Promise<T> {
     const {
       maxRetries = 3,
       delayMs = 1000,
       backoffMultiplier = 2,
-      retryableErrors = [ErrorCategory.NETWORK, ErrorCategory.TIMEOUT, ErrorCategory.EXTERNAL_API],
-      onRetry
+      retryableErrors = [
+        ErrorCategory.NETWORK,
+        ErrorCategory.TIMEOUT,
+        ErrorCategory.EXTERNAL_API,
+      ],
+      onRetry,
     } = options;
 
     let lastError: AppError | undefined;
@@ -278,22 +277,22 @@ export class ErrorHandler {
 
         // Calculate delay with exponential backoff
         const delay = delayMs * Math.pow(backoffMultiplier, attempt - 1);
-        
+
         if (onRetry) {
           onRetry(attempt, lastError);
         }
 
         logger.warn(`Retrying operation (attempt ${attempt}/${maxRetries})`, {
           error: lastError.code,
-          delay
+          delay,
         });
 
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
     if (!lastError) {
-      throw new AppError('Operation failed after retries', 'UNKNOWN_ERROR');
+      throw new AppError("Operation failed after retries", "UNKNOWN_ERROR");
     }
     throw lastError;
   }
@@ -304,7 +303,7 @@ export class ErrorHandler {
   static async withTimeout<T>(
     fn: () => Promise<T>,
     timeoutMs: number,
-    timeoutError?: string
+    timeoutError?: string,
   ): Promise<T> {
     return Promise.race([
       fn(),
@@ -314,17 +313,17 @@ export class ErrorHandler {
             reject(
               new AppError(
                 timeoutError || `Operation timed out after ${timeoutMs}ms`,
-                'OPERATION_TIMEOUT',
+                "OPERATION_TIMEOUT",
                 {
                   category: ErrorCategory.TIMEOUT,
                   severity: ErrorSeverity.HIGH,
-                  retryable: true
-                }
-              )
+                  retryable: true,
+                },
+              ),
             ),
-          timeoutMs
-        )
-      )
+          timeoutMs,
+        ),
+      ),
     ]);
   }
 
@@ -334,41 +333,41 @@ export class ErrorHandler {
   static validationError(
     message: string,
     field?: string,
-    value?: unknown
+    value?: unknown,
   ): AppError {
-    return new AppError(message, 'VALIDATION_ERROR', {
+    return new AppError(message, "VALIDATION_ERROR", {
       category: ErrorCategory.VALIDATION,
       severity: ErrorSeverity.LOW,
       context: { field, value },
       recoverable: true,
       retryable: false,
-      userMessage: message
+      userMessage: message,
     });
   }
 
   /**
    * Create authentication error
    */
-  static authenticationError(message = 'Authentication failed'): AppError {
-    return new AppError(message, 'AUTHENTICATION_ERROR', {
+  static authenticationError(message = "Authentication failed"): AppError {
+    return new AppError(message, "AUTHENTICATION_ERROR", {
       category: ErrorCategory.AUTHENTICATION,
       severity: ErrorSeverity.HIGH,
       recoverable: false,
       retryable: false,
-      userMessage: 'Authentication required'
+      userMessage: "Authentication required",
     });
   }
 
   /**
    * Create authorization error
    */
-  static authorizationError(message = 'Insufficient permissions'): AppError {
-    return new AppError(message, 'AUTHORIZATION_ERROR', {
+  static authorizationError(message = "Insufficient permissions"): AppError {
+    return new AppError(message, "AUTHORIZATION_ERROR", {
       category: ErrorCategory.AUTHORIZATION,
       severity: ErrorSeverity.MEDIUM,
       recoverable: false,
       retryable: false,
-      userMessage: 'Access denied'
+      userMessage: "Access denied",
     });
   }
 
@@ -376,13 +375,13 @@ export class ErrorHandler {
    * Create network error
    */
   static networkError(message: string, url?: string): AppError {
-    return new AppError(message, 'NETWORK_ERROR', {
+    return new AppError(message, "NETWORK_ERROR", {
       category: ErrorCategory.NETWORK,
       severity: ErrorSeverity.MEDIUM,
       context: { url },
       recoverable: true,
       retryable: true,
-      userMessage: 'Network error occurred'
+      userMessage: "Network error occurred",
     });
   }
 
@@ -390,13 +389,13 @@ export class ErrorHandler {
    * Create database error
    */
   static databaseError(message: string, operation?: string): AppError {
-    return new AppError(message, 'DATABASE_ERROR', {
+    return new AppError(message, "DATABASE_ERROR", {
       category: ErrorCategory.DATABASE,
       severity: ErrorSeverity.HIGH,
       context: { operation },
       recoverable: true,
       retryable: true,
-      userMessage: 'Database operation failed'
+      userMessage: "Database operation failed",
     });
   }
 
@@ -406,15 +405,15 @@ export class ErrorHandler {
   static externalApiError(
     message: string,
     service?: string,
-    statusCode?: number
+    statusCode?: number,
   ): AppError {
-    return new AppError(message, 'EXTERNAL_API_ERROR', {
+    return new AppError(message, "EXTERNAL_API_ERROR", {
       category: ErrorCategory.EXTERNAL_API,
       severity: ErrorSeverity.MEDIUM,
       context: { service, statusCode },
       recoverable: true,
       retryable: statusCode ? statusCode >= 500 : true,
-      userMessage: 'External service error'
+      userMessage: "External service error",
     });
   }
 
@@ -422,13 +421,13 @@ export class ErrorHandler {
    * Create resource error (file not found, etc.)
    */
   static resourceError(message: string, resource?: string): AppError {
-    return new AppError(message, 'RESOURCE_ERROR', {
+    return new AppError(message, "RESOURCE_ERROR", {
       category: ErrorCategory.RESOURCE,
       severity: ErrorSeverity.MEDIUM,
       context: { resource },
       recoverable: false,
       retryable: false,
-      userMessage: 'Resource not available'
+      userMessage: "Resource not available",
     });
   }
 
@@ -436,13 +435,13 @@ export class ErrorHandler {
    * Create configuration error
    */
   static configError(message: string, setting?: string): AppError {
-    return new AppError(message, 'CONFIGURATION_ERROR', {
+    return new AppError(message, "CONFIGURATION_ERROR", {
       category: ErrorCategory.CONFIGURATION,
       severity: ErrorSeverity.CRITICAL,
       context: { setting },
       recoverable: false,
       retryable: false,
-      userMessage: 'System configuration error'
+      userMessage: "System configuration error",
     });
   }
 }
@@ -454,14 +453,14 @@ export function errorMiddleware(
   error: unknown,
   _req: any,
   res: any,
-  _next: any
+  _next: any,
 ): void {
   const appError = ErrorHandler.handle(error);
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  res.status(getHttpStatusCode(appError)).json(
-    appError.toResponse(isDevelopment)
-  );
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  res
+    .status(getHttpStatusCode(appError))
+    .json(appError.toResponse(isDevelopment));
 }
 
 /**
@@ -496,7 +495,7 @@ function getHttpStatusCode(error: AppError): number {
  * Async route handler wrapper
  */
 export function asyncHandler(
-  fn: (req: any, res: any, next: any) => Promise<any>
+  fn: (req: any, res: any, next: any) => Promise<any>,
 ) {
   return (req: any, res: any, next: any) => {
     Promise.resolve(fn(req, res, next)).catch(next);

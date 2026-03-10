@@ -3,10 +3,10 @@
  * Dynamic rate limits based on load and user behavior
  */
 
-import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
-import RedisStore from 'rate-limit-redis';
-import Redis from 'ioredis';
-import { logger } from '../utils/logger';
+import rateLimit, { RateLimitRequestHandler } from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import Redis from "ioredis";
+import { logger } from "../utils/logger";
 
 // Redis client for rate limiting
 let redisClient: Redis | null = null;
@@ -14,26 +14,29 @@ let redisClient: Redis | null = null;
 try {
   if (process.env.REDIS_URL || process.env.REDIS_HOST) {
     redisClient = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
+      host: process.env.REDIS_HOST || "localhost",
+      port: parseInt(process.env.REDIS_PORT || "6379"),
       password: process.env.REDIS_PASSWORD,
-      db: parseInt(process.env.REDIS_DB || '0'),
+      db: parseInt(process.env.REDIS_DB || "0"),
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
     });
 
-    redisClient.on('error', (error) => {
-      logger.error('Redis rate limit client error', { error });
+    redisClient.on("error", (error) => {
+      logger.error("Redis rate limit client error", { error });
     });
 
-    redisClient.on('connect', () => {
-      logger.info('Redis rate limit client connected');
+    redisClient.on("connect", () => {
+      logger.info("Redis rate limit client connected");
     });
   }
 } catch (error) {
-  logger.warn('Failed to initialize Redis for rate limiting, falling back to memory store', { error });
+  logger.warn(
+    "Failed to initialize Redis for rate limiting, falling back to memory store",
+    { error },
+  );
 }
 
 // ============================================
@@ -53,7 +56,9 @@ interface AdaptiveRateLimitConfig {
 /**
  * Create adaptive rate limiter
  */
-function createAdaptiveLimiter(config: AdaptiveRateLimitConfig): RateLimitRequestHandler {
+function createAdaptiveLimiter(
+  config: AdaptiveRateLimitConfig,
+): RateLimitRequestHandler {
   const baseConfig: any = {
     windowMs: config.windowMs,
     max: config.max,
@@ -64,11 +69,11 @@ function createAdaptiveLimiter(config: AdaptiveRateLimitConfig): RateLimitReques
     skipFailedRequests: config.skipFailedRequests ?? false,
     // Key generator - use IP or user ID
     keyGenerator: (req: any) => {
-      return req.user?.userId || req.ip || 'anonymous';
+      return req.user?.userId || req.ip || "anonymous";
     },
     // Custom handler for rate limit exceeded
     handler: (req: any, res: any) => {
-      logger.warn('Rate limit exceeded', {
+      logger.warn("Rate limit exceeded", {
         ip: req.ip,
         path: req.path,
         userId: req.user?.userId,
@@ -87,7 +92,7 @@ function createAdaptiveLimiter(config: AdaptiveRateLimitConfig): RateLimitReques
     baseConfig.store = new RedisStore({
       // @ts-expect-error - RedisStore types compatibility
       client: redisClient,
-      prefix: 'rl:',
+      prefix: "rl:",
     });
   }
 
@@ -105,7 +110,7 @@ function createAdaptiveLimiter(config: AdaptiveRateLimitConfig): RateLimitReques
 export const globalRateLimiter = createAdaptiveLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
-  message: 'Too many requests from this IP, please try again later.',
+  message: "Too many requests from this IP, please try again later.",
 });
 
 /**
@@ -115,7 +120,7 @@ export const globalRateLimiter = createAdaptiveLimiter({
 export const authRateLimiter = createAdaptiveLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
-  message: 'Too many authentication attempts, please try again later.',
+  message: "Too many authentication attempts, please try again later.",
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
 });
@@ -127,7 +132,7 @@ export const authRateLimiter = createAdaptiveLimiter({
 export const apiRateLimiter = createAdaptiveLimiter({
   windowMs: 60 * 1000, // 1 minute
   max: 60,
-  message: 'API rate limit exceeded, please slow down.',
+  message: "API rate limit exceeded, please slow down.",
 });
 
 /**
@@ -137,7 +142,8 @@ export const apiRateLimiter = createAdaptiveLimiter({
 export const executionRateLimiter = createAdaptiveLimiter({
   windowMs: 60 * 1000, // 1 minute
   max: 10,
-  message: 'Too many workflow executions, please wait before starting new workflows.',
+  message:
+    "Too many workflow executions, please wait before starting new workflows.",
   skipSuccessfulRequests: false,
 });
 
@@ -148,7 +154,7 @@ export const executionRateLimiter = createAdaptiveLimiter({
 export const uploadRateLimiter = createAdaptiveLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 20,
-  message: 'Upload limit exceeded, please try again later.',
+  message: "Upload limit exceeded, please try again later.",
 });
 
 /**
@@ -158,7 +164,7 @@ export const uploadRateLimiter = createAdaptiveLimiter({
 export const websocketRateLimiter = createAdaptiveLimiter({
   windowMs: 60 * 1000, // 1 minute
   max: 5,
-  message: 'Too many WebSocket connection attempts.',
+  message: "Too many WebSocket connection attempts.",
 });
 
 // ============================================
@@ -202,7 +208,9 @@ export class AdaptiveRateLimiter {
   /**
    * Create adaptive limiter that adjusts with server load
    */
-  public createAdaptiveLimiter(config: AdaptiveRateLimitConfig): RateLimitRequestHandler {
+  public createAdaptiveLimiter(
+    config: AdaptiveRateLimitConfig,
+  ): RateLimitRequestHandler {
     const limiter = createAdaptiveLimiter({
       ...config,
       max: this.getAdjustedLimit(config.max),
@@ -211,7 +219,7 @@ export class AdaptiveRateLimiter {
     // Update limits periodically based on load
     setInterval(() => {
       // In production, this would dynamically adjust the rate limiter
-      logger.debug('Adaptive rate limit check', {
+      logger.debug("Adaptive rate limit check", {
         currentLoad: this.currentLoad,
         adjustedLimit: this.getAdjustedLimit(config.max),
       });
@@ -230,6 +238,6 @@ export const adaptiveRateLimiter = new AdaptiveRateLimiter();
 export async function shutdownRateLimiter(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
-    logger.info('Rate limiter Redis client shut down');
+    logger.info("Rate limiter Redis client shut down");
   }
 }

@@ -4,14 +4,14 @@
  * Phase 11: Training Component
  */
 
-import { logger } from '../../utils/logger';
+import { logger } from "../../utils/logger";
 
 export interface Lesson {
   id: string;
   title: string;
   description: string;
-  category: 'email' | 'file' | 'rss' | 'template' | 'workflow' | 'advanced';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  category: "email" | "file" | "rss" | "template" | "workflow" | "advanced";
+  difficulty: "beginner" | "intermediate" | "advanced";
   estimatedTime: number; // in minutes
   prerequisites: string[]; // lesson IDs
   objectives: string[];
@@ -51,7 +51,10 @@ export interface ExerciseSolution {
   explanation: string;
 }
 
-export type ValidationFunction = (userCode: string, result: unknown) => ValidationResult;
+export type ValidationFunction = (
+  userCode: string,
+  result: unknown,
+) => ValidationResult;
 
 export interface ValidationResult {
   passed: boolean;
@@ -60,7 +63,7 @@ export interface ValidationResult {
 }
 
 export interface Resource {
-  type: 'video' | 'documentation' | 'article' | 'example';
+  type: "video" | "documentation" | "article" | "example";
   title: string;
   url: string;
   duration?: number; // for videos, in minutes
@@ -87,7 +90,7 @@ export interface Achievement {
 
 export interface SkillLevel {
   category: string;
-  level: 'novice' | 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  level: "novice" | "beginner" | "intermediate" | "advanced" | "expert";
   score: number; // 0-100
   lessonsCompleted: number;
   exercisesCompleted: number;
@@ -111,19 +114,19 @@ export class TrainingModule {
    */
   private registerDefaultLessons(): void {
     // Implementation truncated for brevity - see full implementation
-    logger.info('Default lessons registered', { count: this.lessons.size });
+    logger.info("Default lessons registered", { count: this.lessons.size });
   }
 
   /**
    * Register achievements
    */
   private registerAchievements(): void {
-    this.achievements.set('first-lesson', {
-      id: 'first-lesson',
-      title: 'Getting Started',
-      description: 'Complete your first lesson',
-      icon: '🎓',
-      earnedDate: new Date()
+    this.achievements.set("first-lesson", {
+      id: "first-lesson",
+      title: "Getting Started",
+      description: "Complete your first lesson",
+      icon: "🎓",
+      earnedDate: new Date(),
     });
   }
 
@@ -132,7 +135,7 @@ export class TrainingModule {
    */
   registerLesson(lesson: Lesson): void {
     this.lessons.set(lesson.id, lesson);
-    logger.info('Lesson registered', { id: lesson.id, title: lesson.title });
+    logger.info("Lesson registered", { id: lesson.id, title: lesson.title });
   }
 
   /**
@@ -146,7 +149,9 @@ export class TrainingModule {
    * Get lessons by category
    */
   getLessonsByCategory(category: string): Lesson[] {
-    return Array.from(this.lessons.values()).filter(l => l.category === category);
+    return Array.from(this.lessons.values()).filter(
+      (l) => l.category === category,
+    );
   }
 
   /**
@@ -169,7 +174,7 @@ export class TrainingModule {
         achievements: [],
         skillLevels: new Map(),
         totalTimeSpent: 0,
-        lastActivityDate: new Date()
+        lastActivityDate: new Date(),
       });
     }
     return this.userProgress.get(userId)!;
@@ -180,13 +185,13 @@ export class TrainingModule {
    */
   completeLesson(userId: string, lessonId: string, timeSpent: number): void {
     const progress = this.getUserProgress(userId);
-    
+
     if (!progress.completedLessons.includes(lessonId)) {
       progress.completedLessons.push(lessonId);
       progress.totalTimeSpent += timeSpent;
       progress.lastActivityDate = new Date();
-      
-      logger.info('Lesson completed', { userId, lessonId, timeSpent });
+
+      logger.info("Lesson completed", { userId, lessonId, timeSpent });
     }
   }
 
@@ -197,8 +202,8 @@ export class TrainingModule {
     const progress = this.getUserProgress(userId);
     progress.exerciseScores.set(exerciseId, score);
     progress.lastActivityDate = new Date();
-    
-    logger.info('Exercise scored', { userId, exerciseId, score });
+
+    logger.info("Exercise scored", { userId, exerciseId, score });
   }
 }
 

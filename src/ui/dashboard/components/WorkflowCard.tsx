@@ -2,13 +2,13 @@
  * Workflow Card Component
  */
 
-import React from 'react';
+import React from "react";
 
 interface Workflow {
   id: string;
   name: string;
   description: string;
-  status: 'active' | 'paused' | 'draft';
+  status: "active" | "paused" | "draft";
   lastRun?: string;
   successRate: number;
   totalRuns: number;
@@ -20,26 +20,29 @@ interface WorkflowCardProps {
   onUpdate: () => void;
 }
 
-export const WorkflowCard: React.FC<WorkflowCardProps> = ({ workflow, onUpdate }) => {
+export const WorkflowCard: React.FC<WorkflowCardProps> = ({
+  workflow,
+  onUpdate,
+}) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'status-success';
-      case 'paused':
-        return 'status-warning';
-      case 'draft':
-        return 'status-info';
+      case "active":
+        return "status-success";
+      case "paused":
+        return "status-warning";
+      case "draft":
+        return "status-info";
       default:
-        return 'status-info';
+        return "status-info";
     }
   };
 
   const handleExecute = async () => {
     try {
-      await fetch(`/api/workflows/${workflow.id}/execute`, { method: 'POST' });
+      await fetch(`/api/workflows/${workflow.id}/execute`, { method: "POST" });
       onUpdate();
     } catch (error) {
-      console.error('Failed to execute workflow:', error);
+      console.error("Failed to execute workflow:", error);
     }
   };
 

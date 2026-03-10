@@ -1,6 +1,6 @@
 /**
  * Workflow State Manager - Redis-backed workflow execution tracking
- * 
+ *
  * Features:
  * - Real-time workflow state tracking
  * - Distributed locks for concurrent execution prevention
@@ -19,12 +19,12 @@ import {
   removeActiveExecution,
   getActiveExecutions,
   DEFAULT_TTL,
-} from './redis';
+} from "./redis";
 
 export interface WorkflowState {
   executionId: string;
   workflowId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: "pending" | "running" | "completed" | "failed" | "cancelled";
   progress: number; // 0-100
   currentStep: string;
   totalSteps: number;
@@ -46,7 +46,9 @@ export interface ExecutionLock {
 /**
  * Update workflow execution state
  */
-export async function updateWorkflowState(state: WorkflowState): Promise<boolean> {
+export async function updateWorkflowState(
+  state: WorkflowState,
+): Promise<boolean> {
   state.updatedAt = Date.now();
   return await setWorkflowState(state.executionId, state);
 }
@@ -54,7 +56,9 @@ export async function updateWorkflowState(state: WorkflowState): Promise<boolean
 /**
  * Get workflow execution state
  */
-export async function fetchWorkflowState(executionId: string): Promise<WorkflowState | null> {
+export async function fetchWorkflowState(
+  executionId: string,
+): Promise<WorkflowState | null> {
   const state = await getWorkflowState(executionId);
   return state as WorkflowState | null;
 }
@@ -62,7 +66,9 @@ export async function fetchWorkflowState(executionId: string): Promise<WorkflowS
 /**
  * Clear workflow execution state
  */
-export async function clearWorkflowState(executionId: string): Promise<boolean> {
+export async function clearWorkflowState(
+  executionId: string,
+): Promise<boolean> {
   return await deleteWorkflowState(executionId);
 }
 
@@ -73,14 +79,14 @@ export async function startWorkflowTracking(
   executionId: string,
   workflowId: string,
   totalSteps: number,
-  data: Record<string, any> = {}
+  data: Record<string, any> = {},
 ): Promise<boolean> {
   const state: WorkflowState = {
     executionId,
     workflowId,
-    status: 'running',
+    status: "running",
     progress: 0,
-    currentStep: 'initializing',
+    currentStep: "initializing",
     totalSteps,
     completedSteps: 0,
     data,
@@ -104,7 +110,7 @@ export async function updateWorkflowProgress(
   executionId: string,
   completedSteps: number,
   currentStep: string,
-  additionalData?: Record<string, any>
+  additionalData?: Record<string, any>,
 ): Promise<boolean> {
   const state = await fetchWorkflowState(executionId);
   if (!state) {
@@ -115,7 +121,7 @@ export async function updateWorkflowProgress(
   state.completedSteps = completedSteps;
   state.currentStep = currentStep;
   state.progress = Math.round((completedSteps / state.totalSteps) * 100);
-  
+
   if (additionalData) {
     state.data = { ...state.data, ...additionalData };
   }
@@ -136,9 +142,9 @@ export async function updateWorkflowProgress(
  */
 export async function completeWorkflowTracking(
   executionId: string,
-  status: 'completed' | 'failed' | 'cancelled',
+  status: "completed" | "failed" | "cancelled",
   error?: string,
-  finalData?: Record<string, any>
+  finalData?: Record<string, any>,
 ): Promise<boolean> {
   const state = await fetchWorkflowState(executionId);
   if (!state) {
@@ -147,15 +153,18 @@ export async function completeWorkflowTracking(
   }
 
   state.status = status;
-  state.progress = status === 'completed' ? 100 : state.progress;
+  state.progress = status === "completed" ? 100 : state.progress;
   state.error = error;
-  
+
   if (finalData) {
     state.data = { ...state.data, ...finalData };
   }
 
   // Save final state (with longer TTL for completed workflows)
-  const ttl: number = status === 'completed' ? DEFAULT_TTL.WORKFLOW_STATE * 2 : DEFAULT_TTL.WORKFLOW_STATE;
+  const ttl: number =
+    status === "completed"
+      ? DEFAULT_TTL.WORKFLOW_STATE * 2
+      : DEFAULT_TTL.WORKFLOW_STATE;
   const saved = await setWorkflowState(executionId, state, ttl);
 
   // Remove from active executions
@@ -171,22 +180,30 @@ export async function completeWorkflowTracking(
  */
 export async function lockWorkflowExecution(
   executionId: string,
-  workerId: string
+  workerId: string,
 ): Promise<boolean> {
-  return await acquireExecutionLock(executionId, workerId, DEFAULT_TTL.EXECUTION_LOCK);
+  return await acquireExecutionLock(
+    executionId,
+    workerId,
+    DEFAULT_TTL.EXECUTION_LOCK,
+  );
 }
 
 /**
  * Release workflow execution lock
  */
-export async function unlockWorkflowExecution(executionId: string): Promise<boolean> {
+export async function unlockWorkflowExecution(
+  executionId: string,
+): Promise<boolean> {
   return await releaseExecutionLock(executionId);
 }
 
 /**
  * Check if workflow execution is locked
  */
-export async function isWorkflowLocked(executionId: string): Promise<{ locked: boolean; workerId?: string }> {
+export async function isWorkflowLocked(
+  executionId: string,
+): Promise<{ locked: boolean; workerId?: string }> {
   const workerId = await checkExecutionLock(executionId);
   return {
     locked: workerId !== null,
@@ -222,7 +239,10 @@ export async function getActiveWorkflowsStatus(): Promise<WorkflowState[]> {
  * Clean up stale workflow states
  * (Should be called periodically via cron job)
  */
-export async function cleanupStaleWorkflows(): Promise<{ cleaned: number; errors: number }> {
+export async function cleanupStaleWorkflows(): Promise<{
+  cleaned: number;
+  errors: number;
+}> {
   const activeIds = await getActiveExecutions();
   let cleaned = 0;
   let errors = 0;
@@ -230,15 +250,22 @@ export async function cleanupStaleWorkflows(): Promise<{ cleaned: number; errors
   for (const id of activeIds) {
     try {
       const state = await fetchWorkflowState(id);
-      
+
       // If state doesn't exist or workflow is stuck for > 1 hour
       if (!state) {
         // State doesn't exist but execution is in active set - remove it
         await removeActiveExecution(id);
         cleaned++;
-      } else if (Date.now() - state.updatedAt > 3600000 && state.status === 'running') {
+      } else if (
+        Date.now() - state.updatedAt > 3600000 &&
+        state.status === "running"
+      ) {
         // Workflow is stuck - mark as failed and remove from active
-        await completeWorkflowTracking(id, 'failed', 'Workflow timed out or became unresponsive');
+        await completeWorkflowTracking(
+          id,
+          "failed",
+          "Workflow timed out or became unresponsive",
+        );
         await removeActiveExecution(id);
         cleaned++;
       }
@@ -295,15 +322,15 @@ export async function getWorkflowStatistics(): Promise<{
 export async function executeWithLock<T>(
   executionId: string,
   workerId: string,
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<T> {
   // Try to acquire lock
   const locked = await lockWorkflowExecution(executionId, workerId);
-  
+
   if (!locked) {
     const lockInfo = await isWorkflowLocked(executionId);
     throw new Error(
-      `Workflow execution ${executionId} is already locked by worker ${lockInfo.workerId || 'unknown'}`
+      `Workflow execution ${executionId} is already locked by worker ${lockInfo.workerId || "unknown"}`,
     );
   }
 

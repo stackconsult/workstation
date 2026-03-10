@@ -1,6 +1,6 @@
 /**
  * Context-Memory Intelligence Layer - Type Definitions
- * 
+ *
  * Provides TypeScript interfaces for entity tracking, workflow history,
  * and adaptive learning across the workstation automation system.
  */
@@ -11,7 +11,15 @@
  */
 export interface Entity {
   id: string;
-  type: 'file' | 'repository' | 'issue' | 'pr' | 'agent' | 'workflow' | 'user' | 'custom';
+  type:
+    | "file"
+    | "repository"
+    | "issue"
+    | "pr"
+    | "agent"
+    | "workflow"
+    | "user"
+    | "custom";
   name: string;
   metadata: Record<string, unknown>;
   first_seen: string;
@@ -37,7 +45,12 @@ export interface EntityContext {
  */
 export interface EntityRelationship {
   entity_id: string;
-  relationship_type: 'depends_on' | 'modifies' | 'created_by' | 'used_by' | 'related_to';
+  relationship_type:
+    | "depends_on"
+    | "modifies"
+    | "created_by"
+    | "used_by"
+    | "related_to";
   strength: number; // 0-1
   created_at: string;
 }
@@ -52,7 +65,7 @@ export interface WorkflowHistoryRecord {
   started_at: string;
   completed_at?: string;
   duration_ms?: number;
-  status: 'success' | 'failure' | 'partial' | 'cancelled';
+  status: "success" | "failure" | "partial" | "cancelled";
   metrics: ExecutionMetrics;
   entities_accessed: string[];
   error_message?: string;
@@ -79,7 +92,11 @@ export interface ExecutionMetrics {
  */
 export interface WorkflowPattern {
   id: string;
-  pattern_type: 'success_sequence' | 'failure_point' | 'performance_bottleneck' | 'optimization_opportunity';
+  pattern_type:
+    | "success_sequence"
+    | "failure_point"
+    | "performance_bottleneck"
+    | "optimization_opportunity";
   description: string;
   confidence: number; // 0-1
   occurrences: number;
@@ -94,7 +111,11 @@ export interface WorkflowPattern {
  */
 export interface LearningModel {
   id: string;
-  model_type: 'workflow_optimization' | 'error_prediction' | 'resource_allocation' | 'task_sequencing';
+  model_type:
+    | "workflow_optimization"
+    | "error_prediction"
+    | "resource_allocation"
+    | "task_sequencing";
   version: number;
   trained_at: string;
   accuracy: number; // 0-1
@@ -120,7 +141,11 @@ export interface PerformanceSnapshot {
  */
 export interface LearningModelSuggestion {
   id: string;
-  suggestion_type: 'workflow_optimization' | 'error_prevention' | 'resource_tuning' | 'sequence_improvement';
+  suggestion_type:
+    | "workflow_optimization"
+    | "error_prevention"
+    | "resource_tuning"
+    | "sequence_improvement";
   description: string;
   confidence: number; // 0-1
   estimated_impact: {
@@ -155,14 +180,14 @@ export interface SuggestionFeedback {
  * Query options for entity store
  */
 export interface EntityQueryOptions {
-  type?: Entity['type'];
+  type?: Entity["type"];
   tags?: string[];
   min_importance?: number;
   workflow_id?: string;
   limit?: number;
   offset?: number;
-  sort_by?: 'importance' | 'access_count' | 'last_seen';
-  sort_order?: 'asc' | 'desc';
+  sort_by?: "importance" | "access_count" | "last_seen";
+  sort_order?: "asc" | "desc";
 }
 
 /**
@@ -170,7 +195,7 @@ export interface EntityQueryOptions {
  */
 export interface WorkflowHistoryQueryOptions {
   workflow_id?: string;
-  status?: WorkflowHistoryRecord['status'];
+  status?: WorkflowHistoryRecord["status"];
   start_date?: string;
   end_date?: string;
   limit?: number;
@@ -182,7 +207,7 @@ export interface WorkflowHistoryQueryOptions {
  * Configuration for learning model training
  */
 export interface LearningModelConfig {
-  model_type: LearningModel['model_type'];
+  model_type: LearningModel["model_type"];
   training_window_days: number;
   min_samples: number;
   auto_retrain: boolean;

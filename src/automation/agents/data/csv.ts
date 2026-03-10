@@ -4,9 +4,9 @@
  * Phase 1: Data Agents
  */
 
-import { parse } from 'csv-parse/sync';
-import { stringify } from 'csv-stringify/sync';
-import { logger } from '../../../utils/logger';
+import { parse } from "csv-parse/sync";
+import { stringify } from "csv-stringify/sync";
+import { logger } from "../../../utils/logger";
 
 export interface CsvParseOptions {
   delimiter?: string;
@@ -23,7 +23,16 @@ export interface CsvWriteOptions {
 
 export interface CsvFilterOptions {
   column: string;
-  operator: 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'contains' | 'startsWith' | 'endsWith';
+  operator:
+    | "eq"
+    | "ne"
+    | "gt"
+    | "lt"
+    | "gte"
+    | "lte"
+    | "contains"
+    | "startsWith"
+    | "endsWith";
   value: string | number;
 }
 
@@ -53,10 +62,10 @@ export class CsvAgent {
   }> {
     try {
       const options: CsvParseOptions = {
-        delimiter: ',',
+        delimiter: ",",
         headers: true,
         skipEmptyLines: true,
-        ...params.options
+        ...params.options,
       };
 
       const records = parse(params.input, {
@@ -64,12 +73,13 @@ export class CsvAgent {
         columns: options.columns ?? options.headers,
         skip_empty_lines: options.skipEmptyLines,
         trim: true,
-        cast: true // Auto-convert numbers and booleans
+        cast: true, // Auto-convert numbers and booleans
       });
 
-      const columns = options.headers && records.length > 0 
-        ? Object.keys(records[0])
-        : undefined;
+      const columns =
+        options.headers && records.length > 0
+          ? Object.keys(records[0])
+          : undefined;
 
       logger.info(`CSV parsed successfully: ${records.length} rows`);
 
@@ -77,14 +87,14 @@ export class CsvAgent {
         success: true,
         data: records,
         columns,
-        rowCount: records.length
+        rowCount: records.length,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('CSV parse error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("CSV parse error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -92,43 +102,40 @@ export class CsvAgent {
   /**
    * Write data to CSV format
    */
-  async writeCsv(params: {
-    data: any[];
-    options?: CsvWriteOptions;
-  }): Promise<{
+  async writeCsv(params: { data: any[]; options?: CsvWriteOptions }): Promise<{
     success: boolean;
     csv?: string;
     error?: string;
   }> {
     try {
       if (!Array.isArray(params.data) || params.data.length === 0) {
-        throw new Error('Data must be a non-empty array');
+        throw new Error("Data must be a non-empty array");
       }
 
       const options: CsvWriteOptions = {
-        delimiter: ',',
+        delimiter: ",",
         headers: true,
-        ...params.options
+        ...params.options,
       };
 
       const csv = stringify(params.data, {
         delimiter: options.delimiter,
         header: options.headers,
-        columns: options.columns
+        columns: options.columns,
       });
 
       logger.info(`CSV generated: ${params.data.length} rows`);
 
       return {
         success: true,
-        csv
+        csv,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('CSV write error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("CSV write error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -147,52 +154,54 @@ export class CsvAgent {
   }> {
     try {
       if (!Array.isArray(params.data)) {
-        throw new Error('Data must be an array');
+        throw new Error("Data must be an array");
       }
 
       // Apply all filters in a single pass for better performance
-      const filtered = params.data.filter(row =>
-        params.filters.every(filter => {
+      const filtered = params.data.filter((row) =>
+        params.filters.every((filter) => {
           const value = row[filter.column];
-          
+
           switch (filter.operator) {
-            case 'eq':
+            case "eq":
               return value == filter.value;
-            case 'ne':
+            case "ne":
               return value != filter.value;
-            case 'gt':
+            case "gt":
               return Number(value) > Number(filter.value);
-            case 'lt':
+            case "lt":
               return Number(value) < Number(filter.value);
-            case 'gte':
+            case "gte":
               return Number(value) >= Number(filter.value);
-            case 'lte':
+            case "lte":
               return Number(value) <= Number(filter.value);
-            case 'contains':
+            case "contains":
               return String(value).includes(String(filter.value));
-            case 'startsWith':
+            case "startsWith":
               return String(value).startsWith(String(filter.value));
-            case 'endsWith':
+            case "endsWith":
               return String(value).endsWith(String(filter.value));
             default:
               return true;
           }
-        })
+        }),
       );
 
-      logger.info(`CSV filtered: ${params.data.length} → ${filtered.length} rows`);
+      logger.info(
+        `CSV filtered: ${params.data.length} → ${filtered.length} rows`,
+      );
 
       return {
         success: true,
         data: filtered,
-        filteredCount: filtered.length
+        filteredCount: filtered.length,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('CSV filter error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("CSV filter error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -210,15 +219,17 @@ export class CsvAgent {
   }> {
     try {
       if (!Array.isArray(params.data)) {
-        throw new Error('Data must be an array');
+        throw new Error("Data must be an array");
       }
 
-      const transformed = params.data.map(row => {
+      const transformed = params.data.map((row) => {
         const newRow: any = {};
 
         // Rename columns
         if (params.transforms.columns) {
-          for (const [oldName, newName] of Object.entries(params.transforms.columns)) {
+          for (const [oldName, newName] of Object.entries(
+            params.transforms.columns,
+          )) {
             if (oldName in row) {
               newRow[newName] = row[oldName];
             }
@@ -235,8 +246,10 @@ export class CsvAgent {
 
         // Transform values
         if (params.transforms.mapValues) {
-          for (const [column, transformer] of Object.entries(params.transforms.mapValues)) {
-            if (column in newRow && typeof transformer === 'function') {
+          for (const [column, transformer] of Object.entries(
+            params.transforms.mapValues,
+          )) {
+            if (column in newRow && typeof transformer === "function") {
               newRow[column] = transformer(newRow[column]);
             }
           }
@@ -244,8 +257,10 @@ export class CsvAgent {
 
         // Add computed columns
         if (params.transforms.addColumns) {
-          for (const [column, computer] of Object.entries(params.transforms.addColumns)) {
-            if (typeof computer === 'function') {
+          for (const [column, computer] of Object.entries(
+            params.transforms.addColumns,
+          )) {
+            if (typeof computer === "function") {
               newRow[column] = computer(newRow);
             }
           }
@@ -258,14 +273,14 @@ export class CsvAgent {
 
       return {
         success: true,
-        data: transformed
+        data: transformed,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('CSV transform error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("CSV transform error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }
@@ -273,60 +288,60 @@ export class CsvAgent {
   /**
    * Get CSV statistics
    */
-  async getStats(params: {
-    data: any[];
-    columns?: string[];
-  }): Promise<{
+  async getStats(params: { data: any[]; columns?: string[] }): Promise<{
     success: boolean;
     stats?: Record<string, any>;
     error?: string;
   }> {
     try {
       if (!Array.isArray(params.data) || params.data.length === 0) {
-        throw new Error('Data must be a non-empty array');
+        throw new Error("Data must be a non-empty array");
       }
 
       const columns = params.columns || Object.keys(params.data[0]);
       const stats: Record<string, any> = {};
 
       for (const column of columns) {
-        const values = params.data.map(row => row[column]).filter(v => v !== null && v !== undefined);
-        
+        const values = params.data
+          .map((row) => row[column])
+          .filter((v) => v !== null && v !== undefined);
+
         // Determine if numeric
-        const numericValues = values.map(Number).filter(n => !isNaN(n));
+        const numericValues = values.map(Number).filter((n) => !isNaN(n));
         const isNumeric = numericValues.length === values.length;
 
         if (isNumeric && numericValues.length > 0) {
           stats[column] = {
-            type: 'numeric',
+            type: "numeric",
             count: numericValues.length,
             min: Math.min(...numericValues),
             max: Math.max(...numericValues),
-            avg: numericValues.reduce((a, b) => a + b, 0) / numericValues.length,
-            sum: numericValues.reduce((a, b) => a + b, 0)
+            avg:
+              numericValues.reduce((a, b) => a + b, 0) / numericValues.length,
+            sum: numericValues.reduce((a, b) => a + b, 0),
           };
         } else {
           // String statistics
           const unique = new Set(values);
           stats[column] = {
-            type: 'string',
+            type: "string",
             count: values.length,
             unique: unique.size,
-            mostCommon: this.getMostCommon(values)
+            mostCommon: this.getMostCommon(values),
           };
         }
       }
 
       return {
         success: true,
-        stats
+        stats,
       };
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('CSV stats error:', { error: errorMsg });
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      logger.error("CSV stats error:", { error: errorMsg });
       return {
         success: false,
-        error: errorMsg
+        error: errorMsg,
       };
     }
   }

@@ -1,32 +1,33 @@
 /**
  * Redis Service - Centralized Redis connection and operations
- * 
+ *
  * Provides:
  * - Session caching
  * - Workflow state tracking
  * - Distributed locks
  * - Generic key-value operations
- * 
+ *
  * Gracefully degrades to in-memory storage when Redis is unavailable
  */
 
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
 // Configuration
-const REDIS_ENABLED = process.env.REDIS_ENABLED === 'true' || process.env.NODE_ENV === 'production';
-const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379');
+const REDIS_ENABLED =
+  process.env.REDIS_ENABLED === "true" || process.env.NODE_ENV === "production";
+const REDIS_HOST = process.env.REDIS_HOST || "localhost";
+const REDIS_PORT = parseInt(process.env.REDIS_PORT || "6379");
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
-const REDIS_DB = parseInt(process.env.REDIS_DB || '0');
+const REDIS_DB = parseInt(process.env.REDIS_DB || "0");
 
 // Key prefixes for namespacing
 export const KEY_PREFIXES = {
-  SESSION: 'wks:session:',
-  WORKFLOW_STATE: 'wks:workflow:',
-  EXECUTION_LOCK: 'wks:lock:execution:',
-  ACTIVE_EXECUTIONS: 'wks:executions:active',
-  API_CACHE: 'wks:cache:api:',
-  RATE_LIMIT: 'wks:ratelimit:',
+  SESSION: "wks:session:",
+  WORKFLOW_STATE: "wks:workflow:",
+  EXECUTION_LOCK: "wks:lock:execution:",
+  ACTIVE_EXECUTIONS: "wks:executions:active",
+  API_CACHE: "wks:cache:api:",
+  RATE_LIMIT: "wks:ratelimit:",
 } as const;
 
 // Default TTLs (in seconds)
@@ -76,7 +77,7 @@ class RedisService {
     if (this.useRedis) {
       this.initializeClient();
     } else {
-      console.log('📝 Redis disabled, using in-memory store');
+      console.log("📝 Redis disabled, using in-memory store");
     }
   }
 
@@ -93,7 +94,9 @@ class RedisService {
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
         if (times > 3) {
-          console.error('❌ Redis connection failed after 3 retries, falling back to memory store');
+          console.error(
+            "❌ Redis connection failed after 3 retries, falling back to memory store",
+          );
           this.useRedis = false;
           this.scheduleReconnect();
           return null;
@@ -102,7 +105,7 @@ class RedisService {
       },
     });
 
-    this.client.on('connect', () => {
+    this.client.on("connect", () => {
       this.isConnected = true;
       this.useRedis = true;
       this.reconnectAttempts = 0;
@@ -110,17 +113,17 @@ class RedisService {
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = null;
       }
-      console.log('✅ Redis client connected');
+      console.log("✅ Redis client connected");
     });
 
-    this.client.on('error', (err) => {
-      console.error('❌ Redis client error:', err.message);
+    this.client.on("error", (err) => {
+      console.error("❌ Redis client error:", err.message);
       this.isConnected = false;
     });
 
-    this.client.on('close', () => {
+    this.client.on("close", () => {
       this.isConnected = false;
-      console.warn('⚠️  Redis connection closed');
+      console.warn("⚠️  Redis connection closed");
     });
   }
 
@@ -128,24 +131,34 @@ class RedisService {
    * Schedule a reconnection attempt
    */
   private scheduleReconnect(): void {
-    if (this.reconnectTimer || this.reconnectAttempts >= this.maxReconnectAttempts) {
+    if (
+      this.reconnectTimer ||
+      this.reconnectAttempts >= this.maxReconnectAttempts
+    ) {
       return;
     }
 
     // Exponential backoff: 30s, 1m, 2m, 4m, 8m, etc., max 30m
-    const delay = Math.min(30000 * Math.pow(2, this.reconnectAttempts), 1800000);
-    
-    console.log(`🔄 Scheduling Redis reconnect attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts} in ${delay/1000}s`);
-    
+    const delay = Math.min(
+      30000 * Math.pow(2, this.reconnectAttempts),
+      1800000,
+    );
+
+    console.log(
+      `🔄 Scheduling Redis reconnect attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts} in ${delay / 1000}s`,
+    );
+
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       this.reconnectAttempts++;
-      console.log(`🔄 Attempting to reconnect to Redis (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      
+      console.log(
+        `🔄 Attempting to reconnect to Redis (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
+      );
+
       if (this.client) {
         this.client.disconnect();
       }
-      
+
       this.useRedis = true;
       this.initializeClient();
     }, delay);
@@ -156,13 +169,13 @@ class RedisService {
    */
   reconnect(): void {
     if (this.isConnected) {
-      console.log('✅ Redis already connected');
+      console.log("✅ Redis already connected");
       return;
     }
 
-    console.log('🔄 Manual Redis reconnection initiated');
+    console.log("🔄 Manual Redis reconnection initiated");
     this.reconnectAttempts = 0;
-    
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -191,7 +204,7 @@ class RedisService {
       try {
         return await this.client.get(key);
       } catch (error) {
-        console.error('Redis GET error:', error);
+        console.error("Redis GET error:", error);
         return this.getFromMemory(key);
       }
     }
@@ -211,7 +224,7 @@ class RedisService {
         }
         return true;
       } catch (error) {
-        console.error('Redis SET error:', error);
+        console.error("Redis SET error:", error);
         return this.setInMemory(key, value, ttl);
       }
     }
@@ -227,7 +240,7 @@ class RedisService {
         await this.client.del(key);
         return true;
       } catch (error) {
-        console.error('Redis DEL error:', error);
+        console.error("Redis DEL error:", error);
         memoryStore.delete(key);
         return true;
       }
@@ -245,7 +258,7 @@ class RedisService {
         const result = await this.client.exists(key);
         return result === 1;
       } catch (error) {
-        console.error('Redis EXISTS error:', error);
+        console.error("Redis EXISTS error:", error);
         return this.existsInMemory(key);
       }
     }
@@ -258,10 +271,10 @@ class RedisService {
   async setNX(key: string, value: string, ttl: number): Promise<boolean> {
     if (this.isAvailable() && this.client) {
       try {
-        const result = await this.client.set(key, value, 'EX', ttl, 'NX');
-        return result === 'OK';
+        const result = await this.client.set(key, value, "EX", ttl, "NX");
+        return result === "OK";
       } catch (error) {
-        console.error('Redis SETNX error:', error);
+        console.error("Redis SETNX error:", error);
         return this.setNXInMemory(key, value, ttl);
       }
     }
@@ -276,7 +289,7 @@ class RedisService {
       try {
         return await this.client.sadd(key, ...members);
       } catch (error) {
-        console.error('Redis SADD error:', error);
+        console.error("Redis SADD error:", error);
         return this.saddInMemory(key, ...members);
       }
     }
@@ -291,7 +304,7 @@ class RedisService {
       try {
         return await this.client.srem(key, ...members);
       } catch (error) {
-        console.error('Redis SREM error:', error);
+        console.error("Redis SREM error:", error);
         return this.sremInMemory(key, ...members);
       }
     }
@@ -306,7 +319,7 @@ class RedisService {
       try {
         return await this.client.smembers(key);
       } catch (error) {
-        console.error('Redis SMEMBERS error:', error);
+        console.error("Redis SMEMBERS error:", error);
         return this.smembersInMemory(key);
       }
     }
@@ -321,7 +334,7 @@ class RedisService {
       try {
         return await this.client.hset(key, field, value);
       } catch (error) {
-        console.error('Redis HSET error:', error);
+        console.error("Redis HSET error:", error);
         return this.hsetInMemory(key, field, value);
       }
     }
@@ -336,7 +349,7 @@ class RedisService {
       try {
         return await this.client.hget(key, field);
       } catch (error) {
-        console.error('Redis HGET error:', error);
+        console.error("Redis HGET error:", error);
         return this.hgetInMemory(key, field);
       }
     }
@@ -351,7 +364,7 @@ class RedisService {
       try {
         return await this.client.hgetall(key);
       } catch (error) {
-        console.error('Redis HGETALL error:', error);
+        console.error("Redis HGETALL error:", error);
         return this.hgetallInMemory(key);
       }
     }
@@ -366,7 +379,7 @@ class RedisService {
       try {
         return await this.client.incr(key);
       } catch (error) {
-        console.error('Redis INCR error:', error);
+        console.error("Redis INCR error:", error);
         return this.incrInMemory(key);
       }
     }
@@ -382,7 +395,7 @@ class RedisService {
         const result = await this.client.expire(key, seconds);
         return result === 1;
       } catch (error) {
-        console.error('Redis EXPIRE error:', error);
+        console.error("Redis EXPIRE error:", error);
         return this.expireInMemory(key, seconds);
       }
     }
@@ -397,7 +410,7 @@ class RedisService {
       try {
         return await this.client.ttl(key);
       } catch (error) {
-        console.error('Redis TTL error:', error);
+        console.error("Redis TTL error:", error);
         return this.ttlInMemory(key);
       }
     }
@@ -451,41 +464,41 @@ class RedisService {
   private saddInMemory(key: string, ...members: string[]): number {
     const item = memoryStore.get(key);
     let set: Set<string>;
-    
+
     if (item) {
       set = new Set(JSON.parse(item.value));
     } else {
       set = new Set();
     }
-    
+
     const initialSize = set.size;
-    members.forEach(m => set.add(m));
-    
-    memoryStore.set(key, { 
-      value: JSON.stringify([...set]), 
-      expiry: null 
+    members.forEach((m) => set.add(m));
+
+    memoryStore.set(key, {
+      value: JSON.stringify([...set]),
+      expiry: null,
     });
-    
+
     return set.size - initialSize;
   }
 
   private sremInMemory(key: string, ...members: string[]): number {
     const item = memoryStore.get(key);
     if (!item) return 0;
-    
+
     const set = new Set(JSON.parse(item.value));
     const initialSize = set.size;
-    members.forEach(m => set.delete(m));
-    
+    members.forEach((m) => set.delete(m));
+
     if (set.size === 0) {
       memoryStore.delete(key);
     } else {
-      memoryStore.set(key, { 
-        value: JSON.stringify([...set]), 
-        expiry: null 
+      memoryStore.set(key, {
+        value: JSON.stringify([...set]),
+        expiry: null,
       });
     }
-    
+
     return initialSize - set.size;
   }
 
@@ -498,21 +511,21 @@ class RedisService {
   private hsetInMemory(key: string, field: string, value: string): number {
     const item = memoryStore.get(key);
     let hash: Record<string, string>;
-    
+
     if (item) {
       hash = JSON.parse(item.value);
     } else {
       hash = {};
     }
-    
+
     const isNew = !hash[field];
     hash[field] = value;
-    
-    memoryStore.set(key, { 
-      value: JSON.stringify(hash), 
-      expiry: null 
+
+    memoryStore.set(key, {
+      value: JSON.stringify(hash),
+      expiry: null,
     });
-    
+
     return isNew ? 1 : 0;
   }
 
@@ -533,9 +546,9 @@ class RedisService {
     const item = memoryStore.get(key);
     const current = item ? parseInt(item.value) : 0;
     const newValue = current + 1;
-    memoryStore.set(key, { 
-      value: String(newValue), 
-      expiry: item?.expiry || null 
+    memoryStore.set(key, {
+      value: String(newValue),
+      expiry: item?.expiry || null,
     });
     return newValue;
   }
@@ -564,9 +577,17 @@ export const redisService = new RedisService();
 /**
  * Session management
  */
-export async function setSession(userId: string, sessionData: object, ttl?: number): Promise<boolean> {
+export async function setSession(
+  userId: string,
+  sessionData: object,
+  ttl?: number,
+): Promise<boolean> {
   const key = `${KEY_PREFIXES.SESSION}${userId}`;
-  return await redisService.set(key, JSON.stringify(sessionData), ttl || DEFAULT_TTL.SESSION);
+  return await redisService.set(
+    key,
+    JSON.stringify(sessionData),
+    ttl || DEFAULT_TTL.SESSION,
+  );
 }
 
 export async function getSession(userId: string): Promise<object | null> {
@@ -583,18 +604,30 @@ export async function deleteSession(userId: string): Promise<boolean> {
 /**
  * Workflow state management
  */
-export async function setWorkflowState(executionId: string, state: object, ttl?: number): Promise<boolean> {
+export async function setWorkflowState(
+  executionId: string,
+  state: object,
+  ttl?: number,
+): Promise<boolean> {
   const key = `${KEY_PREFIXES.WORKFLOW_STATE}${executionId}`;
-  return await redisService.set(key, JSON.stringify(state), ttl || DEFAULT_TTL.WORKFLOW_STATE);
+  return await redisService.set(
+    key,
+    JSON.stringify(state),
+    ttl || DEFAULT_TTL.WORKFLOW_STATE,
+  );
 }
 
-export async function getWorkflowState(executionId: string): Promise<object | null> {
+export async function getWorkflowState(
+  executionId: string,
+): Promise<object | null> {
   const key = `${KEY_PREFIXES.WORKFLOW_STATE}${executionId}`;
   const data = await redisService.get(key);
   return data ? JSON.parse(data) : null;
 }
 
-export async function deleteWorkflowState(executionId: string): Promise<boolean> {
+export async function deleteWorkflowState(
+  executionId: string,
+): Promise<boolean> {
   const key = `${KEY_PREFIXES.WORKFLOW_STATE}${executionId}`;
   return await redisService.del(key);
 }
@@ -602,17 +635,29 @@ export async function deleteWorkflowState(executionId: string): Promise<boolean>
 /**
  * Distributed locks for workflow execution
  */
-export async function acquireExecutionLock(executionId: string, workerId: string, ttl?: number): Promise<boolean> {
+export async function acquireExecutionLock(
+  executionId: string,
+  workerId: string,
+  ttl?: number,
+): Promise<boolean> {
   const key = `${KEY_PREFIXES.EXECUTION_LOCK}${executionId}`;
-  return await redisService.setNX(key, workerId, ttl || DEFAULT_TTL.EXECUTION_LOCK);
+  return await redisService.setNX(
+    key,
+    workerId,
+    ttl || DEFAULT_TTL.EXECUTION_LOCK,
+  );
 }
 
-export async function releaseExecutionLock(executionId: string): Promise<boolean> {
+export async function releaseExecutionLock(
+  executionId: string,
+): Promise<boolean> {
   const key = `${KEY_PREFIXES.EXECUTION_LOCK}${executionId}`;
   return await redisService.del(key);
 }
 
-export async function checkExecutionLock(executionId: string): Promise<string | null> {
+export async function checkExecutionLock(
+  executionId: string,
+): Promise<string | null> {
   const key = `${KEY_PREFIXES.EXECUTION_LOCK}${executionId}`;
   return await redisService.get(key);
 }
@@ -624,7 +669,9 @@ export async function addActiveExecution(executionId: string): Promise<number> {
   return await redisService.sadd(KEY_PREFIXES.ACTIVE_EXECUTIONS, executionId);
 }
 
-export async function removeActiveExecution(executionId: string): Promise<number> {
+export async function removeActiveExecution(
+  executionId: string,
+): Promise<number> {
   return await redisService.srem(KEY_PREFIXES.ACTIVE_EXECUTIONS, executionId);
 }
 
@@ -635,12 +682,22 @@ export async function getActiveExecutions(): Promise<string[]> {
 /**
  * API response caching
  */
-export async function cacheAPIResponse(hash: string, response: object, ttl?: number): Promise<boolean> {
+export async function cacheAPIResponse(
+  hash: string,
+  response: object,
+  ttl?: number,
+): Promise<boolean> {
   const key = `${KEY_PREFIXES.API_CACHE}${hash}`;
-  return await redisService.set(key, JSON.stringify(response), ttl || DEFAULT_TTL.API_CACHE);
+  return await redisService.set(
+    key,
+    JSON.stringify(response),
+    ttl || DEFAULT_TTL.API_CACHE,
+  );
 }
 
-export async function getCachedAPIResponse(hash: string): Promise<object | null> {
+export async function getCachedAPIResponse(
+  hash: string,
+): Promise<object | null> {
   const key = `${KEY_PREFIXES.API_CACHE}${hash}`;
   const data = await redisService.get(key);
   return data ? JSON.parse(data) : null;
@@ -649,16 +706,20 @@ export async function getCachedAPIResponse(hash: string): Promise<object | null>
 /**
  * Health check
  */
-export async function redisHealthCheck(): Promise<{ healthy: boolean; usingRedis: boolean; connected: boolean }> {
+export async function redisHealthCheck(): Promise<{
+  healthy: boolean;
+  usingRedis: boolean;
+  connected: boolean;
+}> {
   const usingRedis = redisService.isAvailable();
   let connected = false;
 
   if (usingRedis) {
     try {
-      await redisService.set('health:check', 'ok', 10);
-      const value = await redisService.get('health:check');
-      connected = value === 'ok';
-      await redisService.del('health:check');
+      await redisService.set("health:check", "ok", 10);
+      const value = await redisService.get("health:check");
+      connected = value === "ok";
+      await redisService.del("health:check");
     } catch {
       connected = false;
     }

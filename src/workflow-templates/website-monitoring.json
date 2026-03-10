@@ -4,7 +4,13 @@
   "description": "Navigate to a website, take a screenshot, check for specific content changes, and send notifications. Ideal for monitoring website uptime, content updates, or price changes.",
   "category": "monitoring",
   "icon": "📊",
-  "tags": ["monitoring", "screenshot", "notification", "alerts", "intermediate"],
+  "tags": [
+    "monitoring",
+    "screenshot",
+    "notification",
+    "alerts",
+    "intermediate"
+  ],
   "complexity": "intermediate",
   "estimatedDuration": "2-4 minutes",
   "createdAt": "2025-11-21T00:00:00Z",
